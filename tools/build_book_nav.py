@@ -1,13 +1,10 @@
-"""Generate the per-book root hub (index.html) and the mixed_shelf catalog.
+"""Generate each book's mixed_shelf catalog.
 
-The hub is the entry point that the app's brand link already pointed at
-(`../index.html`). It links the three parts of each book:
+The root index pages are custom-authored landing pages. Their local navigation
+is checked by verify_navigation.py; this script owns only the generated shelf
+catalogs, so running it cannot replace the custom designs.
 
-  - the interactive app          <book>_mojo/index.html
-  - the single source of truth   single_source_of_truth mojo/index.html
-  - the standalone mixed shelf   mixed_shelf/index.html
-
-Run with --check to verify the generated files match what is on disk.
+Run with --check to verify the generated catalogs match what is on disk.
 """
 
 import argparse
@@ -25,49 +22,6 @@ TITLES = {
     "finance": "Finance",
     "geomatics": "Geomatics",
     "operations_research": "Operations Research",
-}
-
-# Standalone pages that belong to each book's own domain. The mixed shelf holds
-# all 65 files in every book; these are the ones worth surfacing per book.
-DOMAIN_PAGES = {
-    "data_science": [
-        "ai_agents_python_vs_mojo.html",
-        "data_science.html",
-        "decision_aware_ml.html",
-        "ds_ml_textbook_09_syntax_tour.html",
-        "ds_textbook_00_cover.html",
-        "ds_tools.html",
-        "fine_tuning_llms.html",
-        "linear_regression.html",
-        "mlp_xor.html",
-        "neural_network.html",
-        "nn_mojo.html",
-        "numerical_python_to_mojo.html",
-        "numoj.html",
-        "perceptrons_and_activation.html",
-        "time_series_analytics.html",
-    ],
-    "finance": [
-        "future_value_and_annuities.html",
-        "npv_amortisation.html",
-        "the_annuity_codex.html",
-    ],
-    "geomatics": [
-        "geo_computations.html",
-        "gnss_surveying.html",
-        "karney_krueger_equations.html",
-    ],
-    "operations_research": [
-        "operations_research.html",
-        "simplex_algorithm.html",
-    ],
-}
-
-LANDING = {
-    "data_science": "ds_advanced_00_cover.html",
-    "finance": "future_value_and_annuities.html",
-    "geomatics": "geo_computations.html",
-    "operations_research": "simplex_algorithm.html",
 }
 
 CSS = """
@@ -98,84 +52,6 @@ footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line);
           --fg:#141a2b; --dim:#5a6280; --accent:#2f5bd8; }
 }
 """
-
-LEDE = {
-    "data_science": "Data science in Mojo: the interactive tutorial, the single source of truth manual, and the standalone reference pages.",
-    "finance": "Quantitative finance in Mojo: the interactive tutorial, the single source of truth manual, and the standalone reference pages.",
-    "geomatics": "Geodesy, projections, and adjustment in Mojo: the interactive tutorial, the single source of truth manual, and the standalone reference pages.",
-    "operations_research": "Linear programming, networks, and queues in Mojo: the interactive tutorial, the single source of truth manual, and the standalone reference pages.",
-}
-
-SST_BLURB = {
-    "data_science": "38 chapters covering the language, its ownership model, and tensor work.",
-    "finance": "38 chapters covering the language, its ownership model, and numeric work.",
-    "geomatics": "38 chapters covering the language, its ownership model, and numeric work.",
-    "operations_research": "38 chapters covering the language, its ownership model, and numeric work.",
-}
-
-
-def sst_href(from_dir: Path, book_root: Path) -> str:
-    rel = (book_root / SST_DIR / "index.html").relative_to(from_dir)
-    return urllib.parse.quote(rel.as_posix())
-
-
-def build_hub(book: str) -> str:
-    root = ROOT / book
-    title = TITLES[book]
-    sst = urllib.parse.quote(f"{SST_DIR}/index.html")
-    pages = "\n".join(
-        f'        <li><a href="mixed_shelf/{urllib.parse.quote(p)}">'
-        f"{html.escape(p[:-5].replace('_', ' '))}</a></li>"
-        for p in DOMAIN_PAGES[book]
-    )
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title} Mojo</title>
-<meta name="description" content="{html.escape(LEDE[book])}">
-<style>{CSS}</style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <h1>{title} Mojo</h1>
-      <p class="lede">{html.escape(LEDE[book])}</p>
-    </header>
-
-    <div class="cards">
-      <div class="card">
-        <h2>Interactive tutorial</h2>
-        <p>Hands-on modules with live widgets, a lab, and a quiz. Works offline.</p>
-        <a class="big" href="{book}_mojo/index.html">Open the app</a>
-      </div>
-      <div class="card">
-        <h2>Single source of truth</h2>
-        <p>{html.escape(SST_BLURB[book])}</p>
-        <a class="big" href="{sst}">Read the manual</a>
-      </div>
-      <div class="card">
-        <h2>Standalone shelf</h2>
-        <p>Reference pages you can open directly, no app required.</p>
-        <a class="big" href="mixed_shelf/index.html">Browse the shelf</a>
-      </div>
-    </div>
-
-    <h2 class="sec">Reference pages</h2>
-    <ul>
-{pages}
-    </ul>
-    <p><a href="mixed_shelf/index.html">See all 65 standalone pages in the shelf</a></p>
-
-    <footer>
-      <p>This book is self-contained. Nothing here links to another book.</p>
-    </footer>
-  </div>
-</body>
-</html>
-"""
-
 
 def build_shelf(book: str) -> str:
     root = ROOT / book / "mixed_shelf"
@@ -260,20 +136,17 @@ def main() -> int:
 
     bad = []
     for book in BOOKS:
-        for rel, content in (
-            (Path("index.html"), build_hub(book)),
-            (Path("mixed_shelf") / "index.html", build_shelf(book)),
-        ):
-            p = ROOT / book / rel
-            if args.check:
-                if not p.exists():
-                    bad.append(f"missing {p}")
-                elif p.read_text(encoding="utf-8") != content:
-                    bad.append(f"stale {p}")
-            else:
-                p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text(content, encoding="utf-8")
-                print(f"wrote {p.relative_to(ROOT)}")
+        p = ROOT / book / "mixed_shelf" / "index.html"
+        content = build_shelf(book)
+        if args.check:
+            if not p.exists():
+                bad.append(f"missing {p}")
+            elif p.read_text(encoding="utf-8") != content:
+                bad.append(f"stale {p}")
+        else:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(content, encoding="utf-8")
+            print(f"wrote {p.relative_to(ROOT)}")
 
     if args.check:
         if bad:
@@ -281,7 +154,7 @@ def main() -> int:
             for b in bad:
                 print("  - " + b)
             return 1
-        print("Book hubs and shelf catalogs match their generator.")
+        print("Shelf catalogs match their generator.")
     return 0
 
 
