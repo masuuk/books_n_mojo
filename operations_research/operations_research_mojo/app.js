@@ -875,6 +875,8 @@
   }
 
   (function mountLabs() {
+    var repaint = [];
+
     [].forEach.call(document.querySelectorAll("[data-lab]"), function (host) {
       var lab = LAB[host.dataset.lab];
       if (!lab) return;
@@ -960,6 +962,20 @@
         vals[k].addEventListener("change", run);
       });
       run();
+      repaint.push(run);
+    });
+
+    /* Each canvas is sized from its laid-out width and CSS keeps it at width:100%,
+       so a viewport change alters the drawn area without touching the backing store.
+       Re-running each lab re-measures and repaints, which stops the plot being
+       stretched non-uniformly. Debounced so a drag-resize only repaints once. */
+    var resizeTimer = null;
+    window.addEventListener("resize", function () {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        resizeTimer = null;
+        for (var i = 0; i < repaint.length; i++) repaint[i]();
+      }, 120);
     });
   })();
 
