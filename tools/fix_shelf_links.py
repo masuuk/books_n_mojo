@@ -22,7 +22,7 @@ import urllib.parse
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(r"C:\Users\user\Desktop\the_books")
+ROOT = Path(__file__).resolve().parent.parent
 BOOKS = ["data_science", "finance", "geomatics", "operations_research"]
 SST = "single_source_of_truth mojo"
 

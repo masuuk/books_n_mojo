@@ -31,7 +31,7 @@ def main() -> int:
     root = Path(
         sys.argv[1]
         if len(sys.argv) > 1
-        else r"C:\Users\user\Desktop\the_books\data_science\single_source_of_truth mojo"
+        else Path(__file__).resolve().parent.parent / "data_science" / "single_source_of_truth mojo"
     )
     page_paths = {e.path: f"../pages/{e.slug}.html" for e in BY_PATH.values()}
 

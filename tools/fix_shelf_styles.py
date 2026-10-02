@@ -25,7 +25,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(r"C:\Users\user\Desktop\the_books")
+ROOT = Path(__file__).resolve().parent.parent
 BOOKS = ["data_science", "finance", "geomatics", "operations_research"]
 
 STYLE_OPEN = re.compile(r"<style\b", re.I)

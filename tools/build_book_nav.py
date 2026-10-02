@@ -16,7 +16,7 @@ import sys
 import urllib.parse
 from pathlib import Path
 
-ROOT = Path(r"C:\Users\user\Desktop\the_books")
+ROOT = Path(__file__).resolve().parent.parent
 SST_DIR = "single_source_of_truth mojo"
 BOOKS = ["data_science", "finance", "geomatics", "operations_research"]
 
