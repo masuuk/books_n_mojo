@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPV &amp; Amortisation — Time Value of Money in Mojo 1.x</title>
+<style>
+  :root{
+    --bg:#0d1114; --bg2:#151b21; --bg3:#1b242b; --panel:#0e1418;
+    --fg:#e6edf3; --mut:#ffd98f; --acc:#3fb950; --acc2:#8be9a8;
+    --acc3:#ffd97d; --grn:#3fb950; --ylw:#d29922; --red:#f85149;
+    --line:#30363d; --code:#0d1117;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--fg); line-height:1.7; font-size:16px;
+  }
+  ::selection{background:#123b27; color:#fff;}
+  header{
+    position:sticky; top:0; z-index:60;
+    background:rgba(21,27,33,.88); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line); padding:0 20px;
+  }
+  header .inner{max-width:1180px; margin:0 auto; height:50px; display:flex; align-items:center; gap:14px;}
+  header .brand{display:flex; align-items:center; gap:10px; min-width:0;}
+  header .logo{width:26px; height:26px; border-radius:7px; flex:0 0 26px;
+    display:flex; align-items:center; justify-content:center; font-size:.82rem; line-height:1;
+    background:linear-gradient(135deg,rgba(63,185,80,.16),rgba(255,217,125,.10));
+    border:1px solid rgba(63,185,80,.4); box-shadow:0 0 12px rgba(63,185,80,.12);}
+  header h1{font-size:1.02rem; font-weight:650; margin:0; color:var(--fg);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.005em;}
+  header .kicker{margin-left:auto; font-size:.72rem; color:var(--mut); white-space:nowrap; letter-spacing:.03em;}
+  header .kicker span + span::before{content:"·"; margin:0 8px; color:var(--acc2); opacity:.55;}
+  .wrap{display:flex; gap:18px; max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+  nav.toc{
+    width:var(--tocw,280px); flex:0 0 var(--tocw,280px); position:sticky; top:64px; align-self:flex-start;
+    max-height:calc(100vh - 104px); overflow:auto; color:var(--mut); font-size:.9rem;
+    border-right:1px solid var(--line); padding-right:16px;
+  }
+  nav.toc::-webkit-scrollbar{width:8px;}
+  nav.toc::-webkit-scrollbar-thumb{background:var(--bg3); border-radius:4px;}
+  nav.toc::-webkit-scrollbar-track{background:transparent;}
+  nav.toc .toc-title{font-weight:700; color:var(--fg); text-transform:uppercase; letter-spacing:.06em;
+    font-size:.75rem; margin-bottom:0; color:var(--acc2);}
+  .toc-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .toc-toggle{background:var(--bg2); border:1px solid var(--line); color:var(--mut); border-radius:6px;
+    cursor:pointer; font-size:.72rem; line-height:1; padding:5px 7px; transition:.15s;}
+  .toc-toggle:hover{color:var(--acc); border-color:var(--acc);}
+  .toc-resize{flex:0 0 10px; align-self:stretch; margin:0 -9px; cursor:col-resize; border-radius:4px; z-index:5;}
+  .toc-resize:hover,.toc-resize.on{background:rgba(63,185,80,.16);}
+  body.toc-collapsed nav.toc, body.toc-collapsed .toc-resize{display:none;}
+  .toc-open{display:none; position:fixed; left:0; top:96px; z-index:70;
+    background:var(--panel); border:1px solid var(--line); border-left:none; border-radius:0 8px 8px 0;
+    color:var(--acc2); cursor:pointer; font-size:.68rem; letter-spacing:.12em; padding:14px 7px;
+    writing-mode:vertical-rl; text-orientation:mixed; box-shadow:2px 0 14px rgba(0,0,0,.3);}
+  .toc-open:hover{background:var(--bg2); color:var(--acc);}
+  body.toc-collapsed .toc-open{display:block;}
+  nav.toc a{display:block; color:var(--mut); text-decoration:none; padding:5px 10px; border-radius:6px;
+    transition:.15s; border-left:2px solid transparent;}
+  nav.toc a:hover{color:var(--acc2); background:var(--bg2);}
+  nav.toc a.lvl2{padding-left:24px; font-size:.84rem;}
+  nav.toc a.active{color:var(--acc); border-left-color:var(--acc); background:var(--bg2);}
+  nav.toc a.xlink{margin-top:12px; border:1px dashed var(--line); border-radius:8px; padding:8px 10px; color:var(--acc3);}
+  main{flex:1; min-width:0;}
+  section{scroll-margin-top:78px; margin-bottom:52px;}
+  h2{font-size:1.62rem; color:var(--acc2); margin-bottom:6px; padding-top:8px; border-bottom:1px solid var(--line); padding-bottom:12px;}
+  h3{font-size:1.22rem; color:var(--acc); margin:26px 0 10px;}
+  h4{font-size:1.02rem; color:var(--grn); margin:18px 0 6px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0 10px 26px;}
+  li{margin:5px 0;}
+  .kpi{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:22px 0;}
+  .kpi .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; text-align:center;}
+  .kpi .num{font-size:1.7rem; font-weight:800; color:var(--acc2); line-height:1.1;}
+  .kpi .lbl{font-size:.8rem; color:var(--mut); margin-top:4px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin:14px 0; box-shadow:0 1px 0 rgba(255,255,255,.03);}
+  .note{background:rgba(210,153,34,.08); border-left:4px solid var(--ylw); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .warn{background:rgba(248,81,73,.08); border-left:4px solid var(--red); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .good{background:rgba(63,185,80,.08); border-left:4px solid var(--grn); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  code{font-family:"Cascadia Code",Consolas,Menlo,monospace; font-size:.88em; background:var(--bg3);
+    padding:2px 6px; border-radius:5px; color:var(--acc2);}
+  pre{background:var(--code); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; margin:14px 0;}
+  pre code{background:none; padding:0; color:#c9d1d9; font-size:.86rem; line-height:1.55; display:block;}
+  .tok-k{color:#ff7b72;} .tok-s{color:#a5d6ff;} .tok-c{color:#8b949e; font-style:italic;}
+  .tok-n{color:#79c0ff;} .tok-f{color:#d2a8ff;} .tok-num{color:#79c0ff;}
+  table{border-collapse:collapse; width:100%; margin:16px 0; font-size:.9rem;}
+  th,td{border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top;}
+  th{background:var(--bg3); color:var(--acc2); font-weight:600;}
+  tr:nth-child(even) td{background:rgba(27,36,43,.5);}
+  .math{font-family:Georgia,serif; font-style:italic; font-size:1.02em; color:var(--acc3);}
+  .pill{display:inline-block; font-size:.72rem; padding:2px 10px; border-radius:999px; margin:0 4px; border:1px solid var(--line);}
+  .pill.bl{color:var(--acc); background:rgba(63,185,80,.1);}
+  .pill.grn{color:var(--acc2); background:rgba(139,233,168,.1);}
+  .pill.ylw{color:var(--ylw); background:rgba(210,153,34,.1);}
+  .pill.pur{color:var(--acc3); background:rgba(255,217,125,.1);}
+  blockquote{border-left:4px solid var(--acc); margin:16px 0; padding:4px 18px; color:var(--mut);}
+  footer{border-top:1px solid var(--line); padding:28px 20px; text-align:center; color:var(--mut); font-size:.85rem; max-width:1180px; margin:0 auto;}
+  .toc-mobile{display:none;}
+  a.source{color:var(--acc); text-decoration:none;} a.source:hover{text-decoration:underline;}
+  .num-big{font-size:2.4rem; font-weight:800; color:var(--acc2);}
+  .inline-flex{display:flex; gap:10px; flex-wrap:wrap;}
+  .money{font-family:"Cascadia Code",Consolas,monospace; color:var(--acc2); font-size:.92em;}
+  @media(max-width:900px){
+    nav.toc{display:none;}
+    .toc-mobile{display:block; margin-bottom:20px;}
+    .toc-mobile details{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px;}
+    .toc-mobile summary{cursor:pointer; font-weight:700; color:var(--acc2);}
+    .toc-mobile a{display:block; color:var(--mut); padding:4px 8px; text-decoration:none; font-size:.9rem;}
+    header{padding:0 14px;}
+    header h1{font-size:.92rem;}
+    header .kicker{display:none;}
+    .toc-open{display:none!important;}
+    .toc-resize{display:none!important;}
+  }
+</style>
+</head>
+<body>
+<nav style="position:sticky;top:0;z-index:999;display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#124d3a;padding:10px 20px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:0.88rem;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+  <a href="../index.html" style="color:#fff;font-weight:700;text-decoration:none;">📚 TutMe</a>
+  <a href="../data_science_mojo/index.html" style="color:#8be9a8;text-decoration:none;">🧩 Applications lessons</a>
+  <a href="decision_aware_ml.html" style="color:#8be9a8;text-decoration:none;">🧠 Companion: Decision-Aware ML</a>
+  <a href="operations_research.html" style="color:#8be9a8;text-decoration:none;">📐 OR Textbook</a>
+  <a href="../index.html" style="color:#8be9a8;text-decoration:none;">🏠 Home</a>
+</nav>
+
+<header>
+  <div class="inner">
+    <div class="brand">
+      <span class="logo">💰</span>
+      <h1>NPV &amp; Amortisation</h1>
+    </div>
+    <div class="kicker"><span>Time Value of Money</span><span>NPV &amp; IRR</span><span>Amortisation</span><span>Mojo 1.x</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc-mobile">
+  <details>
+    <summary>Contents</summary>
+    <a href="#intro">1. Orientation &amp; Learning Objectives</a>
+    <a href="#tvom">2. The Time Value of Money</a>
+    <a href="#npv">3. Net Present Value</a>
+    <a href="#irr">4. The NPV Profile &amp; IRR</a>
+    <a href="#amort">5. Loan Amortisation</a>
+    <a href="#prepay">6. Paying Down Faster</a>
+    <a href="#together">7. Putting It Together: a Loan-Funded Project</a>
+    <a href="#pitfalls">8. Pitfalls &amp; Evaluation Checklist</a>
+    <a href="#check">9. Practice &amp; Self-Check</a>
+    <a href="#resources">10. Resources &amp; Further Reading</a>
+  </details>
+</nav>
+
+<!-- ===================== TABLE OF CONTENTS ===================== -->
+<nav class="toc" id="toc">
+  <div class="toc-head">
+    <div class="toc-title">Contents</div>
+    <button class="toc-toggle" id="tocToggle" type="button" title="Hide sidebar">«</button>
+  </div>
+  <a href="#intro">1. Orientation &amp; Learning Objectives</a>
+  <a href="#tvom">2. The Time Value of Money</a>
+  <a href="#npv">3. Net Present Value</a>
+  <a href="#npv-rule" class="lvl2">3.1 The decision rule</a>
+  <a href="#npv-accept" class="lvl2">3.2 Worked example: a paying project</a>
+  <a href="#npv-reject" class="lvl2">3.3 Worked example: a losing project</a>
+  <a href="#irr">4. The NPV Profile &amp; IRR</a>
+  <a href="#amort">5. Loan Amortisation</a>
+  <a href="#amort-formula" class="lvl2">5.1 The level-payment formula</a>
+  <a href="#amort-examples" class="lvl2">5.2 Worked examples</a>
+  <a href="#amort-anatomy" class="lvl2">5.3 Anatomy of the schedule</a>
+  <a href="#prepay">6. Paying Down Faster</a>
+  <a href="#together">7. Putting It Together: a Loan-Funded Project</a>
+  <a href="#pitfalls">8. Pitfalls &amp; Evaluation Checklist</a>
+  <a href="#check">9. Practice &amp; Self-Check</a>
+  <a href="#resources">10. Resources &amp; Further Reading</a>
+  <a href="decision_aware_ml.html" class="xlink">↪ Companion book: Decision-Aware Machine Learning</a>
+  <a href="operations_research.html" class="xlink">↪ Companion: Operations Research textbook</a>
+</nav>
+<span class="toc-resize" id="tocResize" title="Drag to resize · double-click to reset"></span>
+<button class="toc-open" id="tocOpen" type="button" title="Show sidebar">☰ Contents</button>
+
+<main>
+
+<!-- ===================== INTRO ===================== -->
+<section id="intro">
+  <h2>1. Orientation &amp; Learning Objectives</h2>
+  <p>Two ideas underpin almost every corporate-finance decision: <strong>net present value</strong> — whether a stream of future cash flows is worth more than it costs to obtain — and <strong>amortisation</strong> — how a fixed-payment loan is actually paid down, and what that ends up costing you. This book teaches both from first principles in Mojo 1.x, so every figure on the page is produced by compiled, typed code rather than by hand.</p>
+
+  <div class="card">
+    <h4>By the end of this book you will be able to:</h4>
+    <ul>
+      <li>Explain the <strong>time value of money</strong> and discount any future cash flow to its present value.</li>
+      <li>Compute the <strong>NPV</strong> of a cash-flow stream in Mojo 1.x &mdash; and apply the decision rule (accept when <span class="math">NPV &gt; 0</span>).</li>
+      <li>Sweep discount rates to build an <strong>NPV profile</strong> and read the <strong>internal rate of return</strong> where NPV crosses zero.</li>
+      <li>Derive the <strong>level-payment formula</strong> for a loan and generate an amortisation schedule month by month.</li>
+      <li>Quantify the interest a mortgage really costs, and model <strong>prepayment</strong> (extra principal) so you can judge how much it saves.</li>
+      <li>Combine the two: evaluate a <strong>loan-funded project</strong> end to end (payment &rarr; net inflow &rarr; NPV).</li>
+      <li>Port every one of these calculations to <strong>compiled Mojo 1.x</strong> &mdash; typed, native-speed financial code.</li>
+    </ul>
+  </div>
+
+  <div class="kpi">
+    <div class="card"><div class="num">+$388.77</div><div class="lbl">NPV of the "paying" example @ 10% &rarr; accept</div></div>
+    <div class="card"><div class="num">≈24.9%</div><div class="lbl">IRR of the same cash flows (NPV crosses zero)</div></div>
+    <div class="card"><div class="num">$115,838</div><div class="lbl">interest on a 30-year $100k loan @ 6% &mdash; more than the loan itself</div></div>
+    <div class="card"><div class="num">+$13,940</div><div class="lbl">NPV @ 10% of a $50k loan-funded project @ 5%</div></div>
+  </div>
+
+  <h3>Prerequisites &amp; Source Materials</h3>
+  <p>Comfort with <code>def</code>, <code>var</code>, and <code>List</code> from the Applications or Mojo tracks &mdash; nothing more. No finance background is assumed: every formula is derived, not decreed.</p>
+  <div class="card">
+    <h4>This book consolidates and enhances these sources:</h4>
+    <ul>
+      <li><span class="pill bl">Tutorial</span> <strong>NPV &amp; Amortization Tutorial &ndash; Python &amp; Mojo</strong> (community quick tutorial) &mdash; formulas, Python + Mojo implementations, and the loan-funded-project idea.</li>
+      <li><span class="pill bl">Tutorial</span> <strong>Financial Math: NPV &amp; Amortisation (Python &amp; Mojo 1.x)</strong> (community tutorial) &mdash; the "should you invest?" scenario, the mortgage example, and a Python-vs-Mojo comparison.</li>
+      <li><span class="pill grn">Track</span> The Applications-track lessons <strong>Net Present Value (NPV) in Python &amp; Mojo</strong> and <strong>Amortisation Schedules in Python &amp; Mojo</strong> &mdash; the authoritative short forms this book builds out.</li>
+      <li><span class="pill ylw">Errata</span> Both community tutorials&rsquo; printed outputs contained arithmetic slips (NPVs of <span class="money">382.07</span> and <span class="money">&minus;38.17</span> are in fact <span class="money">388.77</span> and <span class="money">&minus;210.37</span>). Every number in this book was recomputed and cross-checked against both languages.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== TIME VALUE ===================== -->
+<section id="tvom">
+  <h2>2. The Time Value of Money</h2>
+  <p>Money has a <strong>time value</strong>: ₹100 today is worth more than ₹100 a year from now, because today&rsquo;s rupees can be invested and <em>earn a return</em> while you wait. The discount rate <span class="math">r</span> is the price of that waiting &mdash; your opportunity cost of capital, typically what a comparable-risk investment returns per period.</p>
+
+  <p><strong>Compounding moves money forward.</strong> ₹100 at 10% per year becomes:</p>
+  <div class="math" style="text-align:center; padding:10px;">
+    FV = PV &middot; (1 + r)<sup>t</sup> &nbsp;&nbsp;&rarr;&nbsp;&nbsp; 100 &middot; 1.10<sup>2</sup> = 121
+  </div>
+  <p><strong>Discounting moves money backward</strong> &mdash; the inverse operation. ₹121 arriving in two years, at 10%, is worth exactly ₹100 of today&rsquo;s money:</p>
+  <div class="math" style="text-align:center; padding:10px;">
+    PV = FV / (1 + r)<sup>t</sup> &nbsp;&nbsp;&rarr;&nbsp;&nbsp; 121 / 1.10<sup>2</sup> = 100
+  </div>
+
+  <div class="note"><strong>Why compound, not simple interest?</strong> A rupee earned at the end of year 1 is itself invested for year 2 and earns interest on interest. The exponent <span class="math">t</span> in <span class="math">(1+r)<sup>t</sup></span> is what enforces &ldquo;interest on interest&rdquo;. Two formulae in this book are just this single rule applied twice: NPV discounts a <em>stream</em> of flows; the amortisation formula inverts it to solve for the <em>payment</em> that makes a stream sum to a known present value (the loan principal).</p></div>
+
+  <div class="good"><strong>Intuition.</strong> A dollar today is worth more than a dollar tomorrow solely because of what a dollar today <em>can do</em> in the meantime. Raise the discount rate and the future shrinks; lower it and the future looms larger. That one sentence explains why interest rates move the prices of everything.</div>
+
+  <p>Two practical conventions worth fixing now:</p>
+  <ul>
+    <li>The exponent starts at <span class="math">t = 0</span>, so <strong>cash flow today is never discounted</strong> (it is already in today&rsquo;s money).</li>
+    <li>If the period is a month rather than a year, use the <strong>monthly rate</strong> <span class="math">r<sub>m</sub> = annual / 12</span> and count months, so the units always match.</li>
+  </ul>
+</section>
+
+<!-- ===================== NPV ===================== -->
+<section id="npv">
+  <h2>3. Net Present Value</h2>
+  <p>A project is a stream of cash flows: usually a negative outflow today (what it costs) followed by positive inflows. <strong>Net present value</strong> discounts every flow back to today and sums them:</p>
+
+  <div class="math" style="text-align:center; padding:12px;">
+    NPV = Σ<sub>t=0&hellip;n</sub> &nbsp; CF<sub>t</sub> / (1 + r)<sup>t</sup>
+  </div>
+
+  <ul>
+    <li><strong>CF<sub>t</sub></strong> &ndash; cash flow at time <span class="math">t</span>; <span class="math">CF<sub>0</sub></span> is today (usually negative: the investment).</li>
+    <li><strong>r</strong> &ndash; discount rate per period (opportunity cost of capital).</li>
+    <li><strong>n</strong> &ndash; number of periods in the project&rsquo;s life.</li>
+  </ul>
+
+  <h3 id="npv-rule">3.1 The decision rule</h3>
+  <div class="good">
+    <strong>Accept when NPV &gt; 0</strong> &mdash; the project creates value after paying for capital. <strong>Reject when NPV &lt; 0.</strong> At NPV = 0 you earn exactly the cost of capital &mdash; indifferent, and you may throw flakes: accept or reject, neither destroys value.
+  </div>
+
+  <h3 id="npv-accept">3.2 Worked example: a project that pays</h3>
+  <p>You invest <span class="money">$1,000</span> today and expect <span class="money">$300, $400, $500, $600</span> over the next four years. Your discount rate is 10%. Should you invest? Discount each flow and add the <strong>undiscounted</strong> <span class="money">−1000</span>:</p>
+
+  <table>
+    <tr><th>Year t</th><th>CF</th><th>Discount 1/(1.10)<sup>t</sup></th><th>Present value</th></tr>
+    <tr><td>0</td><td>−1,000.00</td><td rowspan="1">1.0000 (today&rsquo;s money)</td><td>−1,000.00</td></tr>
+    <tr><td>1</td><td>300.00</td><td>0.9091</td><td>272.73</td></tr>
+    <tr><td>2</td><td>400.00</td><td>0.8264</td><td>330.58</td></tr>
+    <tr><td>3</td><td>500.00</td><td>0.7513</td><td>375.66</td></tr>
+    <tr><td>4</td><td>600.00</td><td>0.6830</td><td>409.81</td></tr>
+    <tr><td><strong>NPV</strong></td><td colspan="3"><strong>+388.77 &rarr; accept</strong></td></tr>
+  </table>
+
+  <p>The €500 arriving in year 3 is worth only <span class="money">375.66</span> today; the ₹600 in year 4 just <span class="money">409.81</span>. Discounting prefers early money.</p>
+
+  <p><strong>Mojo 1.x</strong> &mdash; one typed, compiled loop over the flows. Mojo&rsquo;s <code>**</code> powers take a <code>Float64</code> exponent, so cast <code>t</code> (an <code>Int</code>) before raising:</p>
+<pre>from std.math import pow
+
+def npv(rate: Float64, cash_flows: List[Float64]) -&gt; Float64:
+    var total: Float64 = 0.0
+    for t in range(len(cash_flows)):
+        total += cash_flows[t] / pow(1.0 + rate, Float64(t))   # exponent must be a Float64
+    return total
+
+def main():
+    var cf = List[Float64](-1000.0, 300.0, 400.0, 500.0, 600.0)
+    print("NPV = ", npv(0.10, cf))     # NPV = 388.77  -&gt; positive, so invest</pre>
+
+  <h3 id="npv-reject">3.3 Worked example: a project that loses</h3>
+  <p>The &ldquo;should you invest?&rdquo; case from the sources: <span class="money">$10,000</span> today for <span class="money">$3,000, $4,000, $5,000</span> over three years at the same 10%:</p>
+
+<pre>from std.math import pow
+
+def calculate_npv(rate: Float64, cash_flows: List[Float64]) -&gt; Float64:
+    var npv: Float64 = 0.0
+    for t in range(len(cash_flows)):
+        npv += cash_flows[t] / pow(1.0 + rate, Float64(t))
+    return npv
+
+def main():
+    var cf = List[Float64](-10000.0, 3000.0, 4000.0, 5000.0)
+    print("Net Present Value: ", calculate_npv(0.10, cf))
+    # Net Present Value: -210.37  -&gt;  REJECT: your $10,000 grows to only
+    # $9,789.63 of today's money (PV of the inflows) - you'd lose value.</pre>
+
+  <div class="warn"><strong>Note the arithmetic fact the sources got wrong.</strong> The sources printed <span class="money">−38.17</span>, but the correct value is <span class="money">−210.37</span> (3,000/1.10 + 4,000/1.21 + 5,000/1.331 = 9,789.63). The verdict is the same either way &mdash; reject &mdash; so always state the number you <em>computed</em>, and re-derive it by hand before publishing. It is a golden rule that a tutorial&rsquo;s printed output is the least trustworthy line in the file.</div>
+
+  <div class="good"><strong>Sanity hook.</strong> The inflows sum to $12,000 &mdash; nominally the project makes $2,000. Yet it loses value, because those $12,000 arrive over three years and are worth only $9,790 in today&rsquo;s money. Nominal profit &ne; value created; the discount rate is the gap between the two. This is the entire lesson of NPV in one sentence.</div>
+</section>
+
+<!-- ===================== IRR ===================== -->
+<section id="irr">
+  <h2>4. The NPV Profile &amp; IRR</h2>
+  <p>NPV bends with the discount rate: raise <span class="math">r</span> and future inflows shrink, so NPV falls. Plot NPV against <span class="math">r</span> and you get the project&rsquo;s <strong>NPV profile</strong>. The rate where the curve crosses zero is its <strong>internal rate of return (IRR)</strong> &mdash; the compound return the project actually earns on the money tied up.</p>
+
+  <p>Sweeping many candidate rates is a plain loop &mdash; the same <code>npv</code> from &sect;3.2 evaluated at each rate, which is exactly the shape a compiled sweep wants:</p>
+<pre>def main():
+    var cf = List[Float64](-1000.0, 300.0, 400.0, 500.0, 600.0)
+    var rates = List[Float64](0.05, 0.10, 0.15, 0.20, 0.25, 0.30)
+    for i in range(len(rates)):
+        print("r=", rates[i], "  NPV=", npv(rates[i], cf))     # npv() from section 3.2
+    # r= 0.05   NPV=  574.07
+    # r= 0.1    NPV=  388.77
+    # r= 0.15   NPV=  235.14
+    # r= 0.2    NPV=  106.48
+    # r= 0.25   NPV=   -2.24    &lt;- NPV crosses zero just here: IRR ~ 24.9%
+    # r= 0.3    NPV=  -94.88</pre>
+
+  <div class="card">
+    <h4>Interpreting the profile</h4>
+    <ul>
+      <li><strong>IRR is a hurdle, not a guarantee.</strong> If your cost of capital is 10%, this project&rsquo;s 24.9% IRR beats it with room to spare &mdash; accept. <strong>If the cost of capital were 26%+, NPV would be negative &mdash; reject.</strong> IRR and the <span class="math">NPV&gt;0</span> rule agree at every point on the curve: they are the same decision drawn two ways.</li>
+      <li><strong>Where they disagree.</strong> IRR can be misleading for non-conventional flows (a sign change mid-stream can give two IRRs; comparing two projects on IRR alone ignores scale and timing). <strong>When in doubt, decide on NPV</strong> &mdash; it is the defensible number.</li>
+      <li><strong>Mojo.</strong> The sweep is a plain loop over <code>pow(1.0 + r, Float64(t))</code> &mdash; identical shape to the NPV loop above, compiled to native speed. For thousands of candidate projects (a real portfolio screen), that is where compiled code earns its keep.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== AMORTISATION ===================== -->
+<section id="amort">
+  <h2>5. Loan Amortisation</h2>
+  <p>A fixed-payment loan keeps the <strong>same payment every month</strong>, yet the split inside never stops changing: each payment first settles the interest on the <em>current</em> balance, and whatever is left chips away principal. Early payments are mostly interest; late payments are mostly principal. That decay is 30 years of your mortgage in miniature.</p>
+
+  <h3 id="amort-formula">5.1 The level-payment formula</h3>
+  <p>For principal <span class="math">P</span>, <span class="math">n</span> monthly periods at monthly rate <span class="math">r = annual/12</span>, the level payment <span class="math">M</span> is the annuity formula &mdash; the two equivalent ways you will see it written:</p>
+  <div class="math" style="text-align:center; padding:12px;">
+    M = P &middot; [ r(1+r)<sup>n</sup> / ((1+r)<sup>n</sup> &minus; 1) ] &nbsp;&nbsp;&equiv;&nbsp;&nbsp; P &middot; r / (1 &minus; (1+r)<sup>&minus;n</sup>)
+  </div>
+  <p>The trick for reading the second form: &ldquo;the payment such that the present value of the entire payment series equals the principal you walk away with.&rdquo; That makes amortisation the <em>inverse</em> of the NPV idea from Section 3 &mdash; same equation, solved for a different unknown.</p>
+
+  <h3 id="amort-examples">5.2 Worked examples</h3>
+
+  <p><strong>Example A &mdash; a $100,000 machine at 6% annual over 30 years</strong> (from the quick tutorial). First the payment, then a full month-by-month schedule:</p>
+
+  <p><strong>Mojo 1.x</strong> &mdash; carrying each row in a <code>struct</code> is exactly what a compiled scheduler would emit (the Applications-track lesson *Amortisation Schedules* does the same):</p>
+<pre>from std.math import pow
+
+struct AmortRow:
+    var period: Int
+    var payment: Float64
+    var interest: Float64
+    var principal: Float64
+    var balance: Float64
+
+def amortization_schedule(principal: Float64, annual_rate: Float64, years: Int) -&gt; List[AmortRow]:
+    var r = annual_rate / 12.0
+    var n = years * 12
+    var payment = principal * (r * pow(1.0 + r, Float64(n))) / (pow(1.0 + r, Float64(n)) - 1.0)
+    var balance = principal
+    var schedule = List[AmortRow]()
+    for month in range(1, n + 1):
+        var interest = balance * r              # interest first...
+        var principal_paid = payment - interest
+        balance -= principal_paid               # ...remainder pays down principal
+        schedule.push_back(AmortRow(month, payment, interest, principal_paid, balance))
+    return schedule
+
+def main():
+    var schedule = amortization_schedule(100000.0, 0.06, 30)
+    var payment = schedule[0].payment
+    print("Monthly payment = ", payment)                      # 599.55
+    print("Total interest  = ", payment * 360.0 - 100000.0)   # 115838.19
+    var shown = List[Int](0, 1, 2, 359)      # first three months, then the last
+    for i in shown:
+        var row = schedule[i]
+        print("Month ", row.period, ": Pay ", row.payment, "  Int ", row.interest,
+              "  Prin ", row.principal, "  Bal ", row.balance)
+    # Month 1: Pay 599.55  Int 500.00  Prin 99.55   Bal 99900.45
+    # Month 2: Pay 599.55  Int 499.50  Prin 100.05  Bal 99800.40
+    # Month 3: Pay 599.55  Int 499.00  Prin 100.55  Bal 99699.85
+    # Month 360: Pay 599.55  Int 2.98  Prin 596.57  Bal 0.00</pre>
+
+  <p><strong>Example B &mdash; a $250,000 mortgage at 4.5% over 30 years</strong> (from the financial-math tutorial):</p>
+<pre>from std.math import pow
+
+def calculate_amortisation(principal: Float64, annual_rate: Float64, years: Int) -&gt; (Float64, Float64):
+    var r = annual_rate / 12.0
+    var n = Float64(years * 12)
+    var pmt = principal * (r * pow(1.0 + r, n)) / (pow(1.0 + r, n) - 1.0)
+    var total_interest = pmt * n - principal
+    return pmt, total_interest
+
+def main():
+    var pmt: Float64
+    var interest: Float64
+    pmt, interest = calculate_amortisation(250000.0, 0.045, 30)
+    print("Monthly Payment: ", pmt)          # 1266.71
+    print("Total Interest:  ", interest)      # 206016.78</pre>
+
+  <div class="card">
+    <h4>Mojo 1.x &mdash; what changes, and what doesn&rsquo;t</h4>
+    <table>
+      <tr><th>Feature</th><th>Python</th><th>Mojo 1.x</th></tr>
+      <tr><td><strong>Functions</strong></td><td><code>def</code>, duck-typed</td><td><code>def</code> with <code>var</code> and explicit <code>Float64</code>/<code>Int</code> types</td></tr>
+      <tr><td><strong>Powers</strong></td><td><code>x ** t</code> accepts ints</td><td>exponent must be a <code>Float64</code> &mdash; cast <code>Float64(t)</code> or use <code>pow</code></td></tr>
+      <tr><td><strong>Performance</strong></td><td>interpreted; fine for a 360-row schedule</td><td>compiled to native code; shines for Monte-Carlo sweeps over thousands of mortgages/projects</td></tr>
+      <tr><td><strong>Use case</strong></td><td>rapid prototyping, ad-hoc analysis</td><td>production pricing engines, large-scale risk simulation &mdash; without leaving the Python ecosystem</td></tr>
+    </table>
+    <p><em>Note: Python is excellent for quick financial scripting; Mojo 1.x earns its keep when you need to run millions of NPV/amortisation simulations in real time.</em></p>
+  </div>
+
+  <h3 id="amort-anatomy">5.3 Anatomy of the schedule</h3>
+  <p>Notice the pattern in the four rows above &mdash; interest falls (500 &rarr; 2.98), principal rises (99.55 &rarr; 596.57), the payment never moves. The crossover month, where principal finally exceeds interest, is well into the loan&rsquo;s life &mdash; month <strong>223</strong> here (year 18&frac12;) &mdash; and the balance crawls: after 60 payments you still owe <span class="money">93,054.36</span> of a <span class="money">100,000</span> principal, with <span class="money">29,027.39</span> of interest already paid.</p>
+
+  <table>
+    <tr><th>Row</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance after</th></tr>
+    <tr><td>Month 1</td><td>599.55</td><td>500.00 (83%)</td><td>99.55</td><td>99,900.45</td></tr>
+    <tr><td>Month 2</td><td>599.55</td><td>499.50</td><td>100.05</td><td>99,800.40</td></tr>
+    <tr><td>Month 60</td><td>599.55</td><td>465.27</td><td>134.28</td><td>93,054.36</td></tr>
+    <tr><td>Month 360</td><td>599.55</td><td>2.98</td><td>596.57</td><td>0.00</td></tr>
+  </table>
+
+  <div class="note"><strong>Why the balance crawls early.</strong> Five years in, you have paid 60 &times; $599.55 &asymp; $35,973 &mdash; yet owe $93,054 of the original $100,000. Roughly $29,027 of those payments were interest and only ~$7,000 reduced principal. Mortgages feel slow for the first decade because interest always lands on the (still huge) outstanding balance first.</div>
+</section>
+
+<!-- ===================== PREPAY ===================== -->
+<section id="prepay">
+  <h2>6. Paying Down Faster</h2>
+  <p>Because interest is charged on the <em>outstanding</em> balance, extra principal today cuts every future interest bill. Two realistic strategies on the $100,000 @ 6% / 30-year loan:</p>
+
+  <table>
+    <tr><th>Strategy</th><th>Monthly plan</th><th>Loan paid off</th><th>Total interest</th><th>Saved vs plan</th></tr>
+    <tr><td>Baseline</td><td>$599.55 / mo</td><td>30 years (360 mo)</td><td>$115,838.19</td><td>&mdash;</td></tr>
+    <tr><td>Extra $100 / mo</td><td>$699.55 / mo</td><td>21 years (252 mo)</td><td>$75,937.94</td><td>$39,900.25</td></tr>
+    <tr><td>Lump $10,000</td><td>$599.55, +$10,000 at month 60</td><td>~25 years (297 mo)</td><td>$87,788.40</td><td>$28,049.79</td></tr>
+  </table>
+
+<pre>def how_long(principal: Float64, annual_rate: Float64, years: Int, extra: Float64, extra_at: Int = -1):
+    var r = annual_rate / 12.0
+    var n = years * 12
+    var pmt_base = principal * (r * pow(1.0 + r, Float64(n))) / (pow(1.0 + r, Float64(n)) - 1.0)
+    var balance: Float64 = principal
+    var months: Int = 0
+    var interest_total: Float64 = 0.0
+    while balance &gt; 0 and months &lt; n * 2:
+        months += 1
+        if extra_at &gt; 0 and months == extra_at:
+            balance -= 10000.0
+        var cur_payment = pmt_base + extra
+        interest_total += balance * r
+        balance -= (cur_payment) - balance * r
+        if balance &lt; 0:
+            balance = 0
+    return months, interest_total
+
+def main():
+    print(how_long(100000.0, 0.06, 30, extra=0.0))                # (360, 115838.19)
+    print(how_long(100000.0, 0.06, 30, extra=100.0))              # (252,  75937.94)
+    print(how_long(100000.0, 0.06, 30, extra=0.0, extra_at=61))   # (297, 87788.40)</pre>
+
+  <div class="good"><strong>Rule of thumb.</strong> A small, constant extra payment is the single highest-return "investment" most borrowers own: every dollar of extra principal avoids ~2 dollars of interest at a 6% / 30-year rate &mdash; a guaranteed, tax-free return. The same loop in Mojo is trivial &mdash; pure <code>Float64</code> arithmetic, compiled &mdash; and scales to sweeping thousands of candidate plans.</div>
+</section>
+
+<!-- ===================== TOGETHER ===================== -->
+<section id="together">
+  <h2>7. Putting It Together: a Loan-Funded Project</h2>
+  <p>The sources close with a classic: <em>borrow <span class="money">$50,000</span> to start a project, repay over 5 years at 5% annual interest, and expect <span class="money">$15,000</span> of inflows a year. Is it worth it?</em> We now have every piece &mdash; the loan gives the monthly payment, and NPV decides whether the net inflows cover it with value to spare.</p>
+
+  <p>Three moves: (1) the loan determines the monthly <em>debt service</em>; (2) netting it against the expected inflows gives the annual cash the project actually delivers; (3) discounting that net stream at the firm&rsquo;s cost of capital is the project&rsquo;s NPV. The loan itself is <em>funding</em>, not an outflow &mdash; the discount rate already prices the cost of the money.</p>
+
+<pre>from std.math import pow
+
+def monthly_payment(principal: Float64, annual_rate: Float64, years: Int) -&gt; Float64:
+    var r = annual_rate / 12.0
+    var n = Float64(years * 12)
+    return principal * (r * pow(1.0 + r, n)) / (pow(1.0 + r, n) - 1.0)
+
+def npv_discrete(cash_flows: List[Float64], rate: Float64) -&gt; Float64:
+    var total: Float64 = 0.0
+    for t in range(len(cash_flows)):
+        total += cash_flows[t] / pow(1.0 + rate, Float64(t))
+    return total
+
+def main():
+    var LOAN: Float64 = 50000.0
+    var APY: Float64 = 0.05
+    var YEARS: Int = 5
+    var INFLOWS: Float64 = 15000.0
+    var DISCOUNT: Float64 = 0.10
+
+    var m = monthly_payment(LOAN, APY, YEARS)        # 943.56
+    var annual_debt = 12.0 * m                       # 11322.74
+    var net_annual = INFLOWS - annual_debt           # 3677.26
+
+    print("Monthly loan payment = ", m)
+    print("Annual debt service  = ", annual_debt)
+    print("Net annual inflow    = ", net_annual)
+
+    var stream = List[Float64](0.0)
+    for t in range(YEARS):
+        stream.push_back(net_annual)                 # 5 years of net inflows
+    var project_npv = npv_discrete(stream, DISCOUNT)
+    print("Project NPV @ ", DISCOUNT * 100.0, "% = ", project_npv)  # +13939.71</pre>
+
+  <div class="note"><strong>The qualification this model blurs.</strong> Real valuations would model the loan drawdown as a Year-0 inflow, separate equity from debt, and treat the 15,000 as the project&rsquo;s operating surplus rather than raw revenue. Here the pedagogy is the point: the <strong>payment</strong> from Section 5 and the <strong>discounting</strong> from Section 3 fit together &mdash; finance is one machinery, used twice.</div>
+</section>
+
+<!-- ===================== PITFALLS ===================== -->
+<section id="pitfalls">
+  <h2>8. Pitfalls &amp; Evaluation Checklist</h2>
+  <table>
+    <tr><th>Trap</th><th>What goes wrong</th><th>Fix</th></tr>
+    <tr><td>Discounting CF₀</td><td>Dividing today&rsquo;s outflow by (1+r)⁰&hellip; no &mdash; by (1+r)<sup>1</sup> &mdash; shrinking the cost.</td><td><code>enumerate</code> from 0; cash flow at t=0 is today&rsquo;s money, never discounted.</td></tr>
+    <tr><td>Annual vs monthly rate</td><td>Using the annual rate on monthly periods (or using 6% as 0.06 when it means 6% per year).</td><td>Always <span class="math">r<sub>m</sub> = annual/12</span> for monthly schedules; keep period and rate in the same unit.</td></tr>
+    <tr><td>Trusting printed output</td><td>The source tutorials printed NPV = 382.07 and −38.17; the true values are 388.77 and −210.37.</td><td>Recompute sample numbers by hand &mdash; and in a second language &mdash; before publishing them. A tutorial&rsquo;s output is its least trustworthy line.</td></tr>
+    <tr><td>IRR over NPV</td><td>IRR misleads on non-conventional cash flows (multiple sign changes &rarr; multiple IRRs) and rewards tiny quick projects over big slow ones.</td><td>Decide on <strong>NPV</strong>; report IRR only as context against the hurdle rate.</td></tr>
+    <tr><td>Missing the &ldquo;profit illusion&rdquo;</td><td>Inflows summing to $12,000 on a $10,000 investment feels like +$2,000.</td><td>Discount first: $12,000 of future money can be worth only ~$9,790 today. Nominal &ne; real.</td></tr>
+    <tr><td>Off-by-one in exponents</td><td>Raising to <code>t</code> where <code>t</code> counts from 1, or using <code>t-1</code> on the first inflow.</td><td>Walk through PV of CF₁ by hand once: CF₁/(1+r)¹ must equal the obvious amount.</td></tr>
+    <tr><td>Forgetting amortisation&rsquo;s interest-first split</td><td>Treating each payment as equal principal.</td><td>Interest = balance × r <em>first</em>; the remainder is principal. That is the whole schedule, and Dr. Excel agrees.</td></tr>
+  </table>
+
+  <h3>Evaluation checklist</h3>
+  <ul>
+    <li><strong>Sign convention:</strong> outflow negative, inflow positive; NPV sign matches the verdict.</li>
+    <li><strong>Units:</strong> every rate, period, and flow share one time unit &mdash; check the monthly <span class="math">r<sub>m</sub></span> before trusting a payment.</li>
+    <li><strong>Round-trip:</strong> re-derive one number in clear text, e.g. PV(CF₁) = CF₁/(1+r) &mdash; if the code disagrees, the code is wrong.</li>
+    <li><strong>Cross-check the arithmetic:</strong> reproduce the same schedule with a published loan calculator or a spreadsheet; the payment and total interest must agree to cents (mind floating-point on the final row).</li>
+    <li><strong>State the decision:</strong> &ldquo;NPV = +388.77, so under the 10% cost of capital the project creates value&rdquo; &mdash; not just a formula dump.</li>
+  </ul>
+</section>
+
+<!-- ===================== SELF CHECK ===================== -->
+<section id="check">
+  <h2>9. Practice &amp; Self-Check</h2>
+  <ol>
+    <li><strong>By hand.</strong> A project costs $2,000 today and returns $1,100 and $1,210 in years 1 and 2. Compute the NPV at 10% <em>exactly</em> (answers: 1,100/1.1 = 1,000 exactly; 1,210/1.21 = 1,000 exactly; NPV = 0). What decision does the rule give, and what does that NPV = 0 state about the project? (It just earns its 10% cost of capital &mdash; indifferent.)</li>
+    <li><strong>Decision.</strong> Two candidates &mdash; A: &minus;1,000 then [300, 400, 500, 600] (Section 3.2); B: &minus;10,000 then [3,000, 4,000, 5,000] (Section 3.3). At a 10% cost of capital each is accept / reject &mdash; justify each with NPV, not gut feel.</li>
+    <li><strong>Profile.</strong> For candidate A estimate the IRR from the Section 4 profile table. What happens to the decision if your cost of capital is 26%? (NPV turns negative &mdash; accept <em>only</em> when the hurdle is below the IRR.)</li>
+    <li><strong>Schedule.</strong> A $120,000 loan at 4.8% APR, 15 years. Write the Mojo from Section 5.2; report the payment, the total interest, and the Row-1 / Row-180 split. Now add $200/month &mdash; how many months does the loan take, and how much interest does it save? (The Section 6 machinery answers it.)</li>
+    <li><strong>Mojo port.</strong> Port exercise 4&rsquo;s function to Mojo: a <code>struct AmortRow</code> scheduler plus a payment-only helper via <code>pow</code>. Confirm both languages agree to the cent (last-row floating-point fuzz aside).</li>
+    <li><strong>Bridge to the sources.</strong> Reproduce the Section 7 loan-funded project in your own numbers: $80,000 borrowed at 4% for 10 years, $9,000 of annual inflows, 12% cost of capital. Is the NPV positive? What single variable turns it negative?</li>
+  </ol>
+</section>
+
+<!-- ===================== RESOURCES ===================== -->
+<section id="resources">
+  <h2>10. Resources &amp; Further Reading</h2>
+  <div class="card">
+    <h4>Inside TutMe</h4>
+    <ul>
+      <li><strong>Applications track</strong> &mdash; the short lessons this book expands: <a class="source" href="../data_science_mojo/index.html">Net Present Value (NPV) in Python &amp; Mojo</a> and <a class="source" href="../data_science_mojo/index.html">Amortisation Schedules in Python &amp; Mojo</a>.</li>
+      <li><strong>Companion books</strong>: <a class="source" href="decision_aware_ml.html">Decision-Aware Machine Learning</a> (deciding by <em>decision cost,</em> not prediction error &mdash; the natural next step after NPV&rsquo;s &ldquo;accept when &gt; 0&rdquo;) and the <a class="source" href="operations_research.html">Operations Research textbook</a> (LP/optimization, the engine behind make-vs-borrow choices).</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Sources consolidated here</h4>
+    <ul>
+      <li><span class="pill bl">Tutorial</span> <strong>NPV &amp; Amortization Tutorial &ndash; Python &amp; Mojo</strong> &mdash; formulas, both-language implementations, the loan-funded-project idea.</li>
+      <li><span class="pill bl">Tutorial</span> <strong>Financial Math: NPV &amp; Amortisation (Python &amp; Mojo 1.x)</strong> &mdash; the invest/reject scenario, the mortgage example, the Python-vs-Mojo table.</li>
+      <li><span class="pill ylw">Errata</span> Numerical outputs were recomputed and corrected (see Section 3.3); the pedagogies of both sources are kept.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <p>NPV &amp; Amortisation — consolidated from the two community tutorials (NPV &amp; Amortization, Financial Math: NPV &amp; Amortisation), rewritten, deduplicated and corrected, and cross-checked with the Applications-track Finance lessons and the decision-aware/OR companion books. Open in any browser or print to PDF.</p>
+</footer>
+
+<script>
+  const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  const map = new Map();
+  links.forEach(l => map.set(l.getAttribute('href').slice(1), l));
+  const secs = [...document.querySelectorAll('main section[id], main h3[id]')];
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && map.has(e.target.id)){
+        links.forEach(l => l.classList.remove('active'));
+        map.get(e.target.id).classList.add('active');
+      }
+    });
+  }, {rootMargin:'-20% 0px -70% 0px'});
+  secs.forEach(s => io.observe(s));
+
+  (function(){
+    const KEY='tutme-toc-npv';
+    let st={};
+    try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+    const root=document.documentElement;
+    const btn=document.getElementById('tocToggle'), tab=document.getElementById('tocOpen'), rs=document.getElementById('tocResize');
+    if(st.w)root.style.setProperty('--tocw',st.w+'px');
+    if(st.collapsed)document.body.classList.add('toc-collapsed');
+    const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({collapsed:document.body.classList.contains('toc-collapsed'),w:st.w}))}catch(e){}};
+    if(btn)btn.addEventListener('click',()=>{document.body.classList.add('toc-collapsed');save();});
+    if(tab)tab.addEventListener('click',()=>{document.body.classList.remove('toc-collapsed');save();});
+    if(rs){
+      let drag=false;
+      rs.addEventListener('mousedown',e=>{drag=true;rs.classList.add('on');document.body.style.cursor='col-resize';document.body.style.userSelect='none';e.preventDefault();});
+      rs.addEventListener('dblclick',()=>{st.w=null;root.style.removeProperty('--tocw');save();});
+      addEventListener('mousemove',e=>{if(!drag)return;st.w=Math.max(180,Math.min(420,e.clientX-25));root.style.setProperty('--tocw',st.w+'px');});
+      addEventListener('mouseup',()=>{if(drag){drag=false;rs.classList.remove('on');document.body.style.cursor='';document.body.style.userSelect='';save();}});
+    }
+  })();
+</script>
+
+<!-- tutme-hl:runtime -->
+<style>
+/* Mojo runtime syntax highlighting (tutme) - dark default, light variant auto-applied */
+pre .hkw{color:#c792ea}
+pre .hty{color:#ffcb6b}
+pre .hfn{color:#82aaff}
+pre .hstr{color:#c3e88d}
+pre .hnum{color:#f78c6c}
+pre .hcm{color:#676e95;font-style:italic}
+pre .hop{color:#89ddff}
+pre.tutme-light .hkw{color:#6d28d9}
+pre.tutme-light .hty{color:#b45309}
+pre.tutme-light .hfn{color:#1d4ed8}
+pre.tutme-light .hstr{color:#15803d}
+pre.tutme-light .hnum{color:#c2410c}
+pre.tutme-light .hcm{color:#6b7280;font-style:italic}
+pre.tutme-light .hop{color:#0f766e}
+</style>
+<script>
+(function(){
+  if (window.__tutmeHL) return; window.__tutmeHL = true;
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var KW='def fn struct trait alias var let return if elif else for while in break continue '+
+    'from import as mut out self yield raise raises try except with match case and or not '+
+    'lambda pass global static public private true false none parameterize is';
+  var TY='Float64 Float32 Float16 Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 '+
+    'String StringRef Bool List Dict Tensor TensorShape SIMD DType Pointer Slice '+
+    'Memory Atomic Scalar Tuple NoneType object Int Index';
+  var kwRe = new RegExp('\\b(?:'+KW.split(' ').join('|')+')\\b','ig');
+  var tyRe = new RegExp('\\b(?:'+TY.split(' ').join('|')+')\\b','g');
+  var RULES = [
+    ['cm', /#[^\n]*/g],
+    ['str', /"""[^]*?"""/g],
+    ['str', /'''[^]*?'''/g],
+    ['str', /"(?:\\.|[^"\\\n])*"/g],
+    ['str', /'(?:\\.|[^'\\\n])*'/g],
+    ['num', /(?:\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?[iu]?|\.\d+)/g],
+    ['kw', kwRe],
+    ['ty', tyRe],
+    ['fn', /([A-Za-z_]\w*)(\s*\()/g],
+    ['op', /(?:\+\+|-{2}|->|=>|==|!=|<=|>=|\+=|-=|\*=|\/=|\/\/|\*\*|::|\|\||&&|\.\.\.|[+\-*/%<>=!@&~|])/g]
+  ];
+
+  function highlight(text){
+    var marks = [];
+    for (var r=0; r<RULES.length; r++){
+      var cls = RULES[r][0], rx = RULES[r][1];
+      rx.lastIndex = 0;
+      var m;
+      while ((m = rx.exec(text)) !== null){
+        if (m[0].length){
+          marks.push([m.index, m.index+m[0].length, cls, m]);
+        }
+        rx.lastIndex = m.index + Math.max(1, m[0].length);
+      }
+    }
+    marks.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+    var out = [], i = 0;
+    for (var k=0; k<marks.length; k++){
+      var st = marks[k][0], en = marks[k][1], cls = marks[k][2], mm = marks[k][3];
+      if (st < i) continue;
+      if (st > i) out.push(esc(text.slice(i, st)));
+      if (cls === 'fn'){
+        out.push('<span class="hfn">'+esc(mm[1])+esc(mm[2])+'</span>');
+      } else {
+        out.push('<span class="h'+cls+'">'+esc(text.slice(st, en))+'</span>');
+      }
+      i = en;
+    }
+    out.push(esc(text.slice(i)));
+    return out.join('');
+  }
+
+  function hexLum(h){
+    h = h.slice(1);
+    if (h.length === 3 || h.length === 4) h = h.split('').map(function(x){ return x+x; }).join('');
+    var n = parseInt(h.slice(0,6), 16);
+    return 0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255);
+  }
+
+  function fallbackLum(){
+    try {
+      var s = window.getComputedStyle(document.body);
+      var colors = ((s.backgroundImage || '') + ' ' + (s.backgroundColor || '')).match(/(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))/ig) || [];
+      var i;
+      for (i=0; i<colors.length; i++){
+        var c = colors[i];
+        if (c.charAt(0) === '#'){
+          if (c.length < 7) continue;
+          return hexLum(c);
+        }
+        var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(c);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > 0.3)){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function detectLum(pre){
+    var n = pre;
+    for (var i=0; i<4 && n; i++, n=n.parentElement){
+      var bg;
+      try { bg = window.getComputedStyle(n).backgroundColor; } catch(e){ return null; }
+      var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(bg);
+      if (m){
+        var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+        if (a > 0.3){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    }
+    return fallbackLum();
+  }
+
+  var pres = document.querySelectorAll('pre');
+  for (var p=0; p<pres.length; p++){
+    var pre = pres[p];
+    if (pre.className && /(^|\s)math(\s|$)/.test(pre.className)) continue;
+    var kids = pre.children.length, el = pre;
+    if (kids === 1 && pre.firstElementChild && pre.firstElementChild.tagName === 'CODE'){
+      el = pre.firstElementChild;
+    } else if (kids > 0) {
+      continue;
+    }
+    if (/<[a-z]/i.test(el.innerHTML)) continue;
+    var txt = el.textContent;
+    if (!/(?:def|fn|struct|trait|var|let|import|from|for|while|return|print|Float64|if|class)\b/.test(txt)) continue;
+    var lum = detectLum(pre);
+    if (lum !== null && lum > 170) pre.className = (pre.className ? pre.className + ' ' : '') + 'tutme-light';
+    el.innerHTML = highlight(txt);
+  }
+})();
+</script>
+</body>
+</html>

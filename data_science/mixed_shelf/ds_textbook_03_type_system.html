@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_03_type_system_simd_traits_comptime.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 3 — The Type System: SIMD, Traits, and comptime · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Ch 03 — The Type System</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_03_type_system.html#scalar-types" data-t="scalar-types" title="Scalar Types"></a>
+  <a href="ds_textbook_03_type_system.html#simd" data-t="simd" title="SIMD Vectors"></a>
+  <a href="ds_textbook_03_type_system.html#traits" data-t="traits" title="Traits"></a>
+  <a href="ds_textbook_03_type_system.html#comptime" data-t="comptime" title="comptime"></a>
+  <a href="ds_textbook_03_type_system.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_03_type_system.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part I — Foundations · Chapter 3</div>
+  <h1>🧬 The Type System: SIMD, Traits, and comptime</h1>
+  <p class="dek">How Mojo's type system packs hardware-level performance into a readable syntax — from scalar types to vectorized SIMD operations, parameterized generics, and compile-time metaprogramming.</p>
+
+  <section id="scalar-types">
+    <h2>Scalar types: the numeric building blocks</h2>
+    <p>Mojo provides explicit numeric types that map directly to hardware representations. Unlike Python, where <code class="inline">int</code> and <code class="inline">float</code> are arbitrary-precision objects on the heap, Mojo's scalar types are fixed-width values that live in registers and operate at CPU speed.</p>
+
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Bits</th><th>Range / Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code class="inline">Int</code></td><td>64</td><td>Signed integer, platform-native width</td></tr>
+        <tr><td><code class="inline">Int8</code></td><td>8</td><td>−128 to 127</td></tr>
+        <tr><td><code class="inline">Int16</code></td><td>16</td><td>−32,768 to 32,767</td></tr>
+        <tr><td><code class="inline">Int32</code></td><td>32</td><td>−2³¹ to 2³¹−1</td></tr>
+        <tr><td><code class="inline">UInt8</code></td><td>8</td><td>0 to 255 (useful for byte buffers)</td></tr>
+        <tr><td><code class="inline">Float32</code></td><td>32</td><td>IEEE 754 single precision</td></tr>
+        <tr><td><code class="inline">Float64</code></td><td>64</td><td>IEEE 754 double precision</td></tr>
+        <tr><td><code class="inline">BFloat16</code></td><td>16</td><td>Brain float — ML training favorite</td></tr>
+        <tr><td><code class="inline">Boolean</code></td><td>1</td><td>true / false</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="lbl">Why BFloat16 matters for ML</span>
+      <p><code class="inline">BFloat16</code> uses the same exponent range as <code class="inline">Float32</code> but with fewer mantissa bits. This means you get the same dynamic range (avoiding overflow/underflow during training) at half the memory and bandwidth. Google's TPUs and NVIDIA's Ampere GPUs have native BFloat16 hardware support, making it the de facto format for mixed-precision training.</p>
+    </div>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="scalars"><span class="sw"></span>scalars.mojo</div>
+      </div>
+      <div class="panes" data-group="scalars">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — explicit numeric types</span>
+<span class="tok-kw">var</span> a: Int = <span class="tok-num">42</span>
+<span class="tok-kw">var</span> b: Float32 = <span class="tok-num">3.14</span>
+<span class="tok-kw">var</span> c: Float64 = <span class="tok-num">2.718281828</span>
+<span class="tok-kw">var</span> d: BFloat16 = <span class="tok-num">1.5</span>
+
+<span class="tok-com"># Type conversions are explicit</span>
+<span class="tok-kw">var</span> widened: Float64 = <span class="tok-fn">Float64</span>(b)
+<span class="tok-kw">var</span> truncated: Int = <span class="tok-fn">Int</span>(c)  <span class="tok-com"># 2 — truncates</span>
+
+<span class="tok-com"># Overflow is a compile-time or runtime error</span>
+<span class="tok-kw">var</span> big: UInt8 = <span class="tok-num">255</span>
+<span class="tok-com"># var over: UInt8 = big + 1  # runtime error in debug mode</span>
+
+<span class="tok-com"># BFloat16 for ML inference</span>
+<span class="tok-kw">var</span> weight: BFloat16 = <span class="tok-num">0.75</span>
+print(<span class="tok-str">f"Weight type: {<span class="tok-fn">typeof</span>(weight)}"</span>)</pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo requires explicit casts between numeric types — no implicit widening or narrowing. This prevents an entire class of silent numeric bugs: in Python <code class="inline">int(3.9)</code> quietly becomes <code class="inline">3</code>, whereas <code class="inline">Int(c)</code> above is explicit about doing the same thing. The other side of the trade is that Python's <code class="inline">int</code> is arbitrary-precision, so <code class="inline">10 ** 100</code> simply works; Mojo's <code class="inline">Int</code> is a fixed 64 bits. Python's standard library has no <code class="inline">BFloat16</code> at all either — you reach for <code class="inline">numpy.bfloat16</code> — while here it is a built-in type.</p>
+
+    <p>The key takeaway: <b>Mojo gives you hardware-native types from day one.</b> You choose the precision you need, and the compiler generates code that matches. Python hides all of this behind objects; Mojo exposes the same hardware-native types with none of the boilerplate. That's the sweet spot.</p>
+  </section>
+
+  <section id="simd">
+    <h2>SIMD vectors: processing 8 floats at once</h2>
+    <p>SIMD (Single Instruction, Multiple Data) is how modern CPUs process multiple values in a single clock cycle. Instead of adding two floats one at a time, you add two vectors of 8 floats simultaneously. Mojo makes SIMD a first-class citizen with its <code class="inline">SIMD</code> type, parameterized by element type and width.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="simd"><span class="sw"></span>simd_basics.mojo</div>
+      </div>
+      <div class="panes" data-group="simd">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — SIMD is a built-in type</span>
+<span class="tok-kw">from</span> math <span class="tok-kw">import</span> sqrt
+
+<span class="tok-com"># SIMD[T, width] — vector of `width` elements of type T</span>
+<span class="tok-kw">var</span> a = <span class="tok-ty">SIMD</span>[<span class="tok-ty">Float32</span>, <span class="tok-num">8</span>](<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>,
+                       <span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">7.0</span>, <span class="tok-num">8.0</span>)
+<span class="tok-kw">var</span> b = <span class="tok-ty">SIMD</span>[<span class="tok-ty">Float32</span>, <span class="tok-num">8</span>](<span class="tok-num">8.0</span>, <span class="tok-num">7.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">5.0</span>,
+                       <span class="tok-num">4.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">1.0</span>)
+
+<span class="tok-com"># Element-wise operations — single CPU instruction</span>
+<span class="tok-kw">var</span> c = a + b     <span class="tok-com"># [9, 9, 9, 9, 9, 9, 9, 9]</span>
+<span class="tok-kw">var</span> d = a * b     <span class="tok-com"># [8, 14, 18, 20, 20, 18, 14, 8]</span>
+<span class="tok-kw">var</span> e = a / b     <span class="tok-com"># element-wise division</span>
+
+<span class="tok-com"># Reductions — sum all elements</span>
+<span class="tok-kw">var</span> total = a.reduce_add()  <span class="tok-com"># 36.0</span>
+<span class="tok-kw">var</span> product = a.reduce_mul()
+
+<span class="tok-com"># Fused multiply-add: a * b + c in one instruction</span>
+<span class="tok-kw">var</span> fma = a.fma(b, c)  <span class="tok-com"># (a * b) + c, single instruction</span>
+
+<span class="tok-com"># The width is a comptime parameter</span>
+<span class="tok-kw">comptime</span> width = <span class="tok-num">8</span>
+<span class="tok-kw">comptime</span> dt = <span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>
+<span class="tok-kw">comptime</span> vec_t = <span class="tok-ty">SIMD</span>[dt, width]
+
+<span class="tok-kw">def</span> <span class="tok-fn">dot_product</span>(a: vec_t, b: vec_t) -&gt; Float32:
+    <span class="tok-kw">return</span> (a * b).reduce_add()
+
+<span class="tok-kw">var</span> v1 = vec_t(<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>, <span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>, <span class="tok-num">7</span>, <span class="tok-num">8</span>)
+<span class="tok-kw">var</span> v2 = vec_t(<span class="tok-num">8</span>, <span class="tok-num">7</span>, <span class="tok-num">6</span>, <span class="tok-num">5</span>, <span class="tok-num">4</span>, <span class="tok-num">3</span>, <span class="tok-num">2</span>, <span class="tok-num">1</span>)
+print(<span class="tok-fn">dot_product</span>(v1, v2))  <span class="tok-com"># 120</span></pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's SIMD type is comptime-parameterized — the width and element type are baked in at compile time, generating optimal machine code. <code class="inline">numpy</code> gives you the same arithmetic through <code class="inline">a + b</code>, <code class="inline">np.sum(a)</code> and <code class="inline">np.dot(a, b)</code>, but each of those crosses the Python↔C boundary, and stock <code class="inline">numpy</code> has no fused multiply-add — the <code class="inline">.fma()</code> above is a single instruction the compiler emits for you.</p>
+
+    <h3>DType: the type of types</h3>
+    <p>The <code class="inline">DType</code> enum is how Mojo represents data types as first-class compile-time values. You use it when you need to write generic code that works across multiple numeric types without writing separate implementations for each one.</p>
+
+    <div class="code-block">
+      <div class="head">DType for generic numeric code</div>
+      <pre><span class="tok-com"># Write ONCE, works with any numeric type</span>
+<span class="tok-kw">def</span> <span class="tok-fn">relu</span>[<span class="tok-ty">dtype</span>: <span class="tok-ty">DType</span>](x: <span class="tok-ty">SIMD</span>[<span class="tok-ty">dtype</span>, <span class="tok-num">1</span>]) -&gt; <span class="tok-ty">SIMD</span>[<span class="tok-ty">dtype</span>, <span class="tok-num">1</span>]:
+    <span class="tok-kw">return</span> max(x, <span class="tok-num">0</span>)
+
+<span class="tok-com"># Instantiate for different precisions</span>
+<span class="tok-kw">var</span> r1 = <span class="tok-fn">relu</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](<span class="tok-num">-1.5</span>)
+<span class="tok-kw">var</span> r2 = <span class="tok-fn">relu</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float64</span>](<span class="tok-num">-1.5</span>)
+<span class="tok-kw">var</span> r3 = <span class="tok-fn">relu</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">bfloat16</span>](<span class="tok-num">-1.5</span>)
+
+<span class="tok-com"># SIMD-aware version — processes 8 values at once</span>
+<span class="tok-kw">def</span> <span class="tok-fn">relu_vec</span>[<span class="tok-ty">dtype</span>: <span class="tok-ty">DType</span>, <span class="tok-ty">width</span>: Int](x: <span class="tok-ty">SIMD</span>[<span class="tok-ty">dtype</span>, <span class="tok-ty">width</span>]) -&gt; <span class="tok-ty">SIMD</span>[<span class="tok-ty">dtype</span>, <span class="tok-ty">width</span>]:
+    <span class="tok-kw">return</span> max(x, <span class="tok-num">0</span>)
+
+<span class="tok-kw">var</span> batch = <span class="tok-ty">SIMD</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, <span class="tok-num">8</span>](
+    <span class="tok-num">-1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">-3.0</span>, <span class="tok-num">4.0</span>, <span class="tok-num">-5.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">-7.0</span>, <span class="tok-num">8.0</span>
+)
+print(<span class="tok-fn">relu_vec</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, <span class="tok-num">8</span>](batch))
+<span class="tok-com"># [0, 2, 0, 4, 0, 6, 0, 8]</span></pre>
+    </div>
+
+    <div class="callout">
+      <span class="lbl">💡 Why this matters</span>
+      <p>In Python, you'd write <code class="inline">np.maximum(x, 0)</code> and numpy dispatches to the right kernel at runtime. In Mojo, the compiler generates the exact SIMD instruction sequence at compile time — there's no runtime dispatch, no virtual function call, no indirection. This is why Mojo can match C performance.</p>
+    </div>
+  </section>
+
+  <section id="traits">
+    <h2>Traits and parameterized generics</h2>
+    <p>From Chapter 2 you know traits define shared behavior. Here we dig deeper into how traits power Mojo's generic programming model — the mechanism that lets you write one function that works efficiently across many types.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="traits"><span class="sw"></span>traits_generics.mojo</div>
+      </div>
+      <div class="panes" data-group="traits">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — traits as type constraints</span>
+<span class="tok-kw">trait</span> <span class="ty">Numeric</span>:
+    <span class="tok-kw">def</span> <span class="tok-fn">__add__</span>(self, other: Self) -&gt; Self: ...
+    <span class="tok-kw">def</span> <span class="tok-fn">__mul__</span>(self, other: Self) -&gt; Self: ...
+    <span class="tok-kw">def</span> <span class="tok-fn">__sub__</span>(self, other: Self) -&gt; Self: ...
+
+<span class="tok-com"># Copying and moving are unified into __init__ overloads:</span>
+<span class="tok-com">#   Mojo synthesizes __init__(out self, *, copy: Self) for Copyable</span>
+<span class="tok-com">#   Mojo synthesizes __init__(out self, *, deinit move: Self) for Movable</span>
+<span class="tok-com"># (the old __copyinit__/__moveinit__ spellings were removed pre-1.0)</span>
+
+<span class="tok-com"># Generic function constrained by traits</span>
+<span class="tok-kw">def</span> <span class="tok-fn">mean</span>[<span class="tok-ty">T</span>: <span class="ty">Numeric</span>](items: List[<span class="tok-ty">T</span>]) -&gt; <span class="tok-ty">T</span>:
+    <span class="tok-kw">var</span> total = items[<span class="tok-num">0</span>]
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(<span class="tok-num">1</span>, len(items)):
+        total += items[i]
+    <span class="tok-kw">return</span> total / <span class="tok-fn">T</span>(len(items))
+
+<span class="tok-com"># Works with any Numeric type</span>
+<span class="tok-kw">var</span> float_vals = [<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>]  <span class="tok-com"># List[Float64]</span>
+<span class="tok-kw">var</span> int_vals = [<span class="tok-num">10</span>, <span class="tok-num">20</span>, <span class="tok-num">30</span>]       <span class="tok-com"># List[Int]</span>
+print(<span class="tok-fn">mean</span>(float_vals))  <span class="tok-com"># 2.0</span>
+print(<span class="tok-fn">mean</span>(int_vals))    <span class="tok-com"># 20</span>
+
+<span class="tok-com"># Multiple trait constraints</span>
+<span class="tok-kw">def</span> <span class="tok-fn">clamp</span>[<span class="tok-ty">T</span>: <span class="ty">Comparable</span>, <span class="ty">Copyable</span>](val: <span class="tok-ty">T</span>, lo: <span class="tok-ty">T</span>, hi: <span class="tok-ty">T</span>) -&gt; <span class="tok-ty">T</span>:
+    <span class="tok-kw">if</span> val &lt; lo:
+        <span class="tok-kw">return</span> lo
+    <span class="tok-kw">elif</span> val &gt; hi:
+        <span class="tok-kw">return</span> hi
+    <span class="tok-kw">return</span> val</pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's trait syntax stays close to plain English because the compiler infers the rest. The result: zero-cost generics with compile-time dispatch.</p>
+
+    <h3>Built-in traits you'll use constantly</h3>
+    <ul>
+      <li><b><code class="inline">Copyable</code></b> — the type can be bit-copied. Required for stack-allocated scalars and simple structs.</li>
+      <li><b><code class="inline">Movable</code></b> — the type supports ownership transfer with <code class="inline">^</code>. All Mojo types are movable by default.</li>
+      <li><b><code class="inline">Stringable</code></b> — the type can be converted to <code class="inline">String</code> for printing.</li>
+      <li><b><code class="inline">Sized</code></b> — the type has a known size at compile time (required for all struct fields).</li>
+      <li><b><code class="inline">KeyElement</code></b> — the type can be used as a dictionary key (implies <code class="inline">Copyable</code> and equality comparison).</li>
+    </ul>
+  </section>
+
+  <section id="comptime">
+    <h2>comptime: metaprogramming at the compiler level</h2>
+    <p>Mojo's <code class="inline">comptime</code> keyword lets you run code at compile time. This is not macros, not templates, not code generation — it's the actual Mojo compiler executing your code during compilation and injecting the results into the program. Think of it as a superpowered version of C++ <code class="inline">constexpr</code> or Zig's <code class="inline">comptime</code>.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="comptime"><span class="sw"></span>comptime.mojo</div>
+      </div>
+      <div class="panes" data-group="comptime">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — comptime values and parameters</span>
+
+<span class="tok-com"># Compile-time constant</span>
+<span class="tok-kw">comptime</span> PI: Float64 = <span class="tok-num">3.14159265358979</span>
+<span class="tok-kw">comptime</span> BUFFER_SIZE = <span class="tok-num">1024</span>
+
+<span class="tok-com"># comptime blocks run during compilation</span>
+<span class="tok-kw">comptime</span>:
+    print(<span class="tok-str">"This prints during compilation!"</span>)
+    <span class="tok-kw">if</span> <span class="tok-ty">sys</span>.<span class="tok-ty">arch</span> == <span class="tok-str">"x86_64"</span>:
+        alias SIMD_WIDTH = <span class="tok-num">8</span>
+    <span class="tok-kw">else</span>:
+        alias SIMD_WIDTH = <span class="tok-num">4</span>
+
+<span class="tok-com"># comptime parameters in functions</span>
+<span class="tok-kw">def</span> <span class="tok-fn">matrix_multiply</span>[<span class="tok-ty">M</span>: Int, <span class="tok-ty">N</span>: Int, <span class="tok-ty">K</span>: Int](
+    A: <span class="tok-ty">TensorSpec</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, <span class="tok-ty">M</span>, <span class="tok-ty">K</span>],
+    B: <span class="tok-ty">TensorSpec</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, <span class="tok-ty">K</span>, <span class="tok-ty">N</span>]
+) -&gt; <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, <span class="tok-ty">M</span>, <span class="tok-ty">N</span>]:
+    <span class="tok-com"># M, N, K are known at compile time</span>
+    <span class="tok-com"># Compiler can unroll loops, pick optimal instructions</span>
+    ...
+
+<span class="tok-com"># comptime string manipulation</span>
+<span class="tok-kw">comptime</span> msg = <span class="tok-str">"Hello"</span> + <span class="tok-str">", "</span> + <span class="tok-str">"World"</span>  <span class="tok-com"># resolved at compile time</span>
+
+<span class="tok-com"># Conditional compilation</span>
+<span class="tok-kw">@parameter</span>
+<span class="tok-kw">if</span> <span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>.is_floating_point():
+    alias default_dt = <span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>
+<span class="tok-kw">else</span>:
+    alias default_dt = <span class="tok-ty">DType</span>.<span class="tok-ty">float64</span>
+
+<span class="tok-com"># Compile-time loop unrolling</span>
+<span class="tok-kw">def</span> <span class="tok-fn">unrolled_sum</span>[<span class="tok-ty">N</span>: Int](data: <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, <span class="tok-ty">N</span>]) -&gt; Float32:
+    <span class="tok-kw">var</span> total: Float32 = <span class="tok-num">0</span>
+    <span class="tok-ty">alias</span> UNROLL = <span class="tok-num">4</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(<span class="tok-num">0</span>, <span class="tok-ty">N</span>, UNROLL):
+        <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(UNROLL):
+            total += data[i + j]
+    <span class="tok-kw">return</span> total</pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's comptime can execute arbitrary Mojo code during compilation — not just simple constant expressions. Python's nearest neighbours all run at import time instead: a class body evaluated when the module loads, a <code class="inline">__new__</code> that fires when a class is <i>defined</i> rather than instantiated, or a module-level <code class="inline">platform.machine()</code> check picking a width. None of those unroll a loop or emit specialised machine code, which is what the <code class="inline">SIMD_WIDTH</code> branch above gets for free.</p>
+
+    <div class="callout">
+      <span class="lbl">The comptime mental model</span>
+      <p>Think of <code class="inline">comptime</code> as a second compiler running inside your compiler. When you write <code class="inline">comptime: print("hello")</code>, that print happens during <b>compilation</b>, not at runtime. When you declare with <code class="inline">comptime</code> instead of <code class="inline">var</code>, the value is resolved during compilation and baked into the binary (the pre-1.0 keyword was <code class="inline">alias</code>). This is how Mojo achieves zero-cost abstractions: generic code that looks dynamic is actually fully specialized at compile time.</p>
+    </div>
+
+    <h3>comptime vs var: the compile-time/runtime boundary</h3>
+    <p>This distinction is critical to understand:</p>
+    <table>
+      <thead>
+        <tr><th>Keyword</th><th>When resolved</th><th>Storage</th><th>Use case</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code class="inline">comptime</code></td><td>Compile time</td><td>Embedded in code</td><td>Constants, type parameters, config</td></tr>
+        <tr><td><code class="inline">var</code></td><td>Runtime</td><td>Stack or heap</td><td>Mutable state, computed values</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is the key advantage of using <code>SIMD[Float32, 8]</code> instead of processing 8 floats individually?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">It uses less memory than 8 separate floats</button>
+        <button class="opt" data-correct="true">All 8 operations execute in a single CPU instruction cycle</button>
+        <button class="opt" data-correct="false">It automatically parallelizes across multiple CPU cores</button>
+        <button class="opt" data-correct="false">It eliminates the need for type annotations</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What happens when you declare <code>alias x = 42</code> vs <code>var x = 42</code>?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">They are identical — alias is just syntactic sugar</button>
+        <button class="opt" data-correct="false">alias creates a stack variable, var creates a heap variable</button>
+        <button class="opt" data-correct="true">alias is resolved at compile time and baked into the binary; var is a runtime variable</button>
+        <button class="opt" data-correct="false">alias makes the variable immutable at runtime</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Why is <code>BFloat16</code> preferred over <code>Float16</code> for ML training?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">BFloat16 uses less memory than Float16</button>
+        <button class="opt" data-correct="false">BFloat16 is faster on CPUs</button>
+        <button class="opt" data-correct="true">BFloat16 has the same exponent range as Float32, preventing overflow/underflow during training</button>
+        <button class="opt" data-correct="false">BFloat16 supports denormalized numbers and Float16 does not</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a generic function <code class="inline">elementwise_max</code> that takes two <code class="inline">SIMD</code> vectors of the same type and width, and returns a new vector containing the element-wise maximum. Test it with both <code class="inline">Float32</code> and <code class="inline">Int32</code>.</li>
+        <li>Use a <code class="inline">comptime</code> block to detect the platform architecture and set an alias <code class="inline">TENSOR_WIDTH</code> to 8 on x86_64 and 4 on other platforms. Then write a function that creates a <code class="inline">SIMD</code> vector of that width filled with ones.</li>
+        <li>Define a trait <code class="inline">Differentiable</code> with a method <code class="inline">derivative</code> that returns a <code class="inline">Float64</code>. Implement it for at least two structs (e.g., <code class="inline">Polynomial</code> and <code class="inline">Exponential</code>), then write a generic function that takes any <code class="inline">Differentiable</code> type and evaluates its derivative at a given point.</li>
+        <li>Write a comptime function <code class="inline">factorial</code> that computes N! at compile time, then use it to create an alias that holds the value of 10!.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_02_syntax.html">← Chapter 2: Mojo Syntax</a>
+    <a class="navbtn" href="ds_textbook_04_ownership.html">Chapter 4: Ownership &amp; Borrowing →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '✓ Correct.'
+        : '✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+
+</body></html>

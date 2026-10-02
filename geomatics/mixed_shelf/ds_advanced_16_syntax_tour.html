@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)m10_16_syntax_tour.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 16 — Mojo vs Python: A Syntax Tour · Mojo 1.x</title>
+<style>
+:root{
+  --bg:#0f1115;--surface:#16181d;--surface-hover:#1e2128;
+  --text:#f4f6fc;--text-muted:#ffe4a3;
+  --accent:#6c5ce7;--accent-light:#a29bfe;
+  --success:#00cec9;--warning:#fdcb6e;
+  --code-bg:#111317;--border:#434b59;
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent-light);text-decoration:none;transition:color 0.2s;}
+a:hover{color:var(--accent);}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--success));z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:56px;background:rgba(15,17,21,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1rem;color:var(--text);text-decoration:none;}
+.brand .icon{width:28px;height:28px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.chnum{font-family:var(--font-mono);font-size:0.75rem;color:var(--success);letter-spacing:0.04em;}
+
+.container{max-width:820px;margin:0 auto;padding:0 24px;}
+.wrap{padding:4.5rem 0 7rem;}
+
+.kicker{display:inline-block;background:rgba(108,92,231,0.15);color:var(--accent-light);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;letter-spacing:0.5px;margin-bottom:16px;border:1px solid rgba(108,92,231,0.3);}
+h1{font-size:clamp(2rem,4.5vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+h1 .hl{background:linear-gradient(to right,var(--accent-light),var(--success));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.dek{font-size:1.1rem;color:var(--text-muted);margin-bottom:36px;max-width:580px;line-height:1.7;}
+
+h2{font-size:1.5rem;font-weight:700;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.15rem;font-weight:600;margin:2rem 0 0.8rem;}
+p{color:var(--text-muted);margin:0 0 1rem;line-height:1.8;}
+p strong{color:var(--text);}
+ul,ol{color:var(--text-muted);padding-left:20px;line-height:1.8;}
+li{margin-bottom:4px;}
+code{font-family:var(--font-mono);font-size:0.88em;background:rgba(108,92,231,0.1);padding:2px 6px;border-radius:4px;color:var(--accent-light);}
+
+.info-box{padding:16px 20px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:16px 0;}
+.info-box strong{color:var(--text);}
+.info-box p{margin-top:4px;}
+.tip-box{background:rgba(0,206,201,0.06);border-color:rgba(0,206,201,0.12);}
+.tip-box strong{color:var(--success);}
+
+.code-playground{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin:20px 0;}
+.tabs{display:flex;background:var(--code-bg);border-bottom:1px solid var(--border);}
+.tab{padding:10px 18px;cursor:pointer;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all 0.2s;font-size:0.9rem;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent-light);border-bottom-color:var(--accent-light);background:rgba(108,92,231,0.08);}
+.code-content{padding:16px 20px;background:var(--code-bg);min-height:200px;position:relative;}
+.code-block{display:none;font-family:var(--font-mono);font-size:0.88rem;line-height:1.7;white-space:pre;overflow-x:auto;}
+.code-block.active{display:block;}
+.kw{color:#c792ea;}.fn{color:#82aaff;}.str{color:#c3e88d;}.num{color:#f78c6c;}.com{color:#546e7a;font-style:italic;}.type{color:#ffcb6b;}.op{color:#89ddff;}
+
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.quiz{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:20px;margin:24px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--success);margin-bottom:10px;}
+.qtext{font-size:1.05rem;font-weight:600;margin-bottom:14px;}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{text-align:left;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.92rem;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.opt:hover{border-color:var(--accent);color:var(--text);}
+.opt.correct{border-color:var(--success);background:rgba(0,206,201,0.08);color:var(--success);}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:10px;font-size:0.88rem;color:var(--text-muted);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;background:var(--surface);margin:20px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);padding:8px 14px;border-radius:8px;transition:all 0.2s;}
+.navbtn:hover{border-color:var(--accent);color:var(--text);}
+.navbtn.disabled{opacity:0.35;pointer-events:none;}
+
+.mini-toc{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30;}
+.mini-toc a{width:7px;height:7px;border-radius:50%;background:var(--border);display:block;transition:all .2s;}
+.mini-toc a.active{background:var(--success);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+@media(max-width:600px){h1{font-size:1.8rem;}.wrap{padding:3rem 0 4rem;}}
+
+table.cheat{width:100%;border-collapse:collapse;margin:20px 0;font-size:0.88rem;}
+table.cheat th{text-align:left;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);color:var(--accent-light);font-family:var(--font-mono);font-size:0.8rem;letter-spacing:0.03em;}
+table.cheat td{padding:10px 12px;border:1px solid var(--border);color:var(--text-muted);vertical-align:top;}
+table.cheat tr:hover td{background:rgba(108,92,231,0.04);}
+table.cheat code{font-size:0.82em;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" style="width: 82.3938%;"></div>
+
+<header class="header">
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html"><span class="icon">M</span> Mojo 1.x</a>
+  <span class="chnum">Chapter 16 / 17</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_advanced_16_syntax_tour.html#quadratic" class=""></a>
+  <a href="ds_advanced_16_syntax_tour.html#compound" class=""></a>
+  <a href="ds_advanced_16_syntax_tour.html#npv" class=""></a>
+  <a href="ds_advanced_16_syntax_tour.html#simultaneous" class=""></a>
+  <a href="ds_advanced_16_syntax_tour.html#factorial" class=""></a>
+  <a href="ds_advanced_16_syntax_tour.html#fibonacci" class=""></a>
+  <a href="ds_advanced_16_syntax_tour.html#cheatsheet" class="active"></a>
+  <a href="ds_advanced_16_syntax_tour.html#quiz"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Final Chapter</span>
+  <h1>🔀 Mojo vs Python: <span class="hl">A Syntax Tour</span></h1>
+  <p class="dek">Seven practical examples implemented in Mojo 1.x, with the Python habit each one replaces called out in prose. Compare syntax, idioms, and trade-offs in one place.</p>
+
+  <!-- ─── 1. Quadratic Equation Solver ─── -->
+  <section id="quadratic">
+    <h2>1. Quadratic Equation Solver</h2>
+    <p>Given coefficients <strong>a</strong>, <strong>b</strong>, and <strong>c</strong>, solve <code>ax² + bx + c = 0</code> using the discriminant formula. This example highlights how Mojo handles the <code>math</code> module, variable declarations, and conditional branches.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-quad">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-quad"><code><span class="kw">from</span> math <span class="kw">import</span> sqrt
+
+<span class="kw">def</span> <span class="fn">solve_quadratic</span>(a: Float64, b: Float64, c: Float64):
+    <span class="kw">var</span> discriminant = b * b - <span class="num">4.0</span> * a * c
+
+    <span class="kw">if</span> discriminant &gt; <span class="num">0</span>:
+        <span class="kw">var</span> x1 = (-b + sqrt(discriminant)) / (<span class="num">2.0</span> * a)
+        <span class="kw">var</span> x2 = (-b - sqrt(discriminant)) / (<span class="num">2.0</span> * a)
+        <span class="kw">print</span>(<span class="str">"Two real roots:"</span>, x1, x2)
+    <span class="kw">elif</span> discriminant == <span class="num">0</span>:
+        <span class="kw">var</span> x = -b / (<span class="num">2.0</span> * a)
+        <span class="kw">print</span>(<span class="str">"One repeated root:"</span>, x)
+    <span class="kw">else</span>:
+        <span class="kw">var</span> real = -b / (<span class="num">2.0</span> * a)
+        <span class="kw">var</span> imag = sqrt(<span class="kw">abs</span>(discriminant)) / (<span class="num">2.0</span> * a)
+        <span class="kw">print</span>(<span class="str">"Complex roots:"</span>, real, <span class="str">"±"</span>, imag, <span class="str">"i"</span>)
+
+<span class="fn">solve_quadratic</span>(<span class="num">1.0</span>, -<span class="num">5.0</span>, <span class="num">6.0</span>)</code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Key differences</strong>
+      <p>Mojo declares every local with <code>var</code> — the keyword is mandatory, and a variable you never reassign is your immutable binding; Python variables are always mutable and appear on first assignment. Python checks types at runtime; Mojo enforces annotations at compile time. Python's f-strings become t-strings, so <code>f"Two real roots: {x1} and {x2}"</code> is <code>t"Two real roots: {x1} and {x2}"</code> — though handing the values to <code>print</code> as separate arguments, as below, needs no quoting at all.</p>
+    </div>
+  </section>
+
+  <!-- ─── 2. Compound Interest ─── -->
+  <section id="compound">
+    <h2>2. Compound Interest</h2>
+    <p>Calculate the future value of an investment using <code>A = P(1 + r/n)^(nt)</code>. This example demonstrates how Mojo handles exponentiation, the <code>**</code> operator, and formatted output.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-compound">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-compound"><code><span class="kw">def</span> <span class="fn">compound_interest</span>(
+    principal: Float64,
+    annual_rate: Float64,
+    compounds_per_year: Int,
+    years: Int
+) -&gt; Float64:
+    <span class="kw">var</span> r = annual_rate / <span class="num">100.0</span>
+    <span class="kw">var</span> n = <span class="fn">float</span>(compounds_per_year)
+    <span class="kw">var</span> t = <span class="fn">float</span>(years)
+    <span class="kw">return</span> principal * (<span class="num">1.0</span> + r / n) ** (n * t)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> amount = <span class="fn">compound_interest</span>(<span class="num">10000.0</span>, <span class="num">5.0</span>, <span class="num">12</span>, <span class="num">10</span>)
+    <span class="kw">print</span>(<span class="str">"Future value: $"</span>, amount)
+    <span class="com"># Future value: $16470.09</span></code></pre>
+      </div>
+    </div>
+
+    <div class="tip-box info-box">
+      <strong>💡 Tip:</strong>
+      <p>Mojo and Python both support the <code>**</code> exponent operator. In Mojo it works across <code>Float64</code>, <code>Int</code>, and other numeric types, so no separate <code>pow</code> overloads are needed. Python's <code>f"Future value: ${amount:.2f}"</code> becomes the t-string <code>t"Future value: ${amount:.2f}"</code>.</p>
+    </div>
+  </section>
+
+  <!-- ─── 3. Net Present Value ─── -->
+  <section id="npv">
+    <h2>3. Net Present Value (NPV)</h2>
+    <p>Discount a series of future cash flows back to present value: <code>NPV = Σ CFₜ / (1 + r)ᵗ</code>. This example shows iteration patterns, list operations, and accumulators.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-npv">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-npv"><code><span class="kw">def</span> <span class="fn">npv</span>(rate: Float64, cash_flows: <span class="type">List</span>[<span class="type">Float64</span>]) -&gt; Float64:
+    <span class="kw">var</span> total = <span class="num">0.0</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(cash_flows.<span class="fn">len</span>()):
+        total += cash_flows[i] / (<span class="num">1.0</span> + rate) ** <span class="fn">float</span>(i)
+    <span class="kw">return</span> total
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> flows = <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1000.0</span>, <span class="num">2000.0</span>, <span class="num">3000.0</span>, <span class="num">4000.0</span>)
+    <span class="kw">var</span> result = <span class="fn">npv</span>(<span class="num">0.08</span>, flows)
+    <span class="kw">print</span>(<span class="str">"NPV: $"</span>, result)
+    <span class="com"># NPV: $8012.25</span></code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Loop styles</strong>
+      <p>Mojo uses an explicit <code>for</code> loop with an accumulator, the shape Python programmers expect. There is no <code>enumerate</code>, so the loop walks indices and casts the discount exponent with <code>Float64(i)</code> instead of using it bare. <code>List[T]</code> is a value type; the heap-allocated <code>list</code> is its Python counterpart.</p>
+    </div>
+  </section>
+
+  <!-- ─── 4. Simultaneous Equations ─── -->
+  <section id="simultaneous">
+    <h2>4. Simultaneous Equations (Cramer's Rule)</h2>
+    <p>Solve a 2×2 system using Cramer's rule with structs to represent linear equations. This demonstrates how Mojo handles struct definitions and methods.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-sim">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-sim"><code><span class="kw">struct</span> <span class="type">LinearEq</span>:
+    <span class="kw">var</span> a: Float64
+    <span class="kw">var</span> b: Float64
+    <span class="kw">var</span> c: Float64   <span class="com"># ax + by = c</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, a: Float64, b: Float64, c: Float64):
+        <span class="kw">self</span>.a = a
+        <span class="kw">self</span>.b = b
+        <span class="kw">self</span>.c = c
+
+<span class="kw">def</span> <span class="fn">solve</span>(eq1: <span class="type">LinearEq</span>, eq2: <span class="type">LinearEq</span>) -&gt; <span class="type">Tuple</span>[<span class="type">Float64</span>, <span class="type">Float64</span>]:
+    <span class="kw">var</span> det = eq1.a * eq2.b - eq2.a * eq1.b
+    <span class="kw">if</span> det == <span class="num">0.0</span>:
+        <span class="kw">raise</span> <span class="str">"No unique solution"</span>
+    <span class="kw">var</span> x = (eq1.c * eq2.b - eq2.c * eq1.b) / det
+    <span class="kw">var</span> y = (eq1.a * eq2.c - eq2.a * eq1.c) / det
+    <span class="kw">return</span> (x, y)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> eq1 = <span class="type">LinearEq</span>(<span class="num">2.0</span>, <span class="num">3.0</span>, <span class="num">8.0</span>)
+    <span class="kw">var</span> eq2 = <span class="type">LinearEq</span>(<span class="num">1.0</span>, -<span class="num">1.0</span>, -<span class="num">1.0</span>)
+    <span class="kw">var</span> (x, y) = <span class="fn">solve</span>(eq1, eq2)
+    <span class="kw">print</span>(<span class="str">"x ="</span>, x, <span class="str">" y ="</span>, y)
+    <span class="com"># x = 1.0  y = 2.0</span></code></pre>
+      </div>
+    </div>
+
+    <div class="tip-box info-box">
+      <strong>💡 Tip:</strong>
+      <p>Mojo structs use the same <code>__init__</code> convention as Python classes, but are value types: stack-allocated by default, with zero overhead for small numerical structs like <code>LinearEq</code>. Python classes are heap-allocated. The pairing logic stays a free <code>solve(eq1, eq2)</code> function in Mojo too — only the type declaration changed.</p>
+    </div>
+  </section>
+
+  <!-- ─── 5. Factorial ─── -->
+  <section id="factorial">
+    <h2>5. Factorial (Iterative &amp; Recursive)</h2>
+    <p>Implement <code>n!</code> both iteratively and recursively. This example highlights function signatures, return types, and recursion semantics in Mojo.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-fact">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-fact"><code><span class="com"># Iterative</span>
+<span class="kw">def</span> <span class="fn">factorial_iter</span>(n: Int) -&gt; Int:
+    <span class="kw">var</span> result = <span class="num">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, n + <span class="num">1</span>):
+        result *= i
+    <span class="kw">return</span> result
+
+<span class="com"># Recursive</span>
+<span class="kw">def</span> <span class="fn">factorial_rec</span>(n: Int) -&gt; Int:
+    <span class="kw">if</span> n &lt;= <span class="num">1</span>:
+        <span class="kw">return</span> <span class="num">1</span>
+    <span class="kw">return</span> n * <span class="fn">factorial_rec</span>(n - <span class="num">1</span>)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">print</span>(<span class="str">"Iterative 10! ="</span>, <span class="fn">factorial_iter</span>(<span class="num">10</span>))
+    <span class="kw">print</span>(<span class="str">"Recursive 10! ="</span>, <span class="fn">factorial_rec</span>(<span class="num">10</span>))
+    <span class="com"># Both print: 3628800</span></code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Integer width</strong>
+      <p>Mojo's <code>Int</code> is a fixed-size machine word, so add an explicit bounds check for negative inputs and watch for overflow on large factorials. Python's <code>int</code> has arbitrary precision, so <code>factorial(100)</code> returns the exact 158-digit result there and nowhere else.</p>
+    </div>
+  </section>
+
+  <!-- ─── 6. Fibonacci Sequence ─── -->
+  <section id="fibonacci">
+    <h2>6. Fibonacci Sequence</h2>
+    <p>Generate the first <strong>N</strong> Fibonacci numbers. This example shows list construction and loop idioms in Mojo.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-fib">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-fib"><code><span class="kw">def</span> <span class="fn">fibonacci</span>(n: Int) -&gt; <span class="type">List</span>[<span class="type">Int</span>]:
+    <span class="kw">if</span> n &lt;= <span class="num">0</span>:
+        <span class="kw">return</span> <span class="type">List</span>[<span class="type">Int</span>]()
+    <span class="kw">var</span> seq = <span class="type">List</span>[<span class="type">Int</span>](<span class="num">0</span>, <span class="num">1</span>)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, n):
+        seq.<span class="fn">append</span>(seq[i - <span class="num">1</span>] + seq[i - <span class="num">2</span>])
+    <span class="kw">return</span> seq
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> result = <span class="fn">fibonacci</span>(<span class="num">10</span>)
+    <span class="kw">print</span>(result)
+    <span class="com"># [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]</span></code></pre>
+      </div>
+    </div>
+
+    <div class="tip-box info-box">
+      <strong>💡 Tip:</strong>
+      <p>Mojo's <code>List[T]</code> grows dynamically, like Python's <code>list</code>. For very large <code>n</code>, prefer a generator or iterator to avoid allocating the whole sequence at once.</p>
+    </div>
+  </section>
+
+  <!-- ─── 7. Syntax Cheat Sheet ─── -->
+  <section id="cheatsheet">
+    <h2>7. Syntax Cheat Sheet</h2>
+    <p>A quick-reference table comparing the most common language features across Mojo 1.x and Python 3.12+.</p>
+
+    <table class="cheat">
+      <thead>
+        <tr><th>Feature</th><th>Mojo</th><th>Python</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Block structure</strong></td>
+          <td><code>if x:</code> + indentation</td>
+          <td><code>if x:</code> + indentation</td>
+        </tr>
+        <tr>
+          <td><strong>Function def</strong></td>
+          <td><code>def name(a: Int) -&gt; Int:</code></td>
+          <td><code>def name(a: int) -&gt; int:</code></td>
+        </tr>
+        <tr>
+          <td><strong>Mutable var</strong></td>
+          <td><code>var x = 1</code></td>
+          <td><code>x = 1</code></td>
+        </tr>
+        <tr>
+          <td><strong>Immutable var</strong></td>
+          <td><code>var x = 1</code> (by convention)</td>
+          <td><em>N/A (all mutable)</em></td>
+        </tr>
+        <tr>
+          <td><strong>Struct / Class</strong></td>
+          <td><code>struct Foo:</code></td>
+          <td><code>class Foo:</code></td>
+        </tr>
+        <tr>
+          <td><strong>Constructor</strong></td>
+          <td><code>def __init__(out self, ...):</code></td>
+          <td><code>def __init__(self, ...):</code></td>
+        </tr>
+        <tr>
+          <td><strong>Method</strong></td>
+          <td><code>def method(self) -&gt; T:</code></td>
+          <td><code>def method(self) -&gt; T:</code></td>
+        </tr>
+        <tr>
+          <td><strong>Loop</strong></td>
+          <td><code>for i in range(n):</code></td>
+          <td><code>for i in range(n):</code></td>
+        </tr>
+        <tr>
+          <td><strong>String</strong></td>
+          <td><code>String</code></td>
+          <td><code>str</code></td>
+        </tr>
+        <tr>
+          <td><strong>Print</strong></td>
+          <td><code>print("hi")</code></td>
+          <td><code>print("hi")</code></td>
+        </tr>
+        <tr>
+          <td><strong>Error handling</strong></td>
+          <td><code>raises</code> / <code>raise</code></td>
+          <td><code>raise Exc(...)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Generics</strong></td>
+          <td><code>[T: Trait]</code></td>
+          <td><code>TypeVar("T", bound=...)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Ownership</strong></td>
+          <td><code>^ transfer / imm / mut</code></td>
+          <td><em>Garbage collected</em></td>
+        </tr>
+        <tr>
+          <td><strong>Import</strong></td>
+          <td><code>from mod import X</code></td>
+          <td><code>from mod import X</code></td>
+        </tr>
+        <tr>
+          <td><strong>Power operator</strong></td>
+          <td><code>a ** b</code></td>
+          <td><code>a ** b</code></td>
+        </tr>
+        <tr>
+          <td><strong>Pattern match</strong></td>
+          <td><code>match x: case ...</code></td>
+          <td><code>match x: case ...</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <strong>Syntax philosophy</strong>
+      <p>Mojo keeps Python's syntax and readability while adding compile-time type checking and zero-cost abstractions. The code you write in Mojo looks like Python — but runs at native speed.</p>
+    </div>
+  </section>
+
+  <!-- ─── Quiz ─── -->
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">Quick Check 1</div>
+      <div class="qtext">In Mojo 1.x, which keyword declares a local variable?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="true"><code>var</code></button>
+        <button class="opt" data-correct="false"><code>let</code></button>
+        <button class="opt" data-correct="false"><code>const</code></button>
+        <button class="opt" data-correct="false">None — variables appear on first assignment</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 2</div>
+      <div class="qtext">How do Mojo structs and Python classes differ?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="true">Mojo structs are stack-allocated value types; Python classes are heap-allocated</button>
+        <button class="opt" data-correct="false">They are identical — both are heap-allocated</button>
+        <button class="opt" data-correct="false">Mojo structs cannot have methods</button>
+        <button class="opt" data-correct="false">Python classes cannot be instantiated</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_advanced_15_future.html">← Chapter 15: Performance Tuning</a>
+    <a class="navbtn" href="ds_advanced_17_mlir.html">Appendix: Inline MLIR →</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress=document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.code-block').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+  });
+});
+
+document.querySelector('.copy-btn')?.addEventListener('click',function(){
+  const active=document.querySelector('.code-block.active');
+  if(active){navigator.clipboard.writeText(active.innerText).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);});}
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,fid){
+  const g=document.getElementById(id),f=document.getElementById(fid);
+  g.querySelectorAll('.opt').forEach(b=>{b.addEventListener('click',()=>{
+    if(g.querySelector('.correct,.wrong'))return;
+    const c=b.dataset.correct==='true';b.classList.add(c?'correct':'wrong');
+    if(!c)g.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});
+    f.textContent=c?'✓ Correct.':'✗ Not quite — correct answer highlighted.';f.classList.add('show');
+  });});
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+</script>
+
+</body></html>

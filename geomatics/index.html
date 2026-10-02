@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Geomatics Mojo</title>
+  <meta name="description" content="Geomatics and geodesy in Mojo: projective math, GNSS, and spatial computations explained in a practical format.">
+  <style>
+    :root {
+      --bg: #17120d;
+      --bg-alt: #2b1c13;
+      --panel: rgba(32, 24, 19, 0.92);
+      --panel-strong: #2a211a;
+      --line: rgba(255, 192, 109, 0.25);
+      --fg: #fff1de;
+      --muted: #d9c6ab;
+      --accent: #f5c16c;
+      --accent-2: #8fe9c5;
+      --glow: rgba(245, 193, 108, 0.25);
+      --shadow: 0 28px 70px rgba(17, 11, 7, 0.46);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(245, 193, 108, 0.15), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, #120e0c 100%);
+      color: var(--fg);
+      font: 16px/1.6 "Segoe UI", Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    a { color: inherit; }
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .brand-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 20px var(--glow);
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: 0.2s ease;
+    }
+    nav a:hover {
+      border-color: var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--fg);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr 0.85fr;
+      gap: 24px;
+      padding: 36px 0 12px;
+    }
+    .hero-copy, .hero-panel, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .hero-copy {
+      position: relative;
+      overflow: hidden;
+      padding: 32px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(245, 193, 108, 0.04);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      line-height: 1.02;
+      letter-spacing: -0.06em;
+    }
+    .lede {
+      margin: 0;
+      max-width: 46rem;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.9rem 1.15rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+    .button:hover { transform: translateY(-1px); }
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent), #f39b5a);
+      color: #1c1005;
+      box-shadow: 0 12px 28px rgba(245, 193, 108, 0.25);
+    }
+    .button.secondary {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--fg);
+    }
+    .hero-panel {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .mini-card {
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(24, 18, 12, 0.9);
+      border: 1px solid var(--line);
+    }
+    .mini-card strong {
+      display: block;
+      font-size: 1.7rem;
+      letter-spacing: -0.05em;
+      margin-bottom: 4px;
+    }
+    .mini-card span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .section-label {
+      margin: 24px 0 16px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+    }
+    .card {
+      padding: 22px 20px 18px;
+      background: linear-gradient(180deg, rgba(38, 29, 22, 0.94), rgba(20, 14, 10, 0.8));
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--accent-2);
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.04em;
+    }
+    .card p {
+      color: var(--muted);
+      margin: 12px 0 18px;
+      min-height: 72px;
+    }
+    .card ul {
+      margin: 0 0 18px;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .card li + li { margin-top: 8px; }
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .card-actions a {
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      font-weight: 700;
+      color: var(--fg);
+    }
+    .card-actions a.primary {
+      background: linear-gradient(135deg, rgba(245, 193, 108, 0.16), rgba(143, 233, 197, 0.08));
+      border-color: rgba(245, 193, 108, 0.28);
+      color: var(--accent);
+    }
+    .ref-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .ref-list a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--fg);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+    footer {
+      margin-top: 36px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding-left: 14px; padding-right: 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .hero-copy, .hero-panel, .card { padding-left: 18px; padding-right: 18px; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark"></span>
+        <span>The Books</span>
+      </a>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#resources">Resources</a>
+        <a href="#references">References</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <div class="eyebrow">Geomatics</div>
+          <h1>Measure the world with Mojo.</h1>
+          <p class="lede">Explore geodesy, projection math, GNSS workflows, and spatial computations with a practical reference structure built for technical work.</p>
+          <div class="cta-row">
+            <a class="button primary" href="geomatics_mojo/index.html">Open tutorial</a>
+            <a class="button secondary" href="mixed_shelf/index.html">Browse shelf</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Geomatics overview">
+          <div class="mini-card">
+            <strong>Spatial</strong>
+            <span>Geodesy, coordinates, and measurement systems</span>
+          </div>
+          <div class="stats-grid">
+            <div class="mini-card"><strong>GNSS</strong><span>positions and workflows</span></div>
+            <div class="mini-card"><strong>EPSG</strong><span>proj. conventions</span></div>
+            <div class="mini-card"><strong>38</strong><span>manual chapters</span></div>
+            <div class="mini-card"><strong>65+</strong><span>standalone pages</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <div class="section-label">Resources</div>
+      <section class="grid" aria-label="Geomatics resource cards">
+        <article class="card">
+          <div class="card-header">
+            <h2>Interactive tutorial</h2>
+            <span class="badge">App</span>
+          </div>
+          <p>Follow practical workflows for spatial computation, coordinate systems, and geodetic formulas in a guided environment.</p>
+          <div class="card-actions">
+            <a class="primary" href="geomatics_mojo/index.html">Open app</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Single source of truth</h2>
+            <span class="badge">Manual</span>
+          </div>
+          <p>Use the reference book for language foundations and the mathematical conventions behind positioning workflows.</p>
+          <div class="card-actions">
+            <a class="primary" href="single_source_of_truth%20mojo/index.html">Read manual</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Standalone shelf</h2>
+            <span class="badge">Browse</span>
+          </div>
+          <p>Open the direct reference pages when you need a compact answer on geodesy, projection, or spatial modeling.</p>
+          <div class="card-actions">
+            <a class="primary" href="mixed_shelf/index.html">Browse shelf</a>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-label" id="references">Reference pages</div>
+      <section class="card" aria-label="Geomatics references">
+        <ul class="ref-list">
+          <li><a href="mixed_shelf/geo_computations.html">Geo computations</a></li>
+          <li><a href="mixed_shelf/gnss_surveying.html">GNSS surveying</a></li>
+          <li><a href="mixed_shelf/karney_krueger_equations.html">Karney Krüger equations</a></li>
+          <li><a href="mixed_shelf/coordinate_reference_systems.html">Coordinate reference systems</a></li>
+        </ul>
+        <div class="card-actions" style="margin-top:16px;">
+          <a class="primary" href="mixed_shelf/index.html">See all shelf pages</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Built for geospatial modeling and practical spatial computation in Mojo.
+    </footer>
+  </div>
+</body>
+</html>

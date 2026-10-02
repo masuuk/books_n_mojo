@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)tb_02_getting_started.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 2 — Getting Started with Mojo · Mojo 1.x Textbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --bg-primary:#0b0d15;--bg-secondary:#12162b;--bg-card:rgba(255,255,255,0.04);
+  --bg-code:rgba(0,0,0,0.4);
+  --text-primary:#ffffff;--text-secondary:#d8def0;--text-muted:#ffd98f;
+  --accent-1:#6c5ce7;--accent-2:#00b4d8;--accent-3:#f77f00;
+  --accent-gradient:linear-gradient(135deg,#6c5ce7,#00b4d8,#f77f00);
+  --border-color:rgba(255,255,255,0.18);--radius:16px;--radius-sm:8px;
+  --transition:0.3s cubic-bezier(0.4,0,0.2,1);--max-width:900px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+::selection{background:rgba(108,92,231,0.4);color:#fff;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg-primary);}
+::-webkit-scrollbar-thumb{background:var(--accent-1);border-radius:10px;}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent-gradient);z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:64px;background:rgba(11,13,21,0.85);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;}
+.logo-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;}
+.logo span{color:var(--text-secondary);font-weight:400;}
+.logo .mojo{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.chnum{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent-2);letter-spacing:0.04em;}
+
+.container{max-width:var(--max-width);margin:0 auto;padding:0 24px;}
+.wrap{padding:5rem 0 8rem;}
+
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,180,216,0.12);padding:4px 16px;border-radius:100px;border:1px solid rgba(0,180,216,0.15);margin-bottom:16px;}
+h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.03em;line-height:1.15;margin-bottom:12px;}
+h1 .highlight{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dek{font-size:1.1rem;color:var(--text-secondary);max-width:600px;margin-bottom:40px;line-height:1.8;}
+
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border-color);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.2rem;font-weight:600;margin:2rem 0 0.8rem;color:var(--text-primary);}
+p{color:var(--text-secondary);margin:0 0 1.1rem;line-height:1.8;}
+p strong{color:var(--text-primary);}
+ul,ol{color:var(--text-secondary);padding-left:24px;line-height:1.8;}
+li{margin-bottom:6px;}
+code.inline{font-family:var(--font-mono);font-size:0.85em;background:rgba(108,92,231,0.12);padding:2px 8px;border-radius:6px;color:#c084fc;border:1px solid rgba(108,92,231,0.2);}
+
+.info-box{padding:20px 24px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:20px 0;}
+.info-box strong{color:var(--text-primary);}
+.info-box p{margin-top:4px;color:var(--text-secondary);}
+.tip-box{background:rgba(0,180,216,0.05);border-color:rgba(0,180,216,0.12);}
+.tip-box strong{color:var(--accent-2);}
+.warning-box{background:rgba(247,127,0,0.06);border-color:rgba(247,127,0,0.12);}
+.warning-box strong{color:var(--accent-3);}
+
+.code-tabs{margin:20px 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-color);background:var(--bg-code);}
+.tabs-header{display:flex;gap:2px;padding:8px 12px 0;background:rgba(0,0,0,0.3);border-bottom:1px solid var(--border-color);}
+.tab-btn{padding:8px 18px;font-family:var(--font-mono);font-size:0.75rem;font-weight:500;background:none;border:none;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:var(--transition);position:relative;}
+.tab-btn:hover{color:var(--text-primary);background:rgba(255,255,255,0.04);}
+.tab-btn.active{color:var(--text-primary);background:rgba(255,255,255,0.18);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent-gradient);border-radius:4px;}
+.tab-content{display:none;padding:16px 20px;overflow-x:auto;background:rgba(0,0,0,0.2);}
+.tab-content.active{display:block;}
+pre{font-family:var(--font-mono);font-size:0.85rem;line-height:1.8;color:#e2e8f0;margin:0;white-space:pre-wrap;}
+pre .kw{color:#c084fc;}pre .fn{color:#60a5fa;}pre .str{color:#4ade80;}pre .num{color:#fbbf24;}pre .cmt{color:#a8b6d4;font-style:italic;}pre .op{color:#f472b6;}pre .type{color:#34d399;}pre .var{color:#fcd34d;}
+
+.quiz{border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);padding:24px;margin:28px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent-2);margin-bottom:12px;}
+.qtext{font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:16px;}
+.opts{display:flex;flex-direction:column;gap:8px;}
+.opt{text-align:left;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-family:var(--font-sans);font-size:0.95rem;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);}
+.opt:hover{border-color:var(--accent-1);color:var(--text-primary);}
+.opt.correct{border-color:#4ade80;background:rgba(74,222,128,0.08);color:#4ade80;}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:12px;font-size:0.9rem;color:var(--text-secondary);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border-color);border-radius:var(--radius);padding:20px 24px;background:var(--bg-card);margin:24px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);gap:16px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.85rem;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-color);padding:10px 16px;border-radius:var(--radius-sm);transition:var(--transition);}
+.navbtn:hover{border-color:var(--accent-1);color:var(--text-primary);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+
+.mini-toc{position:fixed;right:2vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--border-color);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--accent-2);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+
+@media(max-width:600px){
+  h1{font-size:2rem;}
+  .wrap{padding:3rem 0 5rem;}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="logo" href="../single_source_of_truth%20mojo/index.html">
+    <span class="logo-icon">M</span>
+    <span><span class="mojo">Mojo</span> <span>Textbook</span></span>
+  </a>
+  <span class="chnum">Ch 02 — Getting Started</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_ml_textbook_02_getting_started.html#installation"></a>
+  <a href="ds_ml_textbook_02_getting_started.html#syntax"></a>
+  <a href="ds_ml_textbook_02_getting_started.html#variables"></a>
+  <a href="ds_ml_textbook_02_getting_started.html#control-flow"></a>
+  <a href="ds_ml_textbook_02_getting_started.html#first-program"></a>
+  <a href="ds_ml_textbook_02_getting_started.html#quiz"></a>
+  <a href="ds_ml_textbook_02_getting_started.html#exercises"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Chapter 2</span>
+  <h1>🚀 Getting Started with <span class="highlight">Mojo</span></h1>
+  <p class="dek">Install the SDK, learn the core syntax, and write your first Mojo program.</p>
+
+  <section id="installation">
+    <h2>Installation</h2>
+    <p>Mojo is distributed as part of the <strong>Mojo SDK</strong>, which includes the compiler, debugger, and standard library. The recommended way to install it is through <code class="inline">curl</code> on macOS and Linux. Since Mojo 1.x, the entire language is also <strong>open source</strong> under Apache 2.0 (with LLVM exceptions), so you can build the compiler and standard library yourself from <a class="inline" href="https://github.com/modular/modular" target="_blank" rel="noopener">github.com/modular/modular</a>.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch2-install-mojo">macOS / Linux</button>
+        <button class="tab-btn" data-tab="ch2-install-docker">Docker</button>
+        <button class="tab-btn" data-tab="ch2-install-source">Build from Source</button>
+      </div>
+      <div class="tab-content active" id="ch2-install-mojo">
+        <pre><span class="cmt"># Install the Mojo SDK</span>
+curl -fsSL https://get.modular.com/install | <span class="fn">bash</span>
+
+<span class="cmt"># Verify installation</span>
+mojo <span class="op">--</span>version
+
+<span class="cmt"># Create and run your first file</span>
+<span class="kw">echo</span> <span class="str">'print("Hello, Mojo!")'</span> &gt; hello.mojo
+mojo hello.mojo</pre>
+      </div>
+      <div class="tab-content" id="ch2-install-docker">
+        <pre><span class="cmt"># Pull the official Mojo Docker image</span>
+docker pull ghcr.io/modular/mojo:latest
+
+<span class="cmt"># Run an interactive Mojo shell</span>
+docker run <span class="op">-</span>it <span class="op">-</span>v $(<span class="fn">pwd</span>):/workspace ghcr.io/modular/mojo:latest
+
+<span class="cmt"># Inside the container, run a file</span>
+mojo hello.mojo</pre>
+      </div>
+      <div class="tab-content" id="ch2-install-source">
+        <pre><span class="cmt"># Mojo is open source (Apache 2.0, with LLVM exceptions)</span>
+<span class="cmt"># Clone the repository and build with Bazel</span>
+git clone https://github.com/modular/modular.git
+<span class="fn">cd</span> modular
+
+<span class="cmt"># Build the compiler + stdlib from source and run a file</span>
+./bazelw run <span class="op">--</span>config<span class="op">=</span>build-mojo KGEN:mojo <span class="op">--</span> run hello.mojo
+
+<span class="cmt"># Or use a prebuilt nightly compiler instead of building from scratch</span>
+./bazelw run <span class="op">--</span>config<span class="op">=</span>prebuilt-mojo KGEN:mojo <span class="op">--</span> run hello.mojo</pre>
+      </div>
+    </div>
+
+    <p>The Mojo REPL is also available — just run <code class="inline">mojo</code> with no arguments to enter an interactive session where you can experiment with expressions line by line, similar to Python's REPL.</p>
+
+    <div class="info-box tip-box">
+      <strong>🚀 Pro Tip:</strong>
+      <p>If you have Python installed, you can use <code class="inline">mojo run hello.mojo</code> as an alias for <code class="inline">mojo hello.mojo</code>. Both work identically.</p>
+    </div>
+  </section>
+
+  <section id="syntax">
+    <h2>Basic Syntax: one keyword, <code class="inline">def</code></h2>
+    <p>Mojo 1.x defines all functions with a single keyword: <code class="inline">def</code>. How strict your function is depends on whether you annotate it. Understanding this is critical to writing idiomatic Mojo.</p>
+
+    <h3>An unannotated <code class="inline">def</code></h3>
+    <p>An unannotated <code class="inline">def</code> behaves almost exactly like a Python function. Parameters are dynamically typed, and you get the full flexibility (and looseness) of Python semantics. This makes it easy to port Python code to Mojo without changing every line.</p>
+
+    <h3>An annotated <code class="inline">def</code></h3>
+    <p>Type annotations turn the same <code class="inline">def</code> strict: annotated parameters are checked at compile time, arguments are immutable by default, and the compiler can perform full static analysis. This is where you get C-level performance.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch2-def-vs-fn">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch2-def-vs-fn">
+        <pre><span class="cmt"># unannotated def — Python-like, dynamically typed</span>
+<span class="kw">def</span> <span class="fn">add_loose</span>(a, b):
+    <span class="kw">return</span> a + b
+
+<span class="cmt"># annotated def — strict, fully typed, high-performance</span>
+<span class="kw">def</span> <span class="fn">add_strict</span>(a: Int64, b: Int64) -&gt; Int64:
+    <span class="kw">return</span> a + b
+
+<span class="cmt"># annotated arguments are immutable by default</span>
+<span class="kw">def</span> <span class="fn">greet</span>(name: String) -&gt; String:
+    <span class="kw">return</span> <span class="str">"Hello, "</span> + name
+
+<span class="cmt"># mut marks a mutable parameter</span>
+<span class="kw">def</span> <span class="fn">increment</span>(<span class="kw">mut</span> x: Int64):
+    x += <span class="num">1</span></pre>
+      </div>
+    </div>
+
+    <div class="info-box warning-box">
+      <strong>⚠️ Important:</strong>
+      <p>Prefer fully-annotated <code class="inline">def</code> functions by default. Leave annotations off only when porting Python code or writing quick scripts. Type annotations unlock compile-time checks and optimizations that untyped code cannot provide.</p>
+    </div>
+
+        <p>Notice the <code class="inline">mut</code> keyword (renamed from the pre-1.0 <code class="inline">inout</code>) — this is how Mojo marks a parameter as mutable. By default, function arguments are immutable, which prevents accidental side effects.</p>
+
+    <div class="info-box">
+      <strong>💡 Coming from Python:</strong>
+      <p>Three spellings change when you port. Type hints are optional in Python but enforced in Mojo, so <code class="inline">def greet(name: str) -&gt; str:</code> becomes <code class="inline">def greet(name: String) -&gt; String:</code> with the <code class="inline">str</code> spellings capitalized. Python's integers are immutable and simply rebound by name, so it has no <code class="inline">mut</code> at all — in Mojo a parameter that is rebound has to be declared <code class="inline">mut</code> or the call is an error. And formatted output moves from an f-string, <code class="inline">f"Hello, {name}"</code>, to a t-string, <code class="inline">t"Hello, {name}"</code>, or to separate <code class="inline">print</code> arguments.</p>
+    </div>
+  </section>
+
+  <section id="variables">
+    <h2>Variables: <code class="inline">var</code></h2>
+    <p>Mojo 1.x declares all local variables with a single keyword:</p>
+    <ul>
+      <li><strong><code class="inline">var</code></strong> — declares a variable. The keyword is mandatory: assigning to a new name without <code class="inline">var</code> is a deprecation error.</li>
+    </ul>
+    <p>Unlike Python — where variables spring into existence on first assignment — Mojo makes the declaration explicit so the compiler always knows when a name enters scope. A variable you never reassign is your immutable binding.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch2-vars-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch2-vars-mojo">
+        <pre><span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> x = <span class="num">10</span>         <span class="cmt"># constant by convention — never reassign</span>
+    <span class="kw">var</span> y = <span class="num">20</span>         <span class="cmt"># mutable — can reassign</span>
+    y = <span class="num">30</span>             <span class="cmt"># OK</span>
+
+    <span class="cmt"># Type annotations are optional with inference</span>
+    <span class="kw">var</span> name: String = <span class="str">"Mojo"</span>
+    <span class="kw">var</span> pi: Float64 = <span class="num">3.14159</span>
+    <span class="kw">var</span> count: Int = <span class="num">42</span>
+
+    <span class="cmt"># Printing values</span>
+    <span class="fn">print</span>(<span class="str">"x ="</span>, x, <span class="str">"y ="</span>, y)</pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>💡 Key Insight:</strong>
+      <p>Mojo performs <strong>type inference</strong> when you don't specify a type — the compiler deduces the type from the right-hand side. This keeps code concise while maintaining full static typing under the hood.</p>
+      <p>In Python the annotation is purely advisory and the name is just a label on a mutable cell, so <code class="inline">x = 10</code> can be rebound freely. In Mojo the declaration is the contract, and "a variable you never reassign" is the safe default. If you need a genuinely fixed, hashable value in Python, the usual stand-in is a tuple — a tuple cannot be rebound but its contents still can. Mojo has no need for that workaround: the absence of reassignment is already what <code class="inline">var</code> expresses.</p>
+    </div>
+  </section>
+
+  <section id="control-flow">
+    <h2>Control Flow</h2>
+    <p>Mojo's control flow looks familiar to Python developers: <code class="inline">if</code>, <code class="inline">for</code>, and <code class="inline">while</code> work as you'd expect, with a few key differences.</p>
+
+    <h3>Conditional Expressions</h3>
+    <p><code class="inline">if</code> / <code class="inline">elif</code> / <code class="inline">else</code> work just like Python. Parentheses are optional. The condition must evaluate to <code class="inline">Bool</code>.</p>
+
+    <h3>Loops</h3>
+    <p><code class="inline">for</code> loops iterate over ranges or collections using <code class="inline">in</code>. The <code class="inline">range()</code> function generates integer sequences. <code class="inline">while</code> loops work identically to Python.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch2-control-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch2-control-mojo">
+        <pre><span class="kw">def</span> <span class="fn">control_flow_examples</span>():
+    <span class="cmt"># if / elif / else</span>
+    <span class="kw">var</span> score = <span class="num">85</span>
+    <span class="kw">if</span> score &gt;= <span class="num">90</span>:
+        <span class="fn">print</span>(<span class="str">"Excellent"</span>)
+    <span class="kw">elif</span> score &gt;= <span class="num">70</span>:
+        <span class="fn">print</span>(<span class="str">"Good"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">"Needs improvement"</span>)
+
+    <span class="cmt"># for loop with range</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+        <span class="fn">print</span>(i)
+
+    <span class="cmt"># for loop over a list</span>
+    <span class="kw">var</span> fruits = [<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>]
+    <span class="kw">for</span> fruit <span class="kw">in</span> fruits:
+        <span class="fn">print</span>(fruit)
+
+    <span class="cmt"># while loop</span>
+    <span class="kw">var</span> n = <span class="num">5</span>
+    <span class="kw">while</span> n &gt; <span class="num">0</span>:
+        <span class="fn">print</span>(n)
+        n -= <span class="num">1</span></pre>
+      </div>
+    <p>Like Python, Mojo uses indentation — not curly braces — to delimit blocks. Where Python opens a block with a colon and indents, Mojo does exactly the same: there are no <code class="inline">{ }</code> in sight. The <code class="inline">if</code> / <code class="inline">elif</code> / <code class="inline">else</code> chain and the <code class="inline">for</code> / <code class="inline">in</code> / <code class="inline">range()</code> loop above are the whole story: the syntax a Python reader expects is the syntax Mojo uses, and <code class="inline">while</code> behaves identically too.</p>
+
+    <div class="info-box tip-box">
+      <strong>🚀 Pro Tip:</strong>
+      <p>Mojo's <code class="inline">for</code> loops compile to efficient machine code with no iterator overhead. Unlike Python, there is no per-iteration type checking or boxing — the compiler unrolls and vectorizes loops when possible.</p>
+    </div>
+  </div></section>
+
+  <section id="first-program">
+    <h2>Your First Mojo Program</h2>
+    <p>Let's put it all together. Here's a complete Mojo program that declares variables, uses control flow, and defines both strict annotated and lenient unannotated <code class="inline">def</code> functions.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch2-first-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch2-first-mojo">
+        <pre><span class="kw">def</span> <span class="fn">classify_temperature</span>(temp: Float64) -&gt; String:
+    <span class="kw">if</span> temp &lt; <span class="num">0.0</span>:
+        <span class="kw">return</span> <span class="str">"Freezing"</span>
+    <span class="kw">elif</span> temp &lt; <span class="num">20.0</span>:
+        <span class="kw">return</span> <span class="str">"Cold"</span>
+    <span class="kw">elif</span> temp &lt; <span class="num">35.0</span>:
+        <span class="kw">return</span> <span class="str">"Warm"</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">"Hot"</span>
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> readings = [<span class="num">-5.0</span>, <span class="num">12.5</span>, <span class="num">22.0</span>, <span class="num">38.5</span>, <span class="num">8.0</span>]
+
+    <span class="kw">var</span> hot_count = <span class="num">0</span>
+    <span class="kw">var</span> total: Float64 = <span class="num">0.0</span>
+
+    <span class="kw">for</span> temp <span class="kw">in</span> readings:
+        <span class="kw">var</span> category = classify_temperature(temp)
+        <span class="fn">print</span>(temp, <span class="str">"°C →"</span>, category)
+        <span class="kw">if</span> category == <span class="str">"Hot"</span>:
+            hot_count += <span class="num">1</span>
+        total += temp
+
+    <span class="kw">var</span> avg = total / Float64(len(readings))
+    <span class="fn">print</span>(<span class="str">"\nAverage:"</span>, avg, <span class="str">"°C"</span>)
+    <span class="fn">print</span>(<span class="str">"Hot readings:"</span>, hot_count)</pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>💡 Key Insight:</strong>
+      <p>Notice how the Mojo version uses <code class="inline">def main()</code> — in Mojo, the entry point is a regular function, not a script. Every <code class="inline">.mojo</code> file can contain multiple functions, but <code class="inline">main()</code> is what the compiler targets when you run <code class="inline">mojo file.mojo</code>. A Python script would instead run top-level statements in order, and its per-row output would be an f-string like <code class="inline">f"{temp}°C → {category}"</code>; the Mojo pane gets the same line by passing the values as separate <code class="inline">print</code> arguments, so no interpolation is needed at all.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 1</div>
+      <div class="qtext">What happens to a <code class="inline">def</code> function when you add full type annotations?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Nothing — annotations are ignored</button>
+        <button class="opt" data-correct="false">It becomes a Python function at runtime</button>
+        <button class="opt" data-correct="true">Arguments are checked at compile time and immutable by default</button>
+        <button class="opt" data-correct="false">It can no longer call other functions</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 2</div>
+      <div class="qtext">Which keyword declares a local variable in Mojo 1.x?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="true"><code class="inline">var</code></button>
+        <button class="opt" data-correct="false"><code class="inline">let</code></button>
+        <button class="opt" data-correct="false"><code class="inline">const</code></button>
+        <button class="opt" data-correct="false">No keyword — variables appear on first assignment</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 3</div>
+      <div class="qtext">How do you mark a function parameter as mutable in Mojo?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Using the <code class="inline">const</code> keyword</button>
+        <button class="opt" data-correct="true">Using the <code class="inline">mut</code> keyword</button>
+        <button class="opt" data-correct="false">Using the <code class="inline">final</code> keyword</button>
+        <button class="opt" data-correct="false">Parameters are always mutable</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a Mojo function <code class="inline">def factorial(n: Int64) -&gt; Int64</code> that computes the factorial of a number using a <code class="inline">for</code> loop. Test it with values 0 through 10.</li>
+        <li>Take the fully-annotated <code class="inline">classify_temperature</code> function and strip its type annotations. What behavior changes (if any)?</li>
+        <li>Write a program that takes a list of integers and prints the count of even and odd numbers. Use <code class="inline">var</code> for the counters — and never reassign the list reference.</li>
+        <li>Challenge: Write a function that checks if a number is prime. Use it to print all prime numbers from 1 to 100.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_ml_textbook_01_intro.html">← Chapter 1: Introduction</a>
+    <a class="navbtn" href="ds_ml_textbook_03_data_structures.html">Chapter 3: Data Structures →</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const group=this.closest('.code-tabs');
+    group.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    group.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    this.classList.add('active');
+    const target=group.querySelector('#'+this.getAttribute('data-tab'));
+    if(target) target.classList.add('active');
+  });
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,feedbackId){
+  const group=document.getElementById(id);
+  const feedback=document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(group.querySelector('.correct,.wrong')) return;
+      const correct=btn.dataset.correct==='true';
+      btn.classList.add(correct?'correct':'wrong');
+      if(!correct) group.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true') o.classList.add('correct');});
+      feedback.textContent=correct?'✓ Correct.':'✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

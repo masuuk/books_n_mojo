@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_07_fast_data_pipelines.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 7 — Fast Data Pipelines: Loading, Cleaning, Batching · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Ch 07 — Data Pipelines</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_07_pipelines.html#intro" data-t="intro" title="Introduction"></a>
+  <a href="ds_textbook_07_pipelines.html#loading" data-t="loading" title="Data Loading"></a>
+  <a href="ds_textbook_07_pipelines.html#streaming" data-t="streaming" title="Streaming &amp; Async I/O"></a>
+  <a href="ds_textbook_07_pipelines.html#cleaning" data-t="cleaning" title="Data Cleaning"></a>
+  <a href="ds_textbook_07_pipelines.html#batching" data-t="batching" title="Batch Processing"></a>
+  <a href="ds_textbook_07_pipelines.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_07_pipelines.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part III — Data Engineering · Chapter 7</div>
+  <h1>⚡ Fast Data Pipelines: Loading, Cleaning, Batching</h1>
+  <p class="dek">Build memory-efficient, high-throughput data pipelines that load millions of rows in seconds, clean messy real-world data, and batch it for training — all in Mojo.</p>
+
+  <section id="intro">
+    <p>The gap between "we have data" and "we can train on it" is where most real ML projects lose time. Python's pandas makes loading easy but struggles with datasets that exceed RAM. Libraries built for compiled languages are fast but require leaving the Python ecosystem. Mojo threads the needle: it gives you Python-level ergonomics with systems-level performance, all in a single language that can call into GPU kernels and CPU SIMD intrinsics without crossing a boundary.</p>
+    <p>In this chapter, you'll build a complete data pipeline — from raw CSV to clean, batched tensors ready for training. We'll compare Mojo's approach with Python's pandas at each step, so you understand exactly where the speedups come from and why they matter.</p>
+  </section>
+
+  <section id="loading">
+    <h2>Data loading in Mojo</h2>
+    <p>Mojo's standard library includes <code class="inline">SIMD</code> types and low-level memory primitives that let you parse CSV data with vectorized operations. For larger datasets, Mojo can call into optimized C libraries or use its own buffered I/O. The key insight: Mojo avoids the per-row Python overhead by operating on fixed-width batches and exploiting cache-friendly memory layouts.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="load1"><span class="sw"></span>load.mojo</div>
+      </div>
+      <div class="panes" data-group="load1">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">import</span> sys
+<span class="tok-kw">from</span> collections <span class="tok-kw">import</span> Dict, Optional
+
+<span class="tok-com"># Mojo — loading CSV with buffered I/O and SIMD parsing</span>
+<span class="tok-kw">def</span> <span class="tok-fn">load_csv</span>(path: String) -&gt; <span class="tok-ty">Dict</span>[String, <span class="tok-ty">List</span>[Float64]]:
+    <span class="tok-kw">var</span> columns = <span class="tok-ty">Dict</span>[String, <span class="tok-ty">List</span>[Float64]]()
+    <span class="tok-kw">var</span> reader = open(path, <span class="tok-str">"r"</span>)
+    <span class="tok-kw">var</span> header_line = reader.readline()
+    <span class="tok-kw">var</span> headers = header_line.strip().split(<span class="tok-str">","</span>)
+
+    <span class="tok-kw">for</span> h <span class="tok-kw">in</span> headers:
+        columns[h] = <span class="tok-ty">List</span>[Float64]()
+
+    <span class="tok-kw">while True</span>:
+        <span class="tok-kw">var</span> line = reader.readline()
+        <span class="tok-kw">if</span> len(line) == <span class="tok-num">0</span>:
+            <span class="tok-kw">break</span>
+        <span class="tok-kw">var</span> values = line.strip().split(<span class="tok-str">","</span>)
+        <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(len(values)):
+            columns[headers[i]].append(atof(values[i]))
+
+    reader.close()
+    <span class="tok-kw">return</span> columns
+
+<span class="tok-com"># Usage</span>
+<span class="tok-kw">var</span> data = load_csv(<span class="tok-str">"sensors.csv"</span>)
+print(<span class="tok-str">f"Loaded {len(data['temperature'])} rows"</span>)</pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's approach avoids per-element heap allocation — values are stored contiguously in memory, enabling SIMD-accelerated operations downstream. The whole of the <code class="inline">pd.read_csv(path)</code> one-liner is what those lines buy: the same table, without a <code class="inline">PyObject</code> per cell.</p>
+
+    <h3>Why Mojo is faster than Python here</h3>
+    <p>Python's pandas stores each column as a NumPy array of Python objects. A <code class="inline">float64</code> in pandas actually costs 60-80 bytes because it's wrapped in a <code class="inline">PyObject</code> header. Mojo stores raw <code class="inline">Float64</code> values — 8 bytes each, no wrapping, no indirection. This means Mojo uses <b>8-10x less memory</b> for the same dataset, which in turn means more data fits in CPU cache, which means SIMD operations can stream through it without stalling.</p>
+
+    <div class="callout">
+      <span class="lbl">🧮 Memory math</span>
+      <p>A 10-column dataset with 1 million rows costs roughly 600 MB in pandas but only 80 MB in Mojo. That's the difference between fitting on a laptop and needing a server.</p>
+    </div>
+  </section>
+
+  <section id="streaming">
+    <h2>Streaming and async I/O</h2>
+    <p>When your dataset is larger than RAM, you can't load it all at once. Mojo supports streaming pipelines where you read, transform, and write data in chunks. Combined with async I/O, you can overlap disk reads with computation, keeping both the CPU and disk busy.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="stream"><span class="sw"></span>stream.mojo</div>
+      </div>
+      <div class="panes" data-group="stream">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — streaming pipeline with chunk processing</span>
+<span class="tok-kw">import</span> sys
+
+<span class="tok-kw">struct</span> <span class="tok-ty">StreamingPipeline</span>:
+    <span class="tok-kw">var</span> chunk_size: Int
+    <span class="tok-kw">var</span> buffer: <span class="tok-ty">List</span>[<span class="tok-ty">List</span>[Float64]]
+
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-kw">out</span> self, chunk_size: Int = <span class="tok-num">10_000</span>):
+        self.chunk_size = chunk_size
+        self.buffer = <span class="tok-ty">List</span>[<span class="tok-ty">List</span>[Float64]]()
+
+    <span class="tok-kw">def</span> <span class="tok-fn">process_chunk</span>(self, chunk: <span class="tok-ty">List</span>[Float64]) -&gt; Float64:
+        <span class="tok-com"># Simulated transform: normalize and sum</span>
+        <span class="tok-kw">var</span> total: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-kw">var</span> n = len(chunk)
+        <span class="tok-kw">var</span> i = <span class="tok-num">0</span>
+        <span class="tok-kw">while</span> i &lt; n:
+            total += chunk[i] * <span class="tok-num">0.001</span>
+            i += <span class="tok-num">1</span>
+        <span class="tok-kw">return</span> total
+
+    <span class="tok-kw">def</span> <span class="tok-fn">run</span>(self, path: String) -&gt; Float64:
+        <span class="tok-kw">var</span> grand_total: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-kw">var</span> reader = open(path, <span class="tok-str">"r"</span>)
+        <span class="tok-kw">var</span> chunk = <span class="tok-ty">List</span>[Float64]()
+
+        <span class="tok-kw">while True</span>:
+            <span class="tok-kw">var</span> line = reader.readline()
+            <span class="tok-kw">if</span> len(line) == <span class="tok-num">0</span>:
+                <span class="tok-kw">if</span> len(chunk) &gt; <span class="tok-num">0</span>:
+                    grand_total += self.process_chunk(chunk)
+                <span class="tok-kw">break</span>
+            chunk.append(atof(line.strip()))
+            <span class="tok-kw">if</span> len(chunk) &gt;= self.chunk_size:
+                grand_total += self.process_chunk(chunk)
+                chunk.clear()
+
+        reader.close()
+        <span class="tok-kw">return</span> grand_total
+
+<span class="tok-kw">var</span> pipe = <span class="tok-ty">StreamingPipeline</span>(chunk_size=<span class="tok-num">50_000</span>)
+<span class="tok-kw">var</span> result = pipe.run(<span class="tok-str">"huge_dataset.csv"</span>)
+print(<span class="tok-str">f"Result: {result}"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The pandas route to the same shape is <code class="inline">pd.read_csv(path, chunksize=chunk_size)</code> iterated in a <code class="inline">for</code> loop — identical control flow, except every chunk is still a DataFrame of Python objects rather than a flat <code class="inline">List</code>[Float64].</p>
+
+    <p>The Mojo streaming approach gives you control over memory usage at the cost of writing a loop. For most data science work, this is exactly the tradeoff you want: you can process datasets of any size on a machine with limited RAM by choosing a chunk size that fits.</p>
+
+    <table>
+      <thead><tr><th>Approach</th><th>Memory usage</th><th>Speed</th><th>Ease of use</th></tr></thead>
+      <tbody>
+        <tr><td>pandas (full load)</td><td>High (entire file in RAM)</td><td>Slow</td><td>Easiest</td></tr>
+        <tr><td>pandas (chunked)</td><td>Medium</td><td>Medium</td><td>Moderate</td></tr>
+        <tr><td>Mojo (streaming)</td><td>Low (chunk-sized buffer)</td><td>Fast</td><td>Moderate</td></tr>
+        <tr><td>Polars (lazy)</td><td>Low (optimized plan)</td><td>Fastest</td><td>Moderate</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="cleaning">
+    <h2>Data cleaning with Mojo</h2>
+    <p>Real-world data is messy: missing values, inconsistent types, outliers, and formatting errors. Mojo's type system helps catch many issues at compile time, but you still need runtime cleaning for things like NaN handling and type coercion. The advantage of cleaning in Mojo is that the operations run at native speed — no interpreter overhead per row.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="clean"><span class="sw"></span>clean.mojo</div>
+      </div>
+      <div class="panes" data-group="clean">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — data cleaning with SIMD-accelerated operations</span>
+<span class="tok-kw">from</span> math <span class="tok-kw">import</span> sqrt, isnan
+
+<span class="tok-kw">struct</span> <span class="tok-ty">DataCleaner</span>:
+    <span class="tok-kw">var</span> mean: Float64
+    <span class="tok-kw">var</span> std: Float64
+
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-kw">out</span> self):
+        self.mean = <span class="tok-num">0.0</span>
+        self.std = <span class="tok-num">0.0</span>
+
+    <span class="tok-kw">def</span> <span class="tok-fn">compute_stats</span>(<span class="tok-kw">mut</span> self, data: <span class="tok-ty">List</span>[Float64]):
+        <span class="tok-com"># Compute mean, ignoring NaN</span>
+        <span class="tok-kw">var</span> total: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-kw">var</span> count: Int = <span class="tok-num">0</span>
+        <span class="tok-kw">for</span> val <span class="tok-kw">in</span> data:
+            <span class="tok-kw">if not</span> isnan(val):
+                total += val
+                count += <span class="tok-num">1</span>
+        self.mean = total / count
+
+        <span class="tok-com"># Compute standard deviation</span>
+        <span class="tok-kw">var</span> sum_sq: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-kw">for</span> val <span class="tok-kw">in</span> data:
+            <span class="tok-kw">if not</span> isnan(val):
+                sum_sq += (val - self.mean) ** <span class="tok-num">2</span>
+        self.std = sqrt(sum_sq / count)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">z_score_normalize</span>(self, data: <span class="tok-ty">List</span>[Float64]) -&gt; <span class="tok-ty">List</span>[Float64]:
+        <span class="tok-kw">var</span> result = <span class="tok-ty">List</span>[Float64]()
+        <span class="tok-kw">for</span> val <span class="tok-kw">in</span> data:
+            <span class="tok-kw">if</span> isnan(val):
+                result.append(self.mean)  <span class="tok-com"># impute with mean</span>
+            <span class="tok-kw">else</span>:
+                result.append((val - self.mean) / self.std)
+        <span class="tok-kw">return</span> result
+
+    <span class="tok-kw">def</span> <span class="tok-fn">clip_outliers</span>(data: <span class="tok-ty">List</span>[Float64], n_sigmas: Float64 = <span class="tok-num">3.0</span>) -&gt; <span class="tok-ty">List</span>[Float64]:
+        <span class="tok-kw">var</span> cleaner = <span class="tok-ty">DataCleaner</span>()
+        cleaner.compute_stats(data)
+        <span class="tok-kw">var</span> lo = cleaner.mean - n_sigmas * cleaner.std
+        <span class="tok-kw">var</span> hi = cleaner.mean + n_sigmas * cleaner.std
+        <span class="tok-kw">var</span> result = <span class="tok-ty">List</span>[Float64]()
+        <span class="tok-kw">for</span> val <span class="tok-kw">in</span> data:
+            <span class="tok-kw">if</span> val &lt; lo: result.append(lo)
+            <span class="tok-kw">elif</span> val &gt; hi: result.append(hi)
+            <span class="tok-kw">else</span>: result.append(val)
+        <span class="tok-kw">return</span> result
+
+<span class="tok-com"># Usage</span>
+<span class="tok-kw">var</span> raw = [<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">1000.0</span>, <span class="tok-num">4.0</span>, <span class="tok-num">5.0</span>]
+<span class="tok-kw">var</span> cleaned = <span class="tok-ty">DataCleaner</span>.clip_outliers(raw)
+<span class="tok-com"># cleaned == [1.0, 2.0, 3.0, 3.0, 4.0, 5.0]</span></pre></div>
+      </div>
+    </div>
+
+    <p class="cap">pandas spells the same three steps as chained column expressions — <code class="inline">fillna(df['temperature'].mean())</code>, a <code class="inline">(x - mean) / std</code> assignment, and <code class="inline">.clip(lower=mean - 3*std, upper=mean + 3*std)</code> — each one vectorised in C, each one building a new object per cell.</p>
+
+    <div class="callout">
+      <span class="lbl">🔥 Mojo advantage</span>
+      <p>Mojo's <code class="inline">List</code> stores values contiguously, which means the CPU prefetcher can load upcoming values into cache before the loop reaches them. Combined with Mojo's ability to emit SIMD instructions, cleaning operations on millions of rows complete in milliseconds.</p>
+    </div>
+  </section>
+
+  <section id="batching">
+    <h2>Batch processing for training</h2>
+    <p>The final step in the pipeline is converting cleaned data into batches suitable for model training. A batch is a fixed-size slice of data that gets fed into the model as a single forward pass. Good batching maximizes GPU utilization by keeping the hardware busy without running out of memory.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="batch"><span class="sw"></span>batch.mojo</div>
+      </div>
+      <div class="panes" data-group="batch">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — batch iterator for training data</span>
+<span class="tok-kw">import</span> sys
+
+<span class="tok-kw">struct</span> <span class="tok-ty">BatchIterator</span>:
+    <span class="tok-kw">var</span> features: <span class="tok-ty">List</span>[Float64]
+    <span class="tok-kw">var</span> labels: <span class="tok-ty">List</span>[Int]
+    <span class="tok-kw">var</span> batch_size: Int
+    <span class="tok-kw">var</span> position: Int
+    <span class="tok-kw">var</span> n_samples: Int
+
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-kw">out</span> self, features: <span class="tok-ty">List</span>[Float64],
+                labels: <span class="tok-ty">List</span>[Int], batch_size: Int):
+        self.features = features
+        self.labels = labels
+        self.batch_size = batch_size
+        self.position = <span class="tok-num">0</span>
+        self.n_samples = len(labels)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">has_next</span>(self) -&gt; Bool:
+        <span class="tok-kw">return</span> self.position &lt; self.n_samples
+
+    <span class="tok-kw">def</span> <span class="tok-fn">next_batch</span>(<span class="tok-kw">mut</span> self, n_features: Int) -&gt; (<span class="tok-ty">List</span>[Float64], <span class="tok-ty">List</span>[Int]):
+        <span class="tok-kw">var</span> start = self.position
+        <span class="tok-kw">var</span> end = min(start + self.batch_size, self.n_samples)
+        <span class="tok-kw">var</span> batch_x = <span class="tok-ty">List</span>[Float64]()
+        <span class="tok-kw">var</span> batch_y = <span class="tok-ty">List</span>[Int]()
+
+        <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(start, end):
+            <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(n_features):
+                batch_x.append(self.features[i * n_features + j])
+            batch_y.append(self.labels[i])
+
+        self.position = end
+        <span class="tok-kw">return</span> (batch_x, batch_y)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">shuffle</span>(<span class="tok-kw">mut</span> self, n_features: Int):
+        <span class="tok-com"># Fisher-Yates shuffle</span>
+        <span class="tok-kw">var</span> i = self.n_samples - <span class="tok-num">1</span>
+        <span class="tok-kw">while</span> i &gt; <span class="tok-num">0</span>:
+            <span class="tok-kw">var</span> j = int(random_float64() * i)
+            <span class="tok-com"># Swap features</span>
+            <span class="tok-kw">for</span> k <span class="tok-kw">in</span> range(n_features):
+                <span class="tok-kw">var</span> a = self.features[i * n_features + k]
+                <span class="tok-kw">var</span> b = self.features[j * n_features + k]
+                self.features[i * n_features + k] = b
+                self.features[j * n_features + k] = a
+            <span class="tok-com"># Swap labels</span>
+            <span class="tok-kw">var</span> tmp = self.labels[i]
+            self.labels[i] = self.labels[j]
+            self.labels[j] = tmp
+            i -= <span class="tok-num">1</span>
+        self.position = <span class="tok-num">0</span>
+
+<span class="tok-com"># Usage</span>
+<span class="tok-kw">var</span> features: <span class="tok-ty">List</span>[Float64] = [<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>, <span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>]
+<span class="tok-kw">var</span> labels: <span class="tok-ty">List</span>[Int] = [<span class="tok-num">0</span>, <span class="tok-num">1</span>]
+<span class="tok-kw">var</span> batches = <span class="tok-ty">BatchIterator</span>(features, labels, batch_size=<span class="tok-num">2</span>)
+<span class="tok-kw">while</span> batches.has_next():
+    <span class="tok-kw">var</span> (bx, by) = batches.next_batch(n_features=<span class="tok-num">3</span>)
+    print(<span class="tok-str">f"Batch: {bx}, Labels: {by}"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">PyTorch's version of the same walk is <code class="inline">TensorDataset(X, y)</code> handed to a <code class="inline">DataLoader(dataset, batch_size=32, shuffle=True)</code>, which yields exactly these <code class="inline">(batch_x, batch_y)</code> pairs. Convenient, but bound to PyTorch's memory model — the batches cannot reach a Mojo kernel without a copy first.</p>
+
+    <div class="callout">
+      <span class="lbl">🎨 Design tip</span>
+      <p>The <code class="inline">BatchIterator</code> pattern is language-agnostic — the same struct shape is what a Python class would hold too, which is why <code class="inline">DataLoader</code> looks so familiar. What changes is the performance: Mojo's <code class="inline">List</code>[Float64] is a flat array of 8-byte values, so batch slicing is a <code class="inline">memcpy</code> with no object creation overhead.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Why does Mojo use less memory than pandas for storing a column of floats?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Mojo compresses the data automatically</button>
+        <button class="opt" data-correct="true">Mojo stores raw Float64 values (8 bytes) instead of PyObject wrappers (60-80 bytes)</button>
+        <button class="opt" data-correct="false">Mojo uses memory-mapped files by default</button>
+        <button class="opt" data-correct="false">Mojo garbage collects unused values immediately</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is the primary benefit of streaming data in chunks instead of loading the entire dataset?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">It makes the code more readable</button>
+        <button class="opt" data-correct="false">It allows parallel file reads</button>
+        <button class="opt" data-correct="true">It keeps memory usage bounded regardless of dataset size</button>
+        <button class="opt" data-correct="false">It avoids all disk I/O</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">In the <code>BatchIterator</code>, what does the <code>shuffle</code> method do?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Sorts the data by label</button>
+        <button class="opt" data-correct="true">Randomly reorders samples using Fisher-Yates algorithm to decorrelate training batches</button>
+        <button class="opt" data-correct="false">Removes duplicate samples</button>
+        <button class="opt" data-correct="false">Splits data into train and test sets</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Extend the <code class="inline">StreamingPipeline</code> to support multiple numeric columns. Modify <code class="inline">process_chunk</code> to accept a list of column names and return a dictionary of per-column sums.</li>
+        <li>Implement a <code class="inline">moving_average</code> function in Mojo that takes a <code class="inline">List</code>[Float64] and a window size, returning a new list of smoothed values. Compare its performance with Python's <code class="inline">pandas.DataFrame.rolling()</code>.</li>
+        <li>Add a <code class="inline">train_test_split</code> method to <code class="inline">BatchIterator</code> that takes a test ratio (e.g., 0.2) and returns two iterators — one for training, one for testing.</li>
+        <li>Write a Mojo function that reads a CSV, detects columns with more than 10% missing values, and prints a report of which columns should be dropped vs. imputed.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_06_interop.html">← Chapter 6: Performance Tuning</a>
+    <a class="navbtn" href="ds_textbook_08_neural_network.html">Chapter 8: Neural Network from Scratch →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '✓ Correct.'
+        : '✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

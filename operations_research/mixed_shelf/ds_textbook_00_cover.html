@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mojo for Data Science &amp; Machine Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906;
+  --bg-1:#120c08;
+  --bg-2:#191009;
+  --paper:#fdf8ea;
+  --paper-dim:#e8dcc0;
+  --paper-faint:#c9b898;
+  --ember-1:#ff7a1a;
+  --ember-2:#ffb238;
+  --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24);
+  --line-strong:rgba(244,234,215,0.48);
+  --shadow-glow:0 0 60px rgba(255,122,26,0.15);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--paper);
+  font-family:'Newsreader',serif;
+  font-size:18px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+::selection{background:var(--ember-1);color:#1a0d04;}
+
+/* grain overlay */
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:50;
+  opacity:0.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- nav ---------- */
+nav{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 5vw;
+  background:rgba(12,9,6,0.72);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.brand{
+  font-family:'Fraunces',serif;font-weight:700;font-size:1.15rem;
+  letter-spacing:0.01em;color:var(--paper);text-decoration:none;
+  display:flex;align-items:center;gap:8px;
+}
+.brand em{
+  font-style:normal;color:var(--ember-2);
+}
+.navlinks{display:flex;gap:2.2rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.04em;text-transform:uppercase;}
+.navlinks a{color:var(--paper-dim);text-decoration:none;transition:color .2s;}
+.navlinks a:hover{color:var(--ember-2);}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;
+  min-height:92vh;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:8vw 6vw 4vw;
+  overflow:hidden;
+}
+.hero::before{
+  content:"";position:absolute;inset:-20%;
+  background:
+    radial-gradient(ellipse 55% 45% at 78% 18%, rgba(255,122,26,0.35), transparent 60%),
+    radial-gradient(ellipse 40% 40% at 15% 85%, rgba(194,54,12,0.28), transparent 65%),
+    radial-gradient(ellipse 60% 60% at 50% 100%, rgba(255,178,56,0.10), transparent 70%);
+  animation:drift 22s ease-in-out infinite alternate;
+  z-index:0;
+}
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1);}
+  100%{transform:translate(-2%,2%) scale(1.06);}
+}
+.embers{position:absolute;inset:0;z-index:0;pointer-events:none;}
+.ember{
+  position:absolute;bottom:-5%;
+  width:5px;height:5px;border-radius:50%;
+  background:var(--ember-2);
+  box-shadow:0 0 8px 2px rgba(255,122,26,0.8);
+  animation:rise linear infinite;
+  opacity:0;
+}
+@keyframes rise{
+  0%{opacity:0;transform:translateY(0) translateX(0);}
+  10%{opacity:0.9;}
+  90%{opacity:0.5;}
+  100%{opacity:0;transform:translateY(-100vh) translateX(30px);}
+}
+.eyebrow{
+  position:relative;z-index:1;
+  font-family:'JetBrains Mono',monospace;font-size:0.8rem;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--ember-2);
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:1.4rem;
+  animation:reveal .8s ease both;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--ember-1);box-shadow:0 0 8px var(--ember-1);}
+h1.title{
+  position:relative;z-index:1;
+  font-family:'Fraunces',serif;
+  font-weight:900;
+  font-size:clamp(2.6rem, 7vw, 6.4rem);
+  line-height:0.98;
+  margin:0 0 1.2rem 0;
+  letter-spacing:-0.01em;
+  max-width:16ch;
+  animation:reveal 1s .1s ease both;
+}
+h1.title .flicker{
+  background:linear-gradient(100deg,var(--ember-1),var(--ember-2) 45%,var(--paper-dim) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.subtitle{
+  position:relative;z-index:1;
+  font-family:'Newsreader',serif;font-style:italic;
+  font-size:clamp(1.05rem,2vw,1.4rem);
+  color:var(--paper-dim);
+  max-width:46ch;
+  margin-bottom:2.4rem;
+  animation:reveal 1s .2s ease both;
+}
+@keyframes reveal{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+.cta-row{position:relative;z-index:1;display:flex;gap:1rem;flex-wrap:wrap;animation:reveal 1s .3s ease both;}
+.btn{
+  font-family:'JetBrains Mono',monospace;font-size:0.85rem;letter-spacing:0.03em;
+  padding:0.9rem 1.6rem;border-radius:3px;text-decoration:none;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:transform .18s ease, box-shadow .18s ease;
+  border:1px solid var(--line-strong);
+}
+.btn:hover{transform:translateY(-2px);}
+.btn-primary{
+  background:linear-gradient(120deg,var(--ember-1),var(--ember-3));
+  color:#180a02;font-weight:700;border:none;
+  box-shadow:0 8px 30px rgba(255,122,26,0.35);
+}
+.btn-primary:hover{box-shadow:0 12px 40px rgba(255,122,26,0.5);}
+.btn-ghost{color:var(--paper);background:rgba(244,234,215,0.03);}
+.btn-ghost:hover{background:rgba(244,234,215,0.08);border-color:var(--paper-faint);}
+
+.beta-note{
+  position:relative;z-index:1;margin-top:2.6rem;max-width:52ch;
+  font-family:'JetBrains Mono',monospace;font-size:0.75rem;line-height:1.7;
+  color:var(--paper-faint);border-left:2px solid var(--ember-3);padding-left:1rem;
+  animation:reveal 1s .4s ease both;
+}
+.beta-note b{color:var(--paper-dim);}
+
+/* ---------- section shell ---------- */
+section{padding:6vw 6vw;position:relative;}
+.section-head{max-width:60ch;margin-bottom:3rem;}
+.kicker{
+  font-family:'JetBrains Mono',monospace;font-size:0.75rem;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--ember-2);margin-bottom:0.8rem;
+}
+h2{
+  font-family:'Fraunces',serif;font-weight:700;font-size:clamp(1.8rem,4vw,2.8rem);
+  margin:0 0 0.6rem 0;color:var(--paper);
+}
+.lead{color:var(--paper-dim);font-size:1.1rem;}
+
+/* ---------- language tabs demo ---------- */
+.demo{
+  border:1px solid var(--line);border-radius:8px;
+  background:var(--bg-1);overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.4);
+}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);}
+.tab{
+  font-family:'JetBrains Mono',monospace;font-size:0.82rem;
+  padding:0.9rem 1.4rem;cursor:pointer;color:var(--paper-faint);
+  border-right:1px solid var(--line);user-select:none;
+  display:flex;align-items:center;gap:8px;
+  transition:color .15s, background .15s;
+}
+.tab .sw{width:8px;height:8px;border-radius:50%;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.panes{position:relative;}
+.pane{display:none;padding:1.6rem 1.8rem;}
+.pane.active{display:block;}
+pre{
+  margin:0;font-family:'JetBrains Mono',monospace;font-size:0.86rem;line-height:1.65;
+  color:var(--paper-dim);overflow-x:auto;white-space:pre;
+}
+.tok-kw{color:var(--ember-2);}
+.tok-str{color:#9fd9a0;}
+.tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;}
+.tok-num{color:#e8b774;}
+
+/* ---------- TOC ---------- */
+.toc-parts{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.part{background:var(--bg-1);}
+.part-head{
+  padding:1.1rem 1.6rem;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;background:var(--bg-2);
+}
+.part-head h3{
+  font-family:'Fraunces',serif;font-size:1.15rem;margin:0;font-weight:600;
+  display:flex;align-items:baseline;gap:0.7rem;
+}
+.part-head h3 .pn{font-family:'JetBrains Mono',monospace;color:var(--ember-2);font-size:0.85rem;}
+.part-head .chev{transition:transform .25s ease;color:var(--paper-faint);}
+.part.open .chev{transform:rotate(90deg);}
+.chapters{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+.part.open .chapters{max-height:900px;}
+.chapter-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.95rem 1.6rem 0.95rem 3rem;
+  border-top:1px solid var(--line);
+  text-decoration:none;color:var(--paper-dim);
+  transition:background .15s, color .15s;
+}
+.chapter-row:hover{background:rgba(255,122,26,0.05);color:var(--paper);}
+.chapter-row .cnum{font-family:'JetBrains Mono',monospace;color:var(--paper-faint);font-size:0.82rem;width:2.4rem;flex:none;}
+.chapter-row .ctitle{flex:1;font-family:'Newsreader',serif;font-size:1.02rem;}
+.status{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;
+  padding:0.25rem 0.55rem;border-radius:20px;flex:none;
+}
+.status.ready{background:rgba(122,255,150,0.1);color:#9fe6a8;border:1px solid rgba(159,230,168,0.3);}
+.status.soon{background:rgba(244,234,215,0.06);color:var(--paper-faint);border:1px solid var(--line);}
+
+/* ---------- why-mojo grid ---------- */
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:2rem;}
+.card{background:var(--bg-1);padding:1.8rem;}
+.card .num{font-family:'JetBrains Mono',monospace;color:var(--ember-2);font-size:0.8rem;margin-bottom:0.8rem;display:block;}
+.card h4{font-family:'Fraunces',serif;font-size:1.15rem;margin:0 0 0.5rem;}
+.card p{color:var(--paper-dim);font-size:0.95rem;margin:0;}
+
+/* ---------- footer ---------- */
+footer{
+  padding:3rem 6vw;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;
+  font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);
+}
+
+@media (max-width:640px){
+  .navlinks{display:none;}
+  section{padding:12vw 6vw;}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<nav>
+  <a class="brand" href="#top">🔥<em>Mojo</em>&nbsp;for Data&nbsp;Science</a>
+  <div class="navlinks">
+    <a href="#why">Why Mojo</a>
+    <a href="#taste">A Taste</a>
+    <a href="#contents">Contents</a>
+  </div>
+</nav>
+
+<div class="hero" id="top">
+  <div class="embers" id="embers"><div class="ember" style="left: 1.66542%; animation-duration: 12.6607s; animation-delay: 3.94762s; height: 3.41347px; width: 3.41347px;"></div><div class="ember" style="left: 2.89466%; animation-duration: 12.4856s; animation-delay: 1.74615s; height: 2.06609px; width: 2.06609px;"></div><div class="ember" style="left: 64.4616%; animation-duration: 8.47963s; animation-delay: 3.53848s; height: 3.99442px; width: 3.99442px;"></div><div class="ember" style="left: 56.2346%; animation-duration: 7.73416s; animation-delay: 6.22951s; height: 4.10682px; width: 4.10682px;"></div><div class="ember" style="left: 78.4182%; animation-duration: 7.64935s; animation-delay: 1.2919s; height: 2.06374px; width: 2.06374px;"></div><div class="ember" style="left: 4.96976%; animation-duration: 12.4517s; animation-delay: 2.70575s; height: 3.35084px; width: 3.35084px;"></div><div class="ember" style="left: 91.5051%; animation-duration: 7.93874s; animation-delay: 6.60889s; height: 2.17004px; width: 2.17004px;"></div><div class="ember" style="left: 81.1128%; animation-duration: 9.94511s; animation-delay: 8.48209s; height: 3.05829px; width: 3.05829px;"></div><div class="ember" style="left: 64.0009%; animation-duration: 10.4821s; animation-delay: 9.08075s; height: 3.3811px; width: 3.3811px;"></div><div class="ember" style="left: 75.1571%; animation-duration: 10.5344s; animation-delay: 6.04595s; height: 4.29405px; width: 4.29405px;"></div><div class="ember" style="left: 17.6997%; animation-duration: 8.05415s; animation-delay: 6.88049s; height: 4.45304px; width: 4.45304px;"></div><div class="ember" style="left: 67.9621%; animation-duration: 8.47703s; animation-delay: 8.23427s; height: 4.63194px; width: 4.63194px;"></div><div class="ember" style="left: 13.2716%; animation-duration: 8.98886s; animation-delay: 2.563s; height: 3.31916px; width: 3.31916px;"></div><div class="ember" style="left: 8.08609%; animation-duration: 12.665s; animation-delay: 7.65653s; height: 4.42256px; width: 4.42256px;"></div><div class="ember" style="left: 14.6208%; animation-duration: 12.1776s; animation-delay: 0.432782s; height: 2.97097px; width: 2.97097px;"></div><div class="ember" style="left: 98.1285%; animation-duration: 6.09186s; animation-delay: 7.84103s; height: 3.23582px; width: 3.23582px;"></div><div class="ember" style="left: 99.9889%; animation-duration: 9.21927s; animation-delay: 5.42296s; height: 4.42192px; width: 4.42192px;"></div><div class="ember" style="left: 8.17173%; animation-duration: 8.3346s; animation-delay: 7.49797s; height: 3.60953px; width: 3.60953px;"></div><div class="ember" style="left: 32.1179%; animation-duration: 10.7212s; animation-delay: 7.8288s; height: 4.80238px; width: 4.80238px;"></div><div class="ember" style="left: 73.5395%; animation-duration: 11.6028s; animation-delay: 4.87931s; height: 2.56052px; width: 2.56052px;"></div><div class="ember" style="left: 16.0357%; animation-duration: 13.2503s; animation-delay: 7.0482s; height: 3.31022px; width: 3.31022px;"></div><div class="ember" style="left: 80.9969%; animation-duration: 6.14056s; animation-delay: 6.41501s; height: 2.2908px; width: 2.2908px;"></div><div class="ember" style="left: 61.4893%; animation-duration: 12.1352s; animation-delay: 1.36737s; height: 2.24315px; width: 2.24315px;"></div><div class="ember" style="left: 14.5577%; animation-duration: 9.77693s; animation-delay: 2.09862s; height: 2.69723px; width: 2.69723px;"></div><div class="ember" style="left: 32.6379%; animation-duration: 7.49786s; animation-delay: 0.831064s; height: 2.17877px; width: 2.17877px;"></div><div class="ember" style="left: 68.4446%; animation-duration: 7.32779s; animation-delay: 8.15272s; height: 3.71032px; width: 3.71032px;"></div></div>
+  <div class="eyebrow"><span class="dot"></span>An Interactive Textbook · Mojo 1.x Edition · August 2026</div>
+  <h1 class="title">Data Science &amp; Machine Learning, <span class="flicker">in Mojo.</span></h1>
+  <p class="subtitle">A hands-on book for people who already think in Python and keep hitting its speed limits — learning Mojo 🔥 as the language for the numeric core: tensors, kernels, and models that run at the speed of the metal underneath them.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="ds_textbook_01_why_mojo.html">Start Reading — Chapter 1 →</a>
+    <a class="btn btn-ghost" href="#contents">Browse the Table of Contents <a class="btn btn-ghost" href="../single_source_of_truth%20mojo/index.html">📕 Book 1 · Language Fundamentals</a></a>
+  </div>
+  <div class="beta-note">
+    <b>A note on timing.</b> Mojo has reached <b>1.0</b> with source stability, and the entire language — compiler, toolchain, and standard library — is now <b>open source</b> under the Apache 2.0 license (with LLVM exceptions) at <a class="inline" href="https://github.com/modular/modular" target="_blank" rel="noopener">github.com/modular/modular</a>. This book is written against that stable 1.0 release: the syntax shown here is covered by Mojo's source-stability guarantee. Every chapter still flags the corners that are newest.
+  </div>
+</div>
+
+<section id="why">
+  <div class="section-head">
+    <div class="kicker">01 — Orientation</div>
+    <h2>🔥 Why put Mojo next to Python?</h2>
+    <p class="lead">Because most data scientists already live in exactly this pair, whether they've named it or not.</p>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <span class="num">Python</span>
+      <h4>Where the ideas live</h4>
+      <p>NumPy, pandas, PyTorch, scikit-learn — the entire research ecosystem. Fast to write, slow to run, and the boundary where prototypes quietly become production liabilities.</p>
+    </div>
+    <div class="card">
+      <span class="num">Mojo</span>
+      <h4>Where the guarantees live</h4>
+      <p>Compile-time checks that catch type and memory errors before anything runs — the safety you'd normally have to leave Python for, without leaving Python's way of writing code behind.</p>
+    </div>
+    <div class="card">
+      <span class="num">Mojo</span>
+      <h4>Where they meet</h4>
+      <p>Python-family syntax with a compiler built on MLIR, so the same code can target CPUs, GPUs, and accelerators without rewrites.</p>
+    </div>
+  </div>
+</section>
+
+<section id="taste">
+  <div class="section-head">
+    <div class="kicker">02 — A Taste</div>
+    <h2>⚡ The same idea, in one language</h2>
+    <p class="lead">A small numerical kernel — computing the mean of a vector — written in Mojo. Notice how Mojo keeps Python's reading experience while gaining the speed of a compiled language.</p>
+  </div>
+
+  <div class="demo">
+    <div class="panes">
+      <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">def</span> <span class="tok-fn">mean</span>(values: List[Float64]) -&gt; Float64:
+    <span class="tok-kw">var</span> total: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> values:
+        total += v
+    <span class="tok-kw">return</span> total / Float64(len(values))
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">var</span> data = List[Float64](<span class="tok-num">2.0</span>, <span class="tok-num">4.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">8.0</span>)
+    print(<span class="tok-str">"mean ="</span>, mean(data))  <span class="tok-com"># mean = 5.0</span></pre></div>
+    </div>
+  </div>
+  <p style="color:var(--paper-faint);font-size:0.85rem;margin-top:1rem;font-family:&#39;JetBrains Mono&#39;,monospace;">
+    Same shape as Python, a fully-annotated <code>def</code> gives you a strictly-typed, checked function, and <code>var</code> is required for mutable locals. Chapter 1 unpacks this line by line.
+  </p>
+</section>
+
+<section id="contents">
+  <div class="section-head">
+    <div class="kicker">03 — The Book</div>
+    <h2>📖 Table of contents</h2>
+    <p class="lead">Four parts, fourteen chapters — all written against Mojo 1.x and <span style="color:var(--paper);">all available now</span>.</p>
+  </div>
+
+  <div class="toc-parts" id="toc">
+    <div class="part open">
+      <div class="part-head" data-toggle="">
+        <h3><span class="pn">Part I</span> Foundations</h3>
+        <span class="chev">›</span>
+      </div>
+      <div class="chapters">
+        <a class="chapter-row" href="ds_textbook_01_why_mojo.html"><span class="cnum">01</span><span class="ctitle">Why Mojo? Escaping the Two-Language Problem</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_02_syntax.html"><span class="cnum">02</span><span class="ctitle">Mojo Syntax for Python Readers: def, var, and structs</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_03_type_system.html"><span class="cnum">03</span><span class="ctitle">The Type System: SIMD, Traits, and comptime</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_04_ownership.html"><span class="cnum">04</span><span class="ctitle">Ownership &amp; Borrowing for Python Programmers</span><span class="status ready">Read now</span></a>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-head" data-toggle="">
+        <h3><span class="pn">Part II</span> Data Handling</h3>
+        <span class="chev">›</span>
+      </div>
+      <div class="chapters">
+        <a class="chapter-row" href="ds_textbook_05_tensors.html"><span class="cnum">05</span><span class="ctitle">Tensors and NDArrays: Mojo's Numeric Core</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_06_interop.html"><span class="cnum">06</span><span class="ctitle">The Python Interop Bridge: Calling NumPy and pandas from Mojo</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_07_pipelines.html"><span class="cnum">07</span><span class="ctitle">Fast Data Pipelines: Loading, Cleaning, Batching</span><span class="status ready">Read now</span></a>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-head" data-toggle="">
+        <h3><span class="pn">Part III</span> Machine Learning</h3>
+        <span class="chev">›</span>
+      </div>
+      <div class="chapters">
+        <a class="chapter-row" href="ds_textbook_08_neural_network.html"><span class="cnum">08</span><span class="ctitle">A Neural Network from Scratch in Mojo</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_09_autodiff.html"><span class="cnum">09</span><span class="ctitle">Autodiff and Compile-Time Metaprogramming</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_10_gpu.html"><span class="cnum">10</span><span class="ctitle">Writing GPU Kernels for Training and Inference</span><span class="status ready">Read now</span></a>
+      </div>
+    </div>
+
+    <div class="part">
+      <div class="part-head" data-toggle="">
+        <h3><span class="pn">Part IV</span> Systems &amp; Deployment</h3>
+        <span class="chev">›</span>
+      </div>
+      <div class="chapters">
+        <a class="chapter-row" href="ds_textbook_11_packaging.html"><span class="cnum">11</span><span class="ctitle">Packaging, Testing, and Shipping Mojo Projects</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_12_pytorch.html"><span class="cnum">12</span><span class="ctitle">Interfacing with PyTorch, ONNX, and the MAX Engine</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_13_performance.html"><span class="cnum">13</span><span class="ctitle">Mojo vs Python: Choosing Your Performance Layer</span><span class="status ready">Read now</span></a>
+        <a class="chapter-row" href="ds_textbook_14_syntax_tour.html"><span class="cnum">14</span><span class="ctitle">Mojo vs Python: A Side-by-Side Syntax Tour</span><span class="status ready">Read now</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>🔥 Mojo for Data Science &amp; Machine Learning — a living, chapter-by-chapter textbook.</div>
+  <div>Built as an interactive HTML book · Mojo 1.x edition, August 2026</div>
+</footer>
+
+<script>
+// falling embers
+const emberField = document.getElementById('embers');
+for(let i=0;i<26;i++){
+  const e = document.createElement('div');
+  e.className='ember';
+  e.style.left = Math.random()*100+'%';
+  e.style.animationDuration = (6+Math.random()*8)+'s';
+  e.style.animationDelay = (Math.random()*10)+'s';
+  e.style.width = e.style.height = (2+Math.random()*3)+'px';
+  emberField.appendChild(e);
+}
+
+// language tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+// TOC accordion
+document.querySelectorAll('[data-toggle]').forEach(head=>{
+  head.addEventListener('click',()=>{
+    head.parentElement.classList.toggle('open');
+  });
+});
+
+// disabled "coming soon" rows
+document.querySelectorAll('[data-soon]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    e.preventDefault();
+    a.style.transition='opacity .15s';
+    a.style.opacity='0.5';
+    setTimeout(()=>a.style.opacity='1',250);
+  });
+});
+</script>
+
+
+</body></html>

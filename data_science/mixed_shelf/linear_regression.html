@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mojo 1.x · Linear Regression</title>
+<style>
+:root{--bg:#05070f;--panel:#0d1220;--line:#1e2740;--fg:#e9edf7;--dim:#98a2bd;--accent:#5bd4ff}
+@media (prefers-color-scheme:light){:root{--bg:#f6f8fc;--panel:#fff;--line:#dde3f0;--fg:#111827;--dim:#5a6280;--accent:#2f8fe0}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:60rem;margin:0 auto;padding:0 1.25rem}
+nav{border-bottom:1px solid var(--line);background:rgba(13,18,32,.75);position:sticky;top:0;backdrop-filter:blur(8px)}
+.navin{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding:.8rem 1.25rem}
+.brand{display:flex;align-items:center;gap:.5rem;font-weight:700;text-decoration:none;color:var(--fg)}
+.logo{display:grid;place-items:center;width:22px;height:22px;color:var(--accent)}
+.navlinks{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:auto}
+.pill{border:1px solid var(--line);border-radius:999px;padding:.28rem .75rem;font-size:.82rem;text-decoration:none;color:var(--dim)}
+.pill:hover{color:var(--fg);border-color:var(--accent)}
+.hero{padding:3.5rem 1.25rem 2rem;max-width:60rem;margin:0 auto}
+.eyebrow{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{margin:.4rem 0 .6rem;font-size:2.2rem;letter-spacing:-.02em}
+.lead{margin:0;color:var(--dim);font-size:1.05rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:.8rem;padding:1.2rem 1.3rem}
+.card.big{margin:1.8rem 0}
+.code{background:#060a16;border:1px solid var(--line);border-radius:.55rem;padding:.9rem 1rem;overflow:auto;
+  font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap}
+.card p{margin:.9rem 0 0;color:var(--dim)}
+.actions{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:1.6rem}
+.btn{display:inline-block;border:1px solid var(--line);border-radius:.5rem;padding:.5rem 1rem;text-decoration:none;color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#05070f;font-weight:600}
+footer{border-top:1px solid var(--line);margin-top:3rem;padding:1.2rem 1.25rem;color:var(--dim);font-size:.85rem}
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%235bd4ff%22/><stop offset=%221%22 stop-color=%22%232f8fe0%22/></linearGradient></defs><rect width=%2240%22 height=%2240%22 rx=%2210%22 fill=%22url(%23g)%22/><g fill=%22none%22 stroke=%22%2306101c%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 transform=%22translate(8 8)%22><path d=%22M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z%22/><path d=%22M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z%22/></g></svg>"></head><body>
+<nav><div class="wrap navin"><a class="brand" href="../index.html"><span class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></span><span>TutMe🔥 <span style="color:#5bd4ff">Learning Hub</span></span></a>
+<div class="navlinks"><a class="pill" href="../index.html">Home</a><a class="pill" href="../single_source_of_truth%20mojo/index.html">Fundamentals</a><a  class="pill" href="index.html">Data Science</a><a class="pill" href="../data_science_mojo/index.html">Applications</a></div></div></nav>
+<main><section><div class="wrap hero"><span class="eyebrow">DATA SCIENCE BOOK</span><h1>Linear Regression</h1><p class="lead">Start with the equation y = mx + b, derive the error, then turn the mathematics into code.</p><div class="card big"><div class="code"># Conceptual Mojo-style pseudocode
+def predict(x: Float64, m: Float64, b: Float64) -> Float64:
+    return m * x + b</div><p>Use this page as a chapter seed. Expand it with worked calculations, datasets, Mojo implementations and exercises.</p></div><div class="actions"><a class="btn" href="index.html">← Data Science shelf</a></div></div></section></main><footer><div class="wrap">TutMe🔥 · A structured path from syntax → fundamentals → applications → practice.</div></footer></body></html>

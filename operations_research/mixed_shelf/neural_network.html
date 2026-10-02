@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Network from Scratch in Mojo 1.x</title>
+<style>
+:root{--bg:#0e1116;--bg2:#161b24;--card:#1b2230;--ink:#fff4d6;--mut:#8fb4ff;
+--acc:#ff9e64;--ok:#7ee2a8;--line:#2a3342;--dim:#ffd98f;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:ui-monospace,'Cascadia Code','Segoe UI',monospace;
+line-height:1.6;margin:0;padding:0 0 6rem}
+.wrap{max-width:920px;margin:0 auto;padding:0 1.2rem}
+header{padding:3rem 1.2rem 2rem;border-bottom:1px solid var(--line);
+background:linear-gradient(180deg,#141a26,#0e1116)}
+header h1{margin:0;font-size:1.9rem;letter-spacing:.5px}
+header .sub{color:var(--dim);margin-top:.4rem}
+a{color:var(--mut)}
+h1,h2,h3{color:#eef2fa}
+h2{margin-top:2.6rem;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem 1.4rem;margin:1.6rem 0}
+.toc a{display:inline-block;margin:.15rem .9rem .15rem 0}
+.snippet{margin:1.1rem 0}
+.tabrow{display:flex;justify-content:space-between;align-items:center;
+background:#0a0d12;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;padding:.3rem .8rem}
+.tab{background:var(--card);color:var(--acc);font-weight:700;padding:.15rem .6rem;border-radius:6px;font-size:.8rem}
+.copy{background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:6px;
+font-family:inherit;font-size:.72rem;cursor:pointer;padding:.2rem .55rem}
+.copy:hover{color:var(--ink);border-color:#3a4658}
+pre{background:#0a0d12;border:1px solid var(--line);border-radius:0 0 10px 10px;overflow-x:auto;
+padding:1rem;margin:0;font-size:.82rem;line-height:1.45}
+code{font-family:inherit}
+pre .kw{color:#c084fc}
+pre .fn{color:#60a5fa}
+pre .str{color:#4ade80}
+pre .num{color:#fbbf24}
+pre .cmt{color:#a8b6d4;font-style:italic}
+pre .op{color:#f472b6}
+pre .type{color:#34d399}
+.output{background:#10151d;border:1px solid var(--line);border-radius:10px;padding:.7rem 1rem;
+color:var(--ok);margin:1rem 0;font-size:.8rem;white-space:pre-wrap}
+.output b{color:var(--dim);font-weight:600;display:block;margin-bottom:.3rem}
+.formula{background:var(--card);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
+padding:.6rem 1rem;margin:1rem 0;white-space:pre;overflow-x:auto;font-size:.85rem}
+.ascii{background:#0d1117;border:1px dashed var(--line);border-radius:8px;padding:.8rem 1rem;
+white-space:pre;overflow-x:auto;color:var(--mut);font-size:.8rem}
+.note{border:1px solid var(--line);border-left:3px solid var(--ok);border-radius:0 8px 8px 0;
+background:var(--card);padding:.5rem 1rem;margin:1.2rem 0;font-size:.88rem}
+table{border-collapse:collapse;margin:1rem 0;font-size:.8rem;width:100%}
+th,td{border:1px solid var(--line);padding:.45rem .7rem;text-align:left}
+th{background:var(--bg2);color:#eef2fa}
+.backtotop{color:var(--dim);font-size:.75rem;text-decoration:none}
+footer{margin-top:4rem;color:var(--dim);font-size:.78rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body id="top">
+<header>
+  <div class="wrap">
+    <div style="font-size:.78rem;color:var(--dim);display:flex;gap:.9rem;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:.6rem;margin-bottom:1rem;">
+      <a href="../index.html">&#127968; TutMe Home</a>
+      <a href="index.html">&#128218; Operations Research Hub</a>
+      <a href="../single_source_of_truth%20mojo/index.html">&#128214; Mojo Textbook</a>
+      <a href="mlp_xor.html">&#129522; MLP XOR Lab</a>
+      <a href="nn_mojo.html">&#129535; 3-4-1 NN in Mojo &amp; NumPy</a>
+      <a href="perceptrons_and_activation.html">&#129504; Perceptrons &amp; Activations</a>
+    </div>
+    <h1>Neural Network from Scratch in Mojo 1.x</h1>
+    <div class="sub">sigmoid step-neurons &rarr; gradient descent &rarr; a 2-2-1 MLP that learns XOR &mdash; every value, weight and gradient explicit.</div>
+  </div>
+</header>
+<div class="wrap">
+<section class="note">
+<b>What this is.</b> A self-contained Mojo 1.x program, explained block by block. It builds a tiny
+perceptron, then a full two-layer network, using only <code>List</code>, <code>Float64</code> and a hand-rolled PRNG &mdash;
+no framework. The code was checked against the Mojo 1.x syntax rules (the <code>def</code>/<code>var</code>/<code>mut</code> spelling,
+<code>@fieldwise_init</code>, <code>t"..."</code> template strings, thin lambdas). Printed loss/prediction values
+shown as <i>output</i> are illustrative; run <code>mojo nn.mojo</code> for exact numbers.
+</section>
+<div class="toc"><b>Contents</b><br><a href="#s1">Activations & loss</a> <a href="#s2">A tiny PRNG, written by hand</a> <a href="#s3">Matrix: data layout + helpers</a> <a href="#s3b">Matrix: the linear-algebra toolkit</a> <a href="#s4">The Neuron</a> <a href="#s5">The 2-2-1 MLP</a> <a href="#s6">main: gates, a lone neuron, and XOR</a> <a href="#full">full program</a></div>
+<h2 id="s1">Activations &amp; loss <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>Every movement starts with the transfer functions. A step function makes crisp 0/1 decisions for the gate demo; the sigmoid is smooth, so we can push its outputs toward targets with gradient descent. ReLU lets a hidden layer build nonlinear features, and MSE measures how wrong a prediction is.</p>
+<div class="formula">sigma(x)  = 1 / (1 + e^-x)
+sigma'(a)  = a * (1 - a)
+L(yhat,y)  = (yhat - y)^2
+ReLU(x)    = max(0, x)</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">from</span> std.math <span class="kw">import</span> exp
+
+
+<span class="kw">def</span> <span class="fn">step</span>(x: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> <span class="num">1.0</span> <span class="kw">if</span> x <span class="op">&gt;=</span> <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>
+
+
+<span class="kw">def</span> <span class="fn">relu</span>(x: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> x <span class="kw">if</span> x <span class="op">&gt;</span> <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>
+
+
+<span class="kw">def</span> <span class="fn">sigmoid</span>(x: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> <span class="num">1.0</span> <span class="op">/</span> (<span class="num">1.0</span> <span class="op">+</span> <span class="fn">exp</span>(<span class="op">-</span>x))
+
+
+<span class="kw">def</span> <span class="fn">sigmoid_derivative</span>(a: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> a <span class="op">*</span> (<span class="num">1.0</span> <span class="op">-</span> a)
+
+
+<span class="kw">def</span> <span class="fn">mse_loss</span>(predicted: <span class="type">Float64</span>, target: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">var</span> diff <span class="op">=</span> predicted <span class="op">-</span> target
+    <span class="kw">return</span> diff <span class="op">*</span> diff</code></pre></div>
+<h2 id="s2">A tiny PRNG, written by hand <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>A neural network needs reproducible random weights, and Mojo's <code>Random</code> would hide the magic. This xorshift generator is ~20 lines: <code>seed</code> shifts through three XOR/bit-shift stages and returns <code>state / 2^64</code>, a float in [0, 1). Same seed &rarr; same network, every run.</p>
+<div class="note">Xorshift needs a nonzero state &mdash; pass seeds like 7, 11, 13. The constant 18446744073709551616.0 is 2^64, so <code>state / 2^64</code> lands in [0, 1).</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">struct</span> <span class="type">Prng</span>(Copyable):
+    <span class="kw">var</span> state: <span class="type">UInt64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">42</span>):
+        <span class="kw">self</span>.state <span class="op">=</span> seed
+
+    <span class="kw">def</span> <span class="fn">next_float</span>(<span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">self</span>.state <span class="op">^=</span> <span class="kw">self</span>.state <span class="op">&lt;&lt;</span> <span class="num">13</span>
+        <span class="kw">self</span>.state <span class="op">^=</span> <span class="kw">self</span>.state <span class="op">&gt;&gt;</span> <span class="num">7</span>
+        <span class="kw">self</span>.state <span class="op">^=</span> <span class="kw">self</span>.state <span class="op">&lt;&lt;</span> <span class="num">17</span>
+        <span class="kw">return</span> <span class="type">Float64</span>(<span class="kw">self</span>.state) <span class="op">/</span> <span class="num">18446744073709551616.0</span>
+
+    <span class="kw">def</span> <span class="fn">lower</span>(<span class="kw">mut</span> <span class="kw">self</span>, scale: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="kw">self</span>.<span class="fn">next_float</span>() <span class="op">*</span> scale</code></pre></div>
+<h2 id="s3">Matrix: data layout + helpers <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>A Matrix is rows, cols, and one flat <code>List[Float64]</code> laid out row-major. Two-index <code>__getitem__</code>/<code>__setitem__</code> give NumPy-like <code>a[i, j]</code> access. Static factories <code>zeros</code> and <code>uniform</code> build the exact matrices the MLP needs (uniform scales weights into &plusmn;0.5).</p>
+<div class="note">A <b>1-column Matrix is a vector</b> here: (2&times;1), (1&times;1) for the MLP stage. <code>@fieldwise_init</code> synthesizes the one-argument-per-field constructor; <code>Copyable</code> gives move + copy semantics needed for passing matrices around.</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="type">Matrix</span>(Copyable):
+    <span class="kw">var</span> rows: <span class="type">Int</span>
+    <span class="kw">var</span> cols: <span class="type">Int</span>
+    <span class="kw">var</span> data: <span class="type">List</span>[<span class="type">Float64</span>]
+
+    <span class="kw">def</span> <span class="fn">__getitem__</span>(<span class="kw">self</span>, r: <span class="type">Int</span>, c: <span class="type">Int</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="kw">self</span>.data[r <span class="op">*</span> <span class="kw">self</span>.cols <span class="op">+</span> c]
+
+    <span class="kw">def</span> <span class="fn">__setitem__</span>(<span class="kw">mut</span> <span class="kw">self</span>, r: <span class="type">Int</span>, c: <span class="type">Int</span>, value: <span class="type">Float64</span>):
+        <span class="kw">self</span>.data[r <span class="op">*</span> <span class="kw">self</span>.cols <span class="op">+</span> c] <span class="op">=</span> value
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">zeros</span>(rows: <span class="type">Int</span>, cols: <span class="type">Int</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+        <span class="kw">return</span> <span class="type">Matrix</span>(rows, cols, <span class="type">List</span>[<span class="type">Float64</span>](rows <span class="op">*</span> cols, <span class="num">0.0</span>))
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">uniform</span>(rows: <span class="type">Int</span>, cols: <span class="type">Int</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">42</span>, scale: <span class="type">Float64</span> <span class="op">=</span> <span class="num">1.0</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+        <span class="kw">var</span> rng <span class="op">=</span> <span class="type">Prng</span>(seed)
+        <span class="kw">var</span> data <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(rows <span class="op">*</span> cols):
+            data.<span class="fn">append</span>(rng.<span class="fn">lower</span>(scale))
+        <span class="kw">return</span> <span class="type">Matrix</span>(rows, cols, data)</code></pre></div>
+<h2 id="s3b">Matrix: the linear-algebra toolkit <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>Ten tiny functions cover everything a two-layer net needs: <code>mul</code> (matmul, i-k-j order), <code>add_bias</code> (add the bias vector down the column), <code>transpose</code>, <code>outer</code> (column &times; column &rarr; matrix &mdash; the gradient workhorse), <code>elementwise</code>, scalar scale/add, <code>add_mul</code> for the SGD step, <code>column</code> (wrap a list as a vector), and the activation/mask maps.</p>
+<div class="note">Everything stores row-major in one flat <code>List[Float64]</code>. <code>outer(a, b)</code> multiplies two <i>column</i> vectors into a matrix &mdash; the workhorse of gradient computations. Prefer i-k-j loop order inside <code>mul</code> for cache-friendly access.</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">def</span> <span class="fn">mul</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(b.cols):
+            <span class="kw">var</span> total: <span class="type">Float64</span> <span class="op">=</span> <span class="num">0.0</span>
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+                total <span class="op">+=</span> a[i, j] <span class="op">*</span> b[j, k]
+            <span class="kw">out</span>.<span class="fn">append</span>(total)
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, b.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">add_bias</span>(z: <span class="type">Matrix</span>, b: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(z.rows):
+        <span class="kw">out</span>.<span class="fn">append</span>(z[i, <span class="num">0</span>] <span class="op">+</span> b[i])
+    <span class="kw">return</span> <span class="type">Matrix</span>(z.rows, <span class="num">1</span>, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">transpose</span>(a: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+        <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[r, c])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.cols, a.rows, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">outer</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(b.rows):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, <span class="num">0</span>] <span class="op">*</span> b[j, <span class="num">0</span>])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, b.rows, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">elementwise</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">*</span> b[i, j])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">scale</span>(a: <span class="type">Matrix</span>, s: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">*</span> s)
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">add_scalar</span>(a: <span class="type">Matrix</span>, s: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">+</span> s)
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">add_mul</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>, s: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">+</span> s <span class="op">*</span> b[i, j])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">column</span>(vals: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(vals)):
+        <span class="kw">out</span>.<span class="fn">append</span>(vals[i])
+    <span class="kw">return</span> <span class="type">Matrix</span>(<span class="fn">len</span>(vals), <span class="num">1</span>, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">relu_activation</span>(m: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(m.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(<span class="fn">relu</span>(m[i, j]))
+    <span class="kw">return</span> <span class="type">Matrix</span>(m.rows, m.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">sigmoid_activation</span>(m: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(m.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(<span class="fn">sigmoid</span>(m[i, j]))
+    <span class="kw">return</span> <span class="type">Matrix</span>(m.rows, m.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">relu_mask</span>(z: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(z.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(z.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> z[i, j] <span class="op">&gt;</span> <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>)
+    <span class="kw">return</span> <span class="type">Matrix</span>(z.rows, z.cols, <span class="kw">out</span>)</code></pre></div>
+<h2 id="s4">The Neuron <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>One neuron: weighted sum, bias, activation. The activation is stored as a <b>thin lambda</b> (<code>def (raw: Float64) thin -&gt; Float64</code>), so the same struct plays a hard 0/1 step gate and a trainable sigmoid unit &mdash; switch behaviour at construction time. <code>train_step</code> applies the single-sample perceptron rule; <code>train</code> loops the dataset and prints the loss curve every 500 epochs.</p>
+<div class="formula">forward :  out = activation( bias + sum_i w_i * x_i )
+update  :  w_i  += lr * (target - out) * sigma'(out) * x_i
+           bias += lr * (target - out) * sigma'(out)</div><div class="ascii">hand-check one step (AND, x=(1,1), target=1, w=(0.45,0.45), b=0.05, lr=0.7)
+  out   = sigmoid(0.45+0.45+0.05) = 0.721
+  error = 1 - 0.721              = 0.279
+  slope = 0.721 * (1 - 0.721)    = 0.201
+  dw    = 0.7 * 0.279 * 0.201 * 1 = 0.039   -> w becomes 0.489</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">struct</span> <span class="type">Neuron</span>(Copyable):
+    <span class="kw">var</span> weights: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> bias: <span class="type">Float64</span>
+    <span class="kw">var</span> activate: <span class="kw">def</span> (raw: <span class="type">Float64</span>) thin <span class="op">-&gt;</span> <span class="type">Float64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        <span class="kw">out</span> <span class="kw">self</span>, weights: <span class="type">List</span>[<span class="type">Float64</span>], bias: <span class="type">Float64</span>,
+        activate: <span class="kw">def</span> (raw: <span class="type">Float64</span>) thin <span class="op">-&gt;</span> <span class="type">Float64</span>,
+    ):
+        <span class="kw">self</span>.weights <span class="op">=</span> weights
+        <span class="kw">self</span>.bias <span class="op">=</span> bias
+        <span class="kw">self</span>.activate <span class="op">=</span> activate
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">sigmoid</span>(n_inputs: <span class="type">Int</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">42</span>) <span class="op">-&gt;</span> <span class="kw">Self</span>:
+        <span class="kw">var</span> rng <span class="op">=</span> <span class="type">Prng</span>(seed)
+        <span class="kw">var</span> weights <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n_inputs):
+            weights.<span class="fn">append</span>(rng.<span class="fn">lower</span>(<span class="num">1.0</span>))
+        <span class="kw">return</span> <span class="kw">Self</span>(weights, rng.<span class="fn">lower</span>(<span class="num">1.0</span>), sigmoid)
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">gate</span>(weights: <span class="type">List</span>[<span class="type">Float64</span>], bias: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="kw">Self</span>:
+        <span class="kw">return</span> <span class="kw">Self</span>(weights, bias, step)
+
+    <span class="kw">def</span> <span class="fn">weighted_sum</span>(<span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> total <span class="op">=</span> <span class="kw">self</span>.bias
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(inputs)):
+            total <span class="op">+=</span> inputs[i] <span class="op">*</span> <span class="kw">self</span>.weights[i]
+        <span class="kw">return</span> total
+
+    <span class="kw">def</span> <span class="fn">predict</span>(<span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="kw">self</span>.<span class="fn">activate</span>(<span class="kw">self</span>.<span class="fn">weighted_sum</span>(inputs))
+
+    <span class="kw">def</span> <span class="fn">train_step</span>(<span class="kw">mut</span> <span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">Float64</span>], target: <span class="type">Float64</span>, lr: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="kw">self</span>.<span class="fn">activate</span>(<span class="kw">self</span>.<span class="fn">weighted_sum</span>(xs))
+        <span class="kw">var</span> error <span class="op">=</span> target <span class="op">-</span> <span class="kw">out</span>
+        <span class="kw">var</span> slope <span class="op">=</span> <span class="fn">sigmoid_derivative</span>(<span class="kw">out</span>)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(xs)):
+            <span class="kw">self</span>.weights[i] <span class="op">+=</span> lr <span class="op">*</span> error <span class="op">*</span> slope <span class="op">*</span> xs[i]
+        <span class="kw">self</span>.bias <span class="op">+=</span> lr <span class="op">*</span> error <span class="op">*</span> slope
+        <span class="kw">return</span> <span class="kw">out</span>
+
+    <span class="kw">def</span> <span class="fn">train</span>(<span class="kw">mut</span> <span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]], ys: <span class="type">List</span>[<span class="type">Float64</span>], epochs: <span class="type">Int</span>, lr: <span class="type">Float64</span>):
+        <span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(epochs):
+            <span class="kw">var</span> loss: <span class="type">Float64</span> <span class="op">=</span> <span class="num">0.0</span>
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ys)):
+                <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="kw">self</span>.<span class="fn">train_step</span>(xs[i], ys[i], lr)
+                loss <span class="op">+=</span> <span class="fn">mse_loss</span>(<span class="kw">out</span>, ys[i])
+            <span class="kw">if</span> epoch <span class="op">==</span> <span class="num">0</span> <span class="kw">or</span> (epoch <span class="op">+</span> <span class="num">1</span>) <span class="op">%</span> <span class="num">500</span> <span class="op">==</span> <span class="num">0</span>:
+                <span class="fn">print</span>(<span class="str">t"epoch {epoch + 1}: loss {loss / Float64(len(ys))}"</span>)</code></pre></div>
+<h2 id="s5">The 2-2-1 MLP <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>The network: 2 inputs, 2 ReLU hidden units, 1 sigmoid output. <code>forward</code> caches z1/a1/z2/a2; <code>backward</code> pushes the error back through the chain rule; <code>update</code> nudges every weight and bias by <code>-lr * d</code>. Because the output already passes through the sigmoid, the derivative folds into <code>delta2 = a2 .* (target - a2)</code> &mdash; one clean multiplication instead of two.</p>
+<div class="ascii">             W1, b1       W2, b2
+ x1 -------->  h1 (ReLU) ---------\
+               h2 (ReLU) ------------> sigmoid -> yhat
+ x2 -------->                     (1 output unit)
+ 2 inputs      2 hidden               1 output</div><div class="formula">z1  = W1 * x + b1           a1  = ReLU(z1)
+z2  = W2 * a1 + b2          a2  = sigmoid(z2)
+
+delta2 = a2 .* (target - a2)          (integrated sigmoid gradient)
+dW2    = outer(delta2, a1)            db2 = delta2
+dA1    = W2^T * delta2
+dZ1    = dA1 .* ReLU_mask(z1)  (z1 > 0)
+dW1    = outer(dZ1, x)                db1 = dZ1
+
+W &larr; W - lr*dW          b &larr; b - lr*db</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">struct</span> <span class="type">MLP</span>(Copyable):
+    <span class="kw">var</span> W1: <span class="type">Matrix</span>
+    <span class="kw">var</span> b1: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> W2: <span class="type">Matrix</span>
+    <span class="kw">var</span> b2: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> z1: <span class="type">Matrix</span>
+    <span class="kw">var</span> a1: <span class="type">Matrix</span>
+    <span class="kw">var</span> z2: <span class="type">Matrix</span>
+    <span class="kw">var</span> a2: <span class="type">Matrix</span>
+    <span class="kw">var</span> dW1: <span class="type">Matrix</span>
+    <span class="kw">var</span> db1: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> dW2: <span class="type">Matrix</span>
+    <span class="kw">var</span> db2: <span class="type">List</span>[<span class="type">Float64</span>]
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">7</span>):
+        <span class="kw">self</span>.W1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">uniform</span>(<span class="num">2</span>, <span class="num">2</span>, seed, <span class="num">0.5</span>)
+        <span class="kw">self</span>.b1 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">2</span>, <span class="num">0.0</span>)
+        <span class="kw">var</span> rng <span class="op">=</span> <span class="type">Prng</span>(seed <span class="op">+</span> <span class="num">2</span>)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="kw">self</span>.b1[i] <span class="op">=</span> rng.<span class="fn">lower</span>(<span class="num">0.5</span>)
+        <span class="kw">self</span>.W2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">uniform</span>(<span class="num">1</span>, <span class="num">2</span>, seed <span class="op">+</span> <span class="num">4</span>, <span class="num">0.5</span>)
+        <span class="kw">self</span>.b2 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1</span>, <span class="num">0.0</span>)
+        <span class="kw">self</span>.b2[<span class="num">0</span>] <span class="op">=</span> rng.<span class="fn">lower</span>(<span class="num">0.5</span>)
+        <span class="kw">self</span>.z1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.a1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.z2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.a2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.dW1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">2</span>)
+        <span class="kw">self</span>.db1 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">2</span>, <span class="num">0.0</span>)
+        <span class="kw">self</span>.dW2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">2</span>)
+        <span class="kw">self</span>.db2 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1</span>, <span class="num">0.0</span>)
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="kw">mut</span> <span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> x <span class="op">=</span> <span class="fn">column</span>(inputs)
+        <span class="kw">self</span>.z1 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W1, x), <span class="kw">self</span>.b1)
+        <span class="kw">self</span>.a1 <span class="op">=</span> <span class="fn">relu_activation</span>(<span class="kw">self</span>.z1)
+        <span class="kw">self</span>.z2 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W2, <span class="kw">self</span>.a1), <span class="kw">self</span>.b2)
+        <span class="kw">self</span>.a2 <span class="op">=</span> <span class="fn">sigmoid_activation</span>(<span class="kw">self</span>.z2)
+        <span class="kw">return</span> <span class="kw">self</span>.a2[<span class="num">0</span>, <span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">predict</span>(<span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> x <span class="op">=</span> <span class="fn">column</span>(inputs)
+        <span class="kw">var</span> z1 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W1, x), <span class="kw">self</span>.b1)
+        <span class="kw">var</span> a1 <span class="op">=</span> <span class="fn">relu_activation</span>(z1)
+        <span class="kw">var</span> z2 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W2, a1), <span class="kw">self</span>.b2)
+        <span class="kw">return</span> <span class="fn">sigmoid_activation</span>(z2)[<span class="num">0</span>, <span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">backward</span>(<span class="kw">mut</span> <span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>], target: <span class="type">Float64</span>):
+        <span class="kw">self</span>.<span class="fn">forward</span>(inputs)
+        <span class="kw">var</span> x <span class="op">=</span> <span class="fn">column</span>(inputs)
+        <span class="kw">var</span> delta2 <span class="op">=</span> <span class="fn">elementwise</span>(<span class="kw">self</span>.a2, <span class="fn">add_scalar</span>(<span class="fn">scale</span>(<span class="kw">self</span>.a2, <span class="num">-1.0</span>), target))
+        <span class="kw">self</span>.dW2 <span class="op">=</span> <span class="fn">outer</span>(delta2, <span class="kw">self</span>.a1)
+        <span class="kw">self</span>.db2 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1</span>, <span class="num">0.0</span>)
+        <span class="kw">self</span>.db2[<span class="num">0</span>] <span class="op">=</span> delta2[<span class="num">0</span>, <span class="num">0</span>]
+        <span class="kw">var</span> d_z1 <span class="op">=</span> <span class="fn">elementwise</span>(<span class="fn">mul</span>(<span class="fn">transpose</span>(<span class="kw">self</span>.W2), delta2), <span class="fn">relu_mask</span>(<span class="kw">self</span>.z1))
+        <span class="kw">self</span>.dW1 <span class="op">=</span> <span class="fn">outer</span>(d_z1, x)
+        <span class="kw">self</span>.db1 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">2</span>, <span class="num">0.0</span>)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="kw">self</span>.db1[i] <span class="op">=</span> d_z1[i, <span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">update</span>(<span class="kw">mut</span> <span class="kw">self</span>, lr: <span class="type">Float64</span>):
+        <span class="kw">self</span>.W1 <span class="op">=</span> <span class="fn">add_mul</span>(<span class="kw">self</span>.W1, <span class="kw">self</span>.dW1, <span class="op">-</span>lr)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="kw">self</span>.b1[i] <span class="op">-=</span> lr <span class="op">*</span> <span class="kw">self</span>.db1[i]
+        <span class="kw">self</span>.W2 <span class="op">=</span> <span class="fn">add_mul</span>(<span class="kw">self</span>.W2, <span class="kw">self</span>.dW2, <span class="op">-</span>lr)
+        <span class="kw">self</span>.b2[<span class="num">0</span>] <span class="op">-=</span> lr <span class="op">*</span> <span class="kw">self</span>.db2[<span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">mse</span>(<span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]], ys: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> total: <span class="type">Float64</span> <span class="op">=</span> <span class="num">0.0</span>
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ys)):
+            total <span class="op">+=</span> <span class="fn">mse_loss</span>(<span class="kw">self</span>.<span class="fn">predict</span>(xs[i]), ys[i])
+        <span class="kw">return</span> total <span class="op">/</span> <span class="type">Float64</span>(<span class="fn">len</span>(ys))
+
+    <span class="kw">def</span> <span class="fn">train</span>(<span class="kw">mut</span> <span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]], ys: <span class="type">List</span>[<span class="type">Float64</span>], epochs: <span class="type">Int</span>, lr: <span class="type">Float64</span>):
+        <span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(epochs):
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ys)):
+                <span class="kw">self</span>.<span class="fn">backward</span>(xs[i], ys[i])
+                <span class="kw">self</span>.<span class="fn">update</span>(lr)
+            <span class="kw">if</span> epoch <span class="op">==</span> <span class="num">0</span> <span class="kw">or</span> (epoch <span class="op">+</span> <span class="num">1</span>) <span class="op">%</span> <span class="num">500</span> <span class="op">==</span> <span class="num">0</span>:
+                <span class="fn">print</span>(<span class="str">t"epoch {epoch + 1}: loss {self.mse(xs, ys)}"</span>)</code></pre></div>
+<a id="full"></a>
+<h2 id="s6">main: gates, a lone neuron, and XOR <a class="backtotop" href="#top">&#8593;</a></h2>
+<p>Three demos in one program: hand-picked step weights produce AND/OR/NOT truth tables; gradient descent trains a single sigmoid neuron on AND; the same neuron stalls on XOR &mdash; one straight line cannot split the XOR table &mdash; until the 2-2-1 MLP layers two hyperplanes and learns it.</p>
+<div class="output"><b>output (illustrative &mdash; expected shape)</b>
+== logical gates with hand-picked step weights ==
+0.0 0.0 AND 0.0 OR 0.0   |   0.0 1.0 AND 0.0 OR 1.0
+1.0 0.0 AND 0.0 OR 1.0   |   1.0 1.0 AND 1.0 OR 1.0
+NOT 0 -&gt; 1.0   NOT 1 -&gt; 0.0
+
+== train a single sigmoid neuron on AND (seed 11, lr 0.7) ==
+epoch 1: loss 0.24   epoch 500: loss 0.09
+epoch 1000: loss 0.03   epoch 2000: loss 0.004   epoch 3000: loss 0.0006
+AND 0 0 -&gt; 0.01   AND 0 1 -&gt; 0.03   AND 1 0 -&gt; 0.03   AND 1 1 -&gt; 0.99
+
+== one sigmoid neuron cannot learn XOR ==
+epoch 1: loss 0.25 ... epoch 2000: loss 0.25   (loss stalls)
+XOR 0 0 -&gt; 0.50   XOR 0 1 -&gt; 0.49   XOR 1 0 -&gt; 0.49   XOR 1 1 -&gt; 0.50
+
+== 2-2-1 MLP learns XOR (seed 7, lr 0.5) ==
+epoch 1: loss 0.25   epoch 1500: loss 0.03
+epoch 3000: loss 0.003   epoch 4500: loss 0.001   epoch 6000: loss 0.0003
+XOR 0 0 -&gt; 0.01   XOR 0 1 -&gt; 0.99   XOR 1 0 -&gt; 0.99   XOR 1 1 -&gt; 0.01
+final mean squared error: 0.0002
+</div>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">def</span> <span class="fn">main</span>():
+    <span class="fn">print</span>(<span class="str">"== logical gates with hand-picked step weights =="</span>)
+    <span class="kw">var</span> and_gate <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">gate</span>([<span class="num">1.0</span>, <span class="num">1.0</span>], <span class="num">-1.5</span>)
+    <span class="kw">var</span> or_gate <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">gate</span>([<span class="num">1.0</span>, <span class="num">1.0</span>], <span class="num">-0.5</span>)
+    <span class="kw">var</span> not_gate <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">gate</span>([<span class="num">-1.0</span>], <span class="num">1.0</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"AND"</span>, and_gate.<span class="fn">predict</span>(p), <span class="str">"OR"</span>, or_gate.<span class="fn">predict</span>(p))
+    <span class="fn">print</span>(<span class="str">"NOT 0 -&gt;"</span>, not_gate.<span class="fn">predict</span>([<span class="num">0.0</span>]), <span class="str">" NOT 1 -&gt;"</span>, not_gate.<span class="fn">predict</span>([<span class="num">1.0</span>]))
+
+    <span class="fn">print</span>(<span class="str">"== train a single sigmoid neuron on AND =="</span>)
+    <span class="kw">var</span> and_xs <span class="op">=</span> <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]]()
+    <span class="kw">var</span> and_ys <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        and_xs.<span class="fn">append</span>([p[<span class="num">0</span>], p[<span class="num">1</span>]])
+        and_ys.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> p[<span class="num">0</span>] <span class="op">==</span> <span class="num">1.0</span> <span class="kw">and</span> p[<span class="num">1</span>] <span class="op">==</span> <span class="num">1.0</span> <span class="kw">else</span> <span class="num">0.0</span>)
+    <span class="kw">var</span> and_neuron <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">sigmoid</span>(<span class="num">2</span>, <span class="num">11</span>)
+    and_neuron.<span class="fn">train</span>(and_xs, and_ys, <span class="num">3000</span>, <span class="num">0.7</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(<span class="str">"AND"</span>, p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"-&gt;"</span>, and_neuron.<span class="fn">predict</span>(p))
+
+    <span class="fn">print</span>(<span class="str">"== one sigmoid neuron cannot learn XOR =="</span>)
+    <span class="kw">var</span> xor_xs <span class="op">=</span> <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]]()
+    <span class="kw">var</span> xor_ys <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        xor_xs.<span class="fn">append</span>([p[<span class="num">0</span>], p[<span class="num">1</span>]])
+        xor_ys.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> p[<span class="num">0</span>] <span class="op">!=</span> p[<span class="num">1</span>] <span class="kw">else</span> <span class="num">0.0</span>)
+    <span class="kw">var</span> lone_neuron <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">sigmoid</span>(<span class="num">2</span>, <span class="num">13</span>)
+    lone_neuron.<span class="fn">train</span>(xor_xs, xor_ys, <span class="num">2000</span>, <span class="num">0.7</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(<span class="str">"XOR"</span>, p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"-&gt;"</span>, lone_neuron.<span class="fn">predict</span>(p))
+
+    <span class="fn">print</span>(<span class="str">"== 2-2-1 MLP learns XOR =="</span>)
+    <span class="kw">var</span> mlp <span class="op">=</span> <span class="type">MLP</span>(<span class="num">7</span>)
+    mlp.<span class="fn">train</span>(xor_xs, xor_ys, <span class="num">6000</span>, <span class="num">0.5</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(<span class="str">"XOR"</span>, p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"-&gt;"</span>, mlp.<span class="fn">predict</span>(p))
+    <span class="fn">print</span>(<span class="str">"final mean squared error:"</span>, mlp.<span class="fn">mse</span>(xor_xs, xor_ys))</code></pre></div>
+<h2 id='full'>Full program <a href='#top' class='backtotop'>&#8593;</a></h2>
+<p>One file, top to bottom. Save as <code>nn.mojo</code> and run <code>mojo nn.mojo</code>.</p>
+<div class="snippet"><div class="tabrow"><span class="tab">Mojo</span><button class="copy" onclick="copyCode(this)">copy</button></div><pre><code><span class="kw">from</span> std.math <span class="kw">import</span> exp
+
+
+<span class="kw">def</span> <span class="fn">step</span>(x: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> <span class="num">1.0</span> <span class="kw">if</span> x <span class="op">&gt;=</span> <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>
+
+
+<span class="kw">def</span> <span class="fn">relu</span>(x: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> x <span class="kw">if</span> x <span class="op">&gt;</span> <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>
+
+
+<span class="kw">def</span> <span class="fn">sigmoid</span>(x: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> <span class="num">1.0</span> <span class="op">/</span> (<span class="num">1.0</span> <span class="op">+</span> <span class="fn">exp</span>(<span class="op">-</span>x))
+
+
+<span class="kw">def</span> <span class="fn">sigmoid_derivative</span>(a: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">return</span> a <span class="op">*</span> (<span class="num">1.0</span> <span class="op">-</span> a)
+
+
+<span class="kw">def</span> <span class="fn">mse_loss</span>(predicted: <span class="type">Float64</span>, target: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+    <span class="kw">var</span> diff <span class="op">=</span> predicted <span class="op">-</span> target
+    <span class="kw">return</span> diff <span class="op">*</span> diff
+<span class="kw">struct</span> <span class="type">Prng</span>(Copyable):
+    <span class="kw">var</span> state: <span class="type">UInt64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">42</span>):
+        <span class="kw">self</span>.state <span class="op">=</span> seed
+
+    <span class="kw">def</span> <span class="fn">next_float</span>(<span class="kw">mut</span> <span class="kw">self</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">self</span>.state <span class="op">^=</span> <span class="kw">self</span>.state <span class="op">&lt;&lt;</span> <span class="num">13</span>
+        <span class="kw">self</span>.state <span class="op">^=</span> <span class="kw">self</span>.state <span class="op">&gt;&gt;</span> <span class="num">7</span>
+        <span class="kw">self</span>.state <span class="op">^=</span> <span class="kw">self</span>.state <span class="op">&lt;&lt;</span> <span class="num">17</span>
+        <span class="kw">return</span> <span class="type">Float64</span>(<span class="kw">self</span>.state) <span class="op">/</span> <span class="num">18446744073709551616.0</span>
+
+    <span class="kw">def</span> <span class="fn">lower</span>(<span class="kw">mut</span> <span class="kw">self</span>, scale: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="kw">self</span>.<span class="fn">next_float</span>() <span class="op">*</span> scale
+<span class="kw">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="type">Matrix</span>(Copyable):
+    <span class="kw">var</span> rows: <span class="type">Int</span>
+    <span class="kw">var</span> cols: <span class="type">Int</span>
+    <span class="kw">var</span> data: <span class="type">List</span>[<span class="type">Float64</span>]
+
+    <span class="kw">def</span> <span class="fn">__getitem__</span>(<span class="kw">self</span>, r: <span class="type">Int</span>, c: <span class="type">Int</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="kw">self</span>.data[r <span class="op">*</span> <span class="kw">self</span>.cols <span class="op">+</span> c]
+
+    <span class="kw">def</span> <span class="fn">__setitem__</span>(<span class="kw">mut</span> <span class="kw">self</span>, r: <span class="type">Int</span>, c: <span class="type">Int</span>, value: <span class="type">Float64</span>):
+        <span class="kw">self</span>.data[r <span class="op">*</span> <span class="kw">self</span>.cols <span class="op">+</span> c] <span class="op">=</span> value
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">zeros</span>(rows: <span class="type">Int</span>, cols: <span class="type">Int</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+        <span class="kw">return</span> <span class="type">Matrix</span>(rows, cols, <span class="type">List</span>[<span class="type">Float64</span>](rows <span class="op">*</span> cols, <span class="num">0.0</span>))
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">uniform</span>(rows: <span class="type">Int</span>, cols: <span class="type">Int</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">42</span>, scale: <span class="type">Float64</span> <span class="op">=</span> <span class="num">1.0</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+        <span class="kw">var</span> rng <span class="op">=</span> <span class="type">Prng</span>(seed)
+        <span class="kw">var</span> data <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(rows <span class="op">*</span> cols):
+            data.<span class="fn">append</span>(rng.<span class="fn">lower</span>(scale))
+        <span class="kw">return</span> <span class="type">Matrix</span>(rows, cols, data)
+<span class="kw">def</span> <span class="fn">mul</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(b.cols):
+            <span class="kw">var</span> total: <span class="type">Float64</span> <span class="op">=</span> <span class="num">0.0</span>
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+                total <span class="op">+=</span> a[i, j] <span class="op">*</span> b[j, k]
+            <span class="kw">out</span>.<span class="fn">append</span>(total)
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, b.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">add_bias</span>(z: <span class="type">Matrix</span>, b: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(z.rows):
+        <span class="kw">out</span>.<span class="fn">append</span>(z[i, <span class="num">0</span>] <span class="op">+</span> b[i])
+    <span class="kw">return</span> <span class="type">Matrix</span>(z.rows, <span class="num">1</span>, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">transpose</span>(a: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> c <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+        <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[r, c])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.cols, a.rows, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">outer</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(b.rows):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, <span class="num">0</span>] <span class="op">*</span> b[j, <span class="num">0</span>])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, b.rows, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">elementwise</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">*</span> b[i, j])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">scale</span>(a: <span class="type">Matrix</span>, s: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">*</span> s)
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">add_scalar</span>(a: <span class="type">Matrix</span>, s: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">+</span> s)
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">add_mul</span>(a: <span class="type">Matrix</span>, b: <span class="type">Matrix</span>, s: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(a.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(a.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(a[i, j] <span class="op">+</span> s <span class="op">*</span> b[i, j])
+    <span class="kw">return</span> <span class="type">Matrix</span>(a.rows, a.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">column</span>(vals: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(vals)):
+        <span class="kw">out</span>.<span class="fn">append</span>(vals[i])
+    <span class="kw">return</span> <span class="type">Matrix</span>(<span class="fn">len</span>(vals), <span class="num">1</span>, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">relu_activation</span>(m: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(m.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(<span class="fn">relu</span>(m[i, j]))
+    <span class="kw">return</span> <span class="type">Matrix</span>(m.rows, m.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">sigmoid_activation</span>(m: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(m.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(<span class="fn">sigmoid</span>(m[i, j]))
+    <span class="kw">return</span> <span class="type">Matrix</span>(m.rows, m.cols, <span class="kw">out</span>)
+
+
+<span class="kw">def</span> <span class="fn">relu_mask</span>(z: <span class="type">Matrix</span>) <span class="op">-&gt;</span> <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(z.rows):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(z.cols):
+            <span class="kw">out</span>.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> z[i, j] <span class="op">&gt;</span> <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>)
+    <span class="kw">return</span> <span class="type">Matrix</span>(z.rows, z.cols, <span class="kw">out</span>)
+<span class="kw">struct</span> <span class="type">Neuron</span>(Copyable):
+    <span class="kw">var</span> weights: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> bias: <span class="type">Float64</span>
+    <span class="kw">var</span> activate: <span class="kw">def</span> (raw: <span class="type">Float64</span>) thin <span class="op">-&gt;</span> <span class="type">Float64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        <span class="kw">out</span> <span class="kw">self</span>, weights: <span class="type">List</span>[<span class="type">Float64</span>], bias: <span class="type">Float64</span>,
+        activate: <span class="kw">def</span> (raw: <span class="type">Float64</span>) thin <span class="op">-&gt;</span> <span class="type">Float64</span>,
+    ):
+        <span class="kw">self</span>.weights <span class="op">=</span> weights
+        <span class="kw">self</span>.bias <span class="op">=</span> bias
+        <span class="kw">self</span>.activate <span class="op">=</span> activate
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">sigmoid</span>(n_inputs: <span class="type">Int</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">42</span>) <span class="op">-&gt;</span> <span class="kw">Self</span>:
+        <span class="kw">var</span> rng <span class="op">=</span> <span class="type">Prng</span>(seed)
+        <span class="kw">var</span> weights <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n_inputs):
+            weights.<span class="fn">append</span>(rng.<span class="fn">lower</span>(<span class="num">1.0</span>))
+        <span class="kw">return</span> <span class="kw">Self</span>(weights, rng.<span class="fn">lower</span>(<span class="num">1.0</span>), sigmoid)
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">gate</span>(weights: <span class="type">List</span>[<span class="type">Float64</span>], bias: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="kw">Self</span>:
+        <span class="kw">return</span> <span class="kw">Self</span>(weights, bias, step)
+
+    <span class="kw">def</span> <span class="fn">weighted_sum</span>(<span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> total <span class="op">=</span> <span class="kw">self</span>.bias
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(inputs)):
+            total <span class="op">+=</span> inputs[i] <span class="op">*</span> <span class="kw">self</span>.weights[i]
+        <span class="kw">return</span> total
+
+    <span class="kw">def</span> <span class="fn">predict</span>(<span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="kw">self</span>.<span class="fn">activate</span>(<span class="kw">self</span>.<span class="fn">weighted_sum</span>(inputs))
+
+    <span class="kw">def</span> <span class="fn">train_step</span>(<span class="kw">mut</span> <span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">Float64</span>], target: <span class="type">Float64</span>, lr: <span class="type">Float64</span>) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="kw">self</span>.<span class="fn">activate</span>(<span class="kw">self</span>.<span class="fn">weighted_sum</span>(xs))
+        <span class="kw">var</span> error <span class="op">=</span> target <span class="op">-</span> <span class="kw">out</span>
+        <span class="kw">var</span> slope <span class="op">=</span> <span class="fn">sigmoid_derivative</span>(<span class="kw">out</span>)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(xs)):
+            <span class="kw">self</span>.weights[i] <span class="op">+=</span> lr <span class="op">*</span> error <span class="op">*</span> slope <span class="op">*</span> xs[i]
+        <span class="kw">self</span>.bias <span class="op">+=</span> lr <span class="op">*</span> error <span class="op">*</span> slope
+        <span class="kw">return</span> <span class="kw">out</span>
+
+    <span class="kw">def</span> <span class="fn">train</span>(<span class="kw">mut</span> <span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]], ys: <span class="type">List</span>[<span class="type">Float64</span>], epochs: <span class="type">Int</span>, lr: <span class="type">Float64</span>):
+        <span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(epochs):
+            <span class="kw">var</span> loss: <span class="type">Float64</span> <span class="op">=</span> <span class="num">0.0</span>
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ys)):
+                <span class="kw">var</span> <span class="kw">out</span> <span class="op">=</span> <span class="kw">self</span>.<span class="fn">train_step</span>(xs[i], ys[i], lr)
+                loss <span class="op">+=</span> <span class="fn">mse_loss</span>(<span class="kw">out</span>, ys[i])
+            <span class="kw">if</span> epoch <span class="op">==</span> <span class="num">0</span> <span class="kw">or</span> (epoch <span class="op">+</span> <span class="num">1</span>) <span class="op">%</span> <span class="num">500</span> <span class="op">==</span> <span class="num">0</span>:
+                <span class="fn">print</span>(<span class="str">t"epoch {epoch + 1}: loss {loss / Float64(len(ys))}"</span>)
+<span class="kw">struct</span> <span class="type">MLP</span>(Copyable):
+    <span class="kw">var</span> W1: <span class="type">Matrix</span>
+    <span class="kw">var</span> b1: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> W2: <span class="type">Matrix</span>
+    <span class="kw">var</span> b2: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> z1: <span class="type">Matrix</span>
+    <span class="kw">var</span> a1: <span class="type">Matrix</span>
+    <span class="kw">var</span> z2: <span class="type">Matrix</span>
+    <span class="kw">var</span> a2: <span class="type">Matrix</span>
+    <span class="kw">var</span> dW1: <span class="type">Matrix</span>
+    <span class="kw">var</span> db1: <span class="type">List</span>[<span class="type">Float64</span>]
+    <span class="kw">var</span> dW2: <span class="type">Matrix</span>
+    <span class="kw">var</span> db2: <span class="type">List</span>[<span class="type">Float64</span>]
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, seed: <span class="type">UInt64</span> <span class="op">=</span> <span class="num">7</span>):
+        <span class="kw">self</span>.W1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">uniform</span>(<span class="num">2</span>, <span class="num">2</span>, seed, <span class="num">0.5</span>)
+        <span class="kw">self</span>.b1 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">2</span>, <span class="num">0.0</span>)
+        <span class="kw">var</span> rng <span class="op">=</span> <span class="type">Prng</span>(seed <span class="op">+</span> <span class="num">2</span>)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="kw">self</span>.b1[i] <span class="op">=</span> rng.<span class="fn">lower</span>(<span class="num">0.5</span>)
+        <span class="kw">self</span>.W2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">uniform</span>(<span class="num">1</span>, <span class="num">2</span>, seed <span class="op">+</span> <span class="num">4</span>, <span class="num">0.5</span>)
+        <span class="kw">self</span>.b2 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1</span>, <span class="num">0.0</span>)
+        <span class="kw">self</span>.b2[<span class="num">0</span>] <span class="op">=</span> rng.<span class="fn">lower</span>(<span class="num">0.5</span>)
+        <span class="kw">self</span>.z1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.a1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.z2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.a2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">1</span>)
+        <span class="kw">self</span>.dW1 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">2</span>)
+        <span class="kw">self</span>.db1 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">2</span>, <span class="num">0.0</span>)
+        <span class="kw">self</span>.dW2 <span class="op">=</span> <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">2</span>)
+        <span class="kw">self</span>.db2 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1</span>, <span class="num">0.0</span>)
+
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="kw">mut</span> <span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> x <span class="op">=</span> <span class="fn">column</span>(inputs)
+        <span class="kw">self</span>.z1 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W1, x), <span class="kw">self</span>.b1)
+        <span class="kw">self</span>.a1 <span class="op">=</span> <span class="fn">relu_activation</span>(<span class="kw">self</span>.z1)
+        <span class="kw">self</span>.z2 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W2, <span class="kw">self</span>.a1), <span class="kw">self</span>.b2)
+        <span class="kw">self</span>.a2 <span class="op">=</span> <span class="fn">sigmoid_activation</span>(<span class="kw">self</span>.z2)
+        <span class="kw">return</span> <span class="kw">self</span>.a2[<span class="num">0</span>, <span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">predict</span>(<span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> x <span class="op">=</span> <span class="fn">column</span>(inputs)
+        <span class="kw">var</span> z1 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W1, x), <span class="kw">self</span>.b1)
+        <span class="kw">var</span> a1 <span class="op">=</span> <span class="fn">relu_activation</span>(z1)
+        <span class="kw">var</span> z2 <span class="op">=</span> <span class="fn">add_bias</span>(<span class="fn">mul</span>(<span class="kw">self</span>.W2, a1), <span class="kw">self</span>.b2)
+        <span class="kw">return</span> <span class="fn">sigmoid_activation</span>(z2)[<span class="num">0</span>, <span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">backward</span>(<span class="kw">mut</span> <span class="kw">self</span>, inputs: <span class="type">List</span>[<span class="type">Float64</span>], target: <span class="type">Float64</span>):
+        <span class="kw">self</span>.<span class="fn">forward</span>(inputs)
+        <span class="kw">var</span> x <span class="op">=</span> <span class="fn">column</span>(inputs)
+        <span class="kw">var</span> delta2 <span class="op">=</span> <span class="fn">elementwise</span>(<span class="kw">self</span>.a2, <span class="fn">add_scalar</span>(<span class="fn">scale</span>(<span class="kw">self</span>.a2, <span class="num">-1.0</span>), target))
+        <span class="kw">self</span>.dW2 <span class="op">=</span> <span class="fn">outer</span>(delta2, <span class="kw">self</span>.a1)
+        <span class="kw">self</span>.db2 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">1</span>, <span class="num">0.0</span>)
+        <span class="kw">self</span>.db2[<span class="num">0</span>] <span class="op">=</span> delta2[<span class="num">0</span>, <span class="num">0</span>]
+        <span class="kw">var</span> d_z1 <span class="op">=</span> <span class="fn">elementwise</span>(<span class="fn">mul</span>(<span class="fn">transpose</span>(<span class="kw">self</span>.W2), delta2), <span class="fn">relu_mask</span>(<span class="kw">self</span>.z1))
+        <span class="kw">self</span>.dW1 <span class="op">=</span> <span class="fn">outer</span>(d_z1, x)
+        <span class="kw">self</span>.db1 <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>](<span class="num">2</span>, <span class="num">0.0</span>)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="kw">self</span>.db1[i] <span class="op">=</span> d_z1[i, <span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">update</span>(<span class="kw">mut</span> <span class="kw">self</span>, lr: <span class="type">Float64</span>):
+        <span class="kw">self</span>.W1 <span class="op">=</span> <span class="fn">add_mul</span>(<span class="kw">self</span>.W1, <span class="kw">self</span>.dW1, <span class="op">-</span>lr)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="kw">self</span>.b1[i] <span class="op">-=</span> lr <span class="op">*</span> <span class="kw">self</span>.db1[i]
+        <span class="kw">self</span>.W2 <span class="op">=</span> <span class="fn">add_mul</span>(<span class="kw">self</span>.W2, <span class="kw">self</span>.dW2, <span class="op">-</span>lr)
+        <span class="kw">self</span>.b2[<span class="num">0</span>] <span class="op">-=</span> lr <span class="op">*</span> <span class="kw">self</span>.db2[<span class="num">0</span>]
+
+    <span class="kw">def</span> <span class="fn">mse</span>(<span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]], ys: <span class="type">List</span>[<span class="type">Float64</span>]) <span class="op">-&gt;</span> <span class="type">Float64</span>:
+        <span class="kw">var</span> total: <span class="type">Float64</span> <span class="op">=</span> <span class="num">0.0</span>
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ys)):
+            total <span class="op">+=</span> <span class="fn">mse_loss</span>(<span class="kw">self</span>.<span class="fn">predict</span>(xs[i]), ys[i])
+        <span class="kw">return</span> total <span class="op">/</span> <span class="type">Float64</span>(<span class="fn">len</span>(ys))
+
+    <span class="kw">def</span> <span class="fn">train</span>(<span class="kw">mut</span> <span class="kw">self</span>, xs: <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]], ys: <span class="type">List</span>[<span class="type">Float64</span>], epochs: <span class="type">Int</span>, lr: <span class="type">Float64</span>):
+        <span class="kw">for</span> epoch <span class="kw">in</span> <span class="fn">range</span>(epochs):
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(ys)):
+                <span class="kw">self</span>.<span class="fn">backward</span>(xs[i], ys[i])
+                <span class="kw">self</span>.<span class="fn">update</span>(lr)
+            <span class="kw">if</span> epoch <span class="op">==</span> <span class="num">0</span> <span class="kw">or</span> (epoch <span class="op">+</span> <span class="num">1</span>) <span class="op">%</span> <span class="num">500</span> <span class="op">==</span> <span class="num">0</span>:
+                <span class="fn">print</span>(<span class="str">t"epoch {epoch + 1}: loss {self.mse(xs, ys)}"</span>)
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="fn">print</span>(<span class="str">"== logical gates with hand-picked step weights =="</span>)
+    <span class="kw">var</span> and_gate <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">gate</span>([<span class="num">1.0</span>, <span class="num">1.0</span>], <span class="num">-1.5</span>)
+    <span class="kw">var</span> or_gate <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">gate</span>([<span class="num">1.0</span>, <span class="num">1.0</span>], <span class="num">-0.5</span>)
+    <span class="kw">var</span> not_gate <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">gate</span>([<span class="num">-1.0</span>], <span class="num">1.0</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"AND"</span>, and_gate.<span class="fn">predict</span>(p), <span class="str">"OR"</span>, or_gate.<span class="fn">predict</span>(p))
+    <span class="fn">print</span>(<span class="str">"NOT 0 -&gt;"</span>, not_gate.<span class="fn">predict</span>([<span class="num">0.0</span>]), <span class="str">" NOT 1 -&gt;"</span>, not_gate.<span class="fn">predict</span>([<span class="num">1.0</span>]))
+
+    <span class="fn">print</span>(<span class="str">"== train a single sigmoid neuron on AND =="</span>)
+    <span class="kw">var</span> and_xs <span class="op">=</span> <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]]()
+    <span class="kw">var</span> and_ys <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        and_xs.<span class="fn">append</span>([p[<span class="num">0</span>], p[<span class="num">1</span>]])
+        and_ys.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> p[<span class="num">0</span>] <span class="op">==</span> <span class="num">1.0</span> <span class="kw">and</span> p[<span class="num">1</span>] <span class="op">==</span> <span class="num">1.0</span> <span class="kw">else</span> <span class="num">0.0</span>)
+    <span class="kw">var</span> and_neuron <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">sigmoid</span>(<span class="num">2</span>, <span class="num">11</span>)
+    and_neuron.<span class="fn">train</span>(and_xs, and_ys, <span class="num">3000</span>, <span class="num">0.7</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(<span class="str">"AND"</span>, p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"-&gt;"</span>, and_neuron.<span class="fn">predict</span>(p))
+
+    <span class="fn">print</span>(<span class="str">"== one sigmoid neuron cannot learn XOR =="</span>)
+    <span class="kw">var</span> xor_xs <span class="op">=</span> <span class="type">List</span>[<span class="type">List</span>[<span class="type">Float64</span>]]()
+    <span class="kw">var</span> xor_ys <span class="op">=</span> <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        xor_xs.<span class="fn">append</span>([p[<span class="num">0</span>], p[<span class="num">1</span>]])
+        xor_ys.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> p[<span class="num">0</span>] <span class="op">!=</span> p[<span class="num">1</span>] <span class="kw">else</span> <span class="num">0.0</span>)
+    <span class="kw">var</span> lone_neuron <span class="op">=</span> <span class="type">Neuron</span>.<span class="fn">sigmoid</span>(<span class="num">2</span>, <span class="num">13</span>)
+    lone_neuron.<span class="fn">train</span>(xor_xs, xor_ys, <span class="num">2000</span>, <span class="num">0.7</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(<span class="str">"XOR"</span>, p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"-&gt;"</span>, lone_neuron.<span class="fn">predict</span>(p))
+
+    <span class="fn">print</span>(<span class="str">"== 2-2-1 MLP learns XOR =="</span>)
+    <span class="kw">var</span> mlp <span class="op">=</span> <span class="type">MLP</span>(<span class="num">7</span>)
+    mlp.<span class="fn">train</span>(xor_xs, xor_ys, <span class="num">6000</span>, <span class="num">0.5</span>)
+    <span class="kw">for</span> p <span class="kw">in</span> [[<span class="num">0.0</span>, <span class="num">0.0</span>], [<span class="num">0.0</span>, <span class="num">1.0</span>], [<span class="num">1.0</span>, <span class="num">0.0</span>], [<span class="num">1.0</span>, <span class="num">1.0</span>]]:
+        <span class="fn">print</span>(<span class="str">"XOR"</span>, p[<span class="num">0</span>], p[<span class="num">1</span>], <span class="str">"-&gt;"</span>, mlp.<span class="fn">predict</span>(p))
+    <span class="fn">print</span>(<span class="str">"final mean squared error:"</span>, mlp.<span class="fn">mse</span>(xor_xs, xor_ys))</code></pre></div>
+<div class="toc"><b>Syntax cheat-sheet (Mojo 1.x)</b>
+<table>
+<tr><th>Python</th><th>Mojo 1.x</th></tr>
+<tr><td><code>def f(x): return x</code></td><td><code>def f(x: Float64) -&gt; Float64: return x</code> &mdash; every arg and result typed</td></tr>
+<tr><td><code>x += 1</code> in a method</td><td><code>mut self</code> on the method; args are immutable by default</td></tr>
+<tr><td><code>class</code> + methods</td><td><code>struct</code> + <code>def __init__(out self, ...)</code>; <code>@fieldwise_init</code> for one-arg-per-field</td></tr>
+<tr><td><code>let</code> / <code>alias</code></td><td>removed / <code>comptime</code> (not needed here)</td></tr>
+<tr><td><code>f"loss {x}"</code></td><td><code>t"loss {x}"</code></td></tr>
+<tr><td><code>np.random.rand()</code></td><td>hand-rolled <code>Prng</code> (this tutorial) or std <code>Random</code></td></tr>
+<tr><td><code>later_fn</code> anywhere</td><td>top-level <code>def</code>s are visible module-wide &mdash; use before or after</td></tr>
+</table>
+</div>
+<footer>
+Built for Mojo 1.x. No framework, no builtin matrix gemm &mdash; just <code>List[Float64]</code>, loops and the chain rule.
+<p style="margin-top:.7rem;">
+  <b style="color:#8fb4ff">Keep going:</b>
+  <a href="mlp_xor.html">MLP XOR Lab</a> ·
+  <a href="nn_mojo.html">3-4-1 NN in Mojo &amp; NumPy</a> ·
+  <a href="numoj.html">nj Library version</a> ·
+  <a href="perceptrons_and_activation.html">Perceptrons &amp; Activations</a> ·
+  <a href="ds_textbook_08_neural_network.html">Textbook Ch. 8 — NN from Scratch</a> ·
+  <a href="ds_advanced_09_autodiff.html">Autodiff &amp; Optimization</a> ·
+  <a href="index.html">Operations Research Hub</a>
+</p>
+</footer>
+</div>
+<script>
+function copyCode(btn){
+  var pre = btn.closest('.snippet').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(function(){
+    btn.textContent = 'copied';
+    setTimeout(function(){ btn.textContent = 'copy'; }, 1200);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appendix — Inline MLIR · Mojo 1.x</title>
+<style>
+:root{
+  --bg:#0f1115;--surface:#16181d;--surface-hover:#1e2128;
+  --text:#f4f6fc;--text-muted:#ffe4a3;
+  --accent:#6c5ce7;--accent-light:#a29bfe;
+  --success:#00cec9;--warning:#fdcb6e;
+  --code-bg:#111317;--border:#434b59;
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent-light);text-decoration:none;transition:color 0.2s;}
+a:hover{color:var(--accent);}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--success));z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:56px;background:rgba(15,17,21,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1rem;color:var(--text);text-decoration:none;}
+.brand .icon{width:28px;height:28px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.chnum{font-family:var(--font-mono);font-size:0.75rem;color:var(--success);letter-spacing:0.04em;}
+
+.container{max-width:820px;margin:0 auto;padding:0 24px;}
+.wrap{padding:4.5rem 0 7rem;}
+
+.kicker{display:inline-block;background:rgba(108,92,231,0.15);color:var(--accent-light);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;letter-spacing:0.5px;margin-bottom:16px;border:1px solid rgba(108,92,231,0.3);}
+h1{font-size:clamp(2rem,4.5vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+h1 .hl{background:linear-gradient(to right,var(--accent-light),var(--success));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.dek{font-size:1.1rem;color:var(--text-muted);margin-bottom:36px;max-width:580px;line-height:1.7;}
+
+h2{font-size:1.5rem;font-weight:700;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.15rem;font-weight:600;margin:2rem 0 0.8rem;}
+p{color:var(--text-muted);margin:0 0 1rem;line-height:1.8;}
+p strong{color:var(--text);}
+ul,ol{color:var(--text-muted);padding-left:20px;line-height:1.8;}
+li{margin-bottom:4px;}
+code{font-family:var(--font-mono);font-size:0.88em;background:rgba(108,92,231,0.1);padding:2px 6px;border-radius:4px;color:var(--accent-light);}
+
+.info-box{padding:16px 20px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:16px 0;}
+.info-box strong{color:var(--text);}
+.info-box p{margin-top:4px;}
+.tip-box{background:rgba(0,206,201,0.06);border-color:rgba(0,206,201,0.12);}
+.tip-box strong{color:var(--success);}
+
+.code-playground{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin:20px 0;}
+.tabs{display:flex;background:var(--code-bg);border-bottom:1px solid var(--border);}
+.tab{padding:10px 18px;cursor:pointer;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all 0.2s;font-size:0.9rem;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent-light);border-bottom-color:var(--accent-light);background:rgba(108,92,231,0.08);}
+.code-content{padding:16px 20px;background:var(--code-bg);min-height:120px;position:relative;}
+.code-block{font-family:var(--font-mono);font-size:0.85rem;line-height:1.7;white-space:pre;overflow-x:auto;}
+.code-block.active{display:block;}
+.kw{color:#c792ea;}.fn{color:#82aaff;}.str{color:#c3e88d;}.num{color:#f78c6c;}.com{color:#546e7a;font-style:italic;}.type{color:#ffcb6b;}.op{color:#89ddff;}
+
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.quiz{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:20px;margin:24px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--success);margin-bottom:10px;}
+.qtext{font-size:1.05rem;font-weight:600;margin-bottom:14px;}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{text-align:left;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.92rem;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.opt:hover{border-color:var(--accent);color:var(--text);}
+.opt.correct{border-color:var(--success);background:rgba(0,206,201,0.08);color:var(--success);}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:10px;font-size:0.88rem;color:var(--text-muted);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);padding:8px 14px;border-radius:8px;transition:all 0.2s;}
+.navbtn:hover{border-color:var(--accent);color:var(--text);}
+.navbtn.disabled{opacity:0.35;pointer-events:none;}
+
+.mini-toc{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30;}
+.mini-toc a{width:7px;height:7px;border-radius:50%;background:var(--border);display:block;transition:all .2s;}
+.mini-toc a.active{background:var(--success);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+@media(max-width:600px){h1{font-size:1.8rem;}.wrap{padding:3rem 0 4rem;}}
+
+table.cheat{width:100%;border-collapse:collapse;margin:20px 0;font-size:0.85rem;}
+table.cheat th{text-align:left;padding:10px 12px;background:var(--code-bg);border:1px solid var(--border);color:var(--accent-light);font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.03em;}
+table.cheat td{padding:10px 12px;border:1px solid var(--border);color:var(--text-muted);vertical-align:top;}
+table.cheat tr:hover td{background:rgba(108,92,231,0.04);}
+table.cheat code{font-size:0.82em;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html"><span class="icon">M</span> Mojo 1.x</a>
+  <span class="chnum">Chapter 17 / 17</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="#why"></a>
+  <a href="#builtins"></a>
+  <a href="#types-attrs"></a>
+  <a href="#ops"></a>
+  <a href="#regions"></a>
+  <a href="#dialects"></a>
+  <a href="#stdlib"></a>
+  <a href="#quiz"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Appendix — Deep Dive</span>
+  <h1>🔩 <span class="hl">Inline MLIR</span></h1>
+  <p class="dek">Mojo is built on MLIR and exposes it directly. When you need an operation Mojo doesn't surface — hardware intrinsics, atomic memory orderings, custom dialect ops — you can write the MLIR yourself instead of waiting for a language feature.</p>
+
+  <!-- ─── Why ─── -->
+  <section id="why">
+    <h2>1. Hello MLIR</h2>
+    <p><strong>MLIR</strong> (Multi-Level Intermediate Representation) is a compiler framework in the LLVM project. It models programs with custom, layered <em>dialects</em> that represent data flow, loops, and hardware-specific operations, translated step by step into LLVM IR and then machine code.</p>
+    <p>This minimal example creates two MLIR index constants, adds them, and converts the result back to Mojo's <code>Int</code>:</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mlir-hello">Mojo</div>
+        <div class="tab" data-target="mlir-hello-out">output</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-hello"><code><span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> a: __mlir_type.index = __mlir_attr.<span class="str">`42 : index`</span>
+    <span class="kw">var</span> b: __mlir_type.index = __mlir_attr.<span class="str">`8 : index`</span>
+    <span class="kw">var</span> c = __mlir_op.<span class="str">`index.add`</span>(a, b)
+    <span class="fn">print</span>(<span class="type">Int</span>(mlir_value=c))   <span class="com"># 50</span></code></pre>
+        <pre class="code-block" id="mlir-hello-out"><code>50</code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Why not just write 42 + 8?</strong>
+      <p>You could. Inline MLIR gives you direct access to operations that Mojo doesn't expose yet, such as NVVM barriers, AMD matrix multiplies, and target-specific address spaces — the bedrock of hand-tuned GPU kernels.</p>
+    </div>
+  </section>
+
+  <!-- ─── Builtins ─── -->
+  <section id="builtins">
+    <h2>2. The Four Built-in Identifiers</h2>
+    <p>Each built-in corresponds to a common MLIR building block:</p>
+
+    <table class="cheat">
+      <thead><tr><th>Built-in</th><th>Purpose</th><th>Produces</th></tr></thead>
+      <tbody>
+        <tr><td><code>__mlir_type</code></td><td>Reference an MLIR type</td><td>A type</td></tr>
+        <tr><td><code>__mlir_attr</code></td><td>Reference an MLIR attribute</td><td>Compile-time value</td></tr>
+        <tr><td><code>__mlir_op</code></td><td>Invoke an MLIR operation</td><td>Runtime value or None</td></tr>
+        <tr><td><code>__mlir_region</code></td><td>Define a single-block region</td><td>Statement (no value)</td></tr>
+      </tbody>
+    </table>
+
+    <p>Types and attributes support two forms: dot/backtick syntax for simple names, and bracket syntax for parameterized construction. Raw MLIR types are register-passable, trivially copyable, and trivially movable — but they have no methods, and <code>.field</code> access on them is an error.</p>
+  </section>
+
+  <!-- ─── Types & Attributes ─── -->
+  <section id="types-attrs">
+    <h2>3. Types &amp; Attributes</h2>
+
+    <h3><code>__mlir_type</code></h3>
+    <p>Use dot syntax for simple names, backticks when the name includes special characters like <code>!</code>, <code>&lt;</code>, or <code>&gt;</code>:</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-types">Mojo</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-types"><code><span class="kw">var</span> x: __mlir_type.i1                        <span class="com"># 1-bit integer (boolean)</span>
+<span class="kw">var</span> y: __mlir_type.index                     <span class="com"># Machine-width index</span>
+<span class="kw">var</span> z: __mlir_type.f64                        <span class="com"># 64-bit float</span>
+<span class="kw">var</span> a: __mlir_type.<span class="str">`!kgen.none`</span>            <span class="com"># Dialect type with ! prefix</span>
+<span class="kw">var</span> b: __mlir_type.<span class="str">`!kgen.scalar&lt;f64&gt;`</span>   <span class="com"># Pop dialect scalar</span>
+
+<span class="kw">def</span> <span class="fn">mlir_types_in_action</span>():
+    <span class="kw">var</span> flag: __mlir_type.i1 = __mlir_attr.true
+    <span class="kw">var</span> count: __mlir_type.index = __mlir_attr.<span class="str">`0 : index`</span>
+    <span class="fn">print</span>(<span class="type">Bool</span>(flag))                    <span class="com"># True</span>
+    <span class="fn">print</span>(<span class="type">Int</span>(mlir_value=count))       <span class="com"># 0</span></code></pre>
+      </div>
+    </div>
+
+    <p>The names you'll see most: <code>i1</code> (boolean), <code>i32</code>/<code>i64</code> (signless integers — the <em>operation</em> decides signedness), <code>si32</code>/<code>ui32</code> (signedness in the type), <code>f16</code>/<code>bf16</code>/<code>f32</code>/<code>f64</code>, and <code>index</code> for sizes and offsets. Dialect-defined types use the <code>!</code> prefix — without it, the compiler rejects the type.</p>
+
+    <h3>Bracket syntax — compile-time splicing</h3>
+    <p>Bracket syntax builds a type or attribute from values known at compile time. The list alternates backtick literals (copied as-is) and Mojo expressions (inserted as MLIR text):</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-bracket">Mojo</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-bracket"><code><span class="com"># From SIMD: for SIMD[DType.float32, 4] produces: !kgen.simd&lt;4, f32&gt;</span>
+<span class="kw">comptime</span> _mlir_type = __mlir_type[
+    <span class="str">`!kgen.simd&lt;`</span>, Self.size._mlir_value, <span class="str">`,`</span>,
+    Self.dtype._mlir_value, <span class="str">`&gt;`</span>]
+
+<span class="com"># Nested substitution: produces complex&lt;i32&gt;</span>
+<span class="kw">var</span> complex_int: __mlir_type[<span class="str">`complex&lt;`</span>, __mlir_type.i32, <span class="str">`&gt;`</span>]</code></pre>
+      </div>
+    </div>
+
+    <p>MLIR types can even serve as compile-time parameters — a <code>!kgen.string</code> or <code>!kgen.dtype</code> parameter list entry is plain Mojo parameterization over MLIR values. Bracket lists accept positional operands only; keyword operands are a compile-time error.</p>
+
+    <h3><code>__mlir_attr</code></h3>
+    <p>Attributes are compile-time constants embedded in the IR. Typed constants use backtick syntax with MLIR literal notation — <em>not</em> Mojo's: binary, octal, and hex prefixes aren't supported, so use decimal values:</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-attrs">Mojo</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-attrs"><code><span class="com"># Boolean attributes and builtin type shorthands</span>
+__mlir_attr.true
+__mlir_attr.false
+__mlir_attr.i1
+__mlir_attr.index
+
+<span class="com"># Typed constants (backtick syntax)</span>
+__mlir_attr.<span class="str">`0 : index`</span>
+__mlir_attr.<span class="str">`42 : i17`</span>
+__mlir_attr.<span class="str">`1 : si32`</span>
+
+<span class="com"># Dialect-specific attributes</span>
+__mlir_attr.<span class="str">`#kgen.dtype.constant&lt;f32&gt; : !kgen.dtype`</span>  <span class="com"># f32 constant</span>
+__mlir_attr.<span class="str">`#index&lt;cmp_predicate slt&gt;`</span>                  <span class="com"># Signed less-than</span>
+__mlir_attr.<span class="str">`#pop&lt;atomic_ordering seq_cst&gt;`</span>              <span class="com"># Seq-cst ordering</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Operations ─── -->
+  <section id="ops">
+    <h2>4. Operations: <code>__mlir_op</code></h2>
+    <p>Compile-time parameters (attributes) go in square brackets; runtime values (operands) go in parentheses; the operation name sits in backticks:</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-op-clamp">Mojo</div>
+      <div class="tab" data-target="mlir-op-clamp-out">output</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-op-clamp"><code><span class="kw">def</span> <span class="fn">clamp</span>(val: <span class="type">Int</span>, low: <span class="type">Int</span>, high: <span class="type">Int</span>) -&gt; <span class="type">Int</span>:
+    <span class="str">"""Clamp val to [low, high] using MLIR comparisons and select."""</span>
+    <span class="kw">var</span> v = val.__mlir_index__()
+    <span class="kw">var</span> lo = low.__mlir_index__()
+    <span class="kw">var</span> hi = high.__mlir_index__()
+
+    <span class="com"># index.cmp returns i1, but pop.select needs !kgen.scalar&lt;bool&gt;</span>
+    <span class="kw">var</span> too_low = __mlir_op.<span class="str">`pop.cast_from_builtin`</span>[
+        _type=__mlir_type.<span class="str">`!kgen.scalar&lt;bool&gt;`</span>](
+        __mlir_op.<span class="str">`index.cmp`</span>[pred=__mlir_attr.<span class="str">`#index&lt;cmp_predicate slt&gt;`</span>](v, lo))
+    <span class="kw">var</span> result = __mlir_op.<span class="str">`pop.select`</span>(too_low, lo, v)
+
+    <span class="kw">var</span> too_high = __mlir_op.<span class="str">`pop.cast_from_builtin`</span>[
+        _type=__mlir_type.<span class="str">`!kgen.scalar&lt;bool&gt;`</span>](
+        __mlir_op.<span class="str">`index.cmp`</span>[pred=__mlir_attr.<span class="str">`#index&lt;cmp_predicate sgt&gt;`</span>](result, hi))
+    result = __mlir_op.<span class="str">`pop.select`</span>(too_high, hi, result)
+    <span class="kw">return</span> <span class="type">Int</span>(mlir_value=result)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="fn">print</span>(<span class="fn">clamp</span>(<span class="num">15</span>, <span class="num">0</span>, <span class="num">10</span>))   <span class="com"># 10</span>
+    <span class="fn">print</span>(<span class="fn">clamp</span>(<span class="op">-</span><span class="num">5</span>, <span class="num">0</span>, <span class="num">10</span>))   <span class="com"># 0</span>
+    <span class="fn">print</span>(<span class="fn">clamp</span>(<span class="num">7</span>, <span class="num">0</span>, <span class="num">10</span>))    <span class="com"># 7</span></code></pre>
+        <pre class="code-block" id="mlir-op-clamp-out"><code>10
+0
+7</code></pre>
+      </div>
+    </div>
+
+    <h3>Special attributes</h3>
+    <table class="cheat">
+      <thead><tr><th>Attribute</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>_type</code></td><td>Sets the result type; pass <code>None</code> for an operation with no result</td></tr>
+        <tr><td><code>_properties</code></td><td>Passes MLIR operation properties as a <code>DictionaryAttr</code></td></tr>
+        <tr><td><code>_region</code></td><td>References a named <code>__mlir_region</code> as a region argument</td></tr>
+      </tbody>
+    </table>
+
+    <p>Most operations require an explicit <code>_type</code>; if the compiler can't infer the result type and you don't provide it, you get <em>"unable to infer result type from MLIR operation"</em>. Multi-result operations assign to a typed tuple, and operations that produce no result — like an NVVM fence after mbarrier initialization — take <code>_type=None</code>:</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-special">Mojo</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-special"><code><span class="com"># Current source location as (line, column, filename)</span>
+_ = __mlir_op.<span class="str">`kgen.source_loc`</span>[
+    _type=(__mlir_type.index, __mlir_type.index,
+           __mlir_type.<span class="str">`!kgen.string`</span>),
+    _properties=__mlir_attr.<span class="str">`{inlineCount = 1 : i64}`</span>,
+]()
+
+<span class="com"># Fence after mbarrier init: no result</span>
+__mlir_op.<span class="str">`nvvm.fence.mbarrier.init`</span>[_type=<span class="type">None</span>]</code></pre>
+      </div>
+    </div>
+
+    <p>You can only call <em>registered</em> MLIR operations — anything else errors with <em>"use of unregistered MLIR operation"</em>.</p>
+  </section>
+
+  <!-- ─── Regions ─── -->
+  <section id="regions">
+    <h2>5. Regions: <code>__mlir_region</code></h2>
+    <p>A region is a block of code an MLIR operation runs — like a loop body or callback. Unlike a closure, it doesn't implicitly capture variables. Define it as a named block with arguments and an indented body, then pass it by name via <code>_region</code>:</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-region">Mojo</div>
+      <div class="tab" data-target="mlir-region-out">output</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-region"><code><span class="com"># Mojo while loop for control flow, MLIR for the computation inside</span>
+<span class="kw">def</span> <span class="fn">sum_to</span>(end: <span class="type">Int</span>) -&gt; <span class="type">Int</span>:
+    <span class="kw">var</span> acc: __mlir_type.index = __mlir_attr.<span class="str">`0 : index`</span>
+    <span class="kw">var</span> i: __mlir_type.index = __mlir_attr.<span class="str">`0 : index`</span>
+    <span class="kw">var</span> one: __mlir_type.index = __mlir_attr.<span class="str">`1 : index`</span>
+
+    <span class="kw">while</span> <span class="type">Bool</span>(__mlir_op.<span class="str">`index.cmp`</span>[
+        pred=__mlir_attr.<span class="str">`#index&lt;cmp_predicate slt&gt;`</span>](i, end.__mlir_index__())):
+        acc = __mlir_op.<span class="str">`index.add`</span>(acc, i)
+        i = __mlir_op.<span class="str">`index.add`</span>(i, one)
+
+    <span class="kw">return</span> <span class="type">Int</span>(mlir_value=acc)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="fn">print</span>(<span class="fn">sum_to</span>(<span class="num">10</span>))   <span class="com"># 45</span></code></pre>
+        <pre class="code-block" id="mlir-region-out"><code>45</code></pre>
+      </div>
+    </div>
+
+    <p>Region arguments look like function arguments but don't support Mojo conventions (<code class="op">ref</code>, <code class="op">var</code>, <code class="op">mut</code>) — the operation provides raw MLIR values, which you wrap (e.g. <code>Int(mlir_value=x)</code>) before using Mojo operations on them. A function can define multiple regions, each a single block, referenced by name.</p>
+
+    <div class="tip-box info-box">
+      <strong>💡 Tip:</strong>
+      <p>In practice it's simpler to use Mojo's <code>for</code> and <code>while</code> loops for control flow and reach for <code>__mlir_region</code> only when an operation demands one — like coroutine <code>co.suspend</code> bodies.</p>
+    </div>
+  </section>
+
+  <!-- ─── Dialects ─── -->
+  <section id="dialects">
+    <h2>6. Common Dialects</h2>
+    <table class="cheat">
+      <thead><tr><th>Prefix</th><th>Covers</th></tr></thead>
+      <tbody>
+        <tr><td><code>pop.*</code></td><td>Mojo portable ops: arithmetic, casts, SIMD, pointers</td></tr>
+        <tr><td><code>index.*</code></td><td>Index-typed arithmetic and comparisons</td></tr>
+        <tr><td><code>kgen.*</code></td><td>Codegen primitives: structs, variants, parameters</td></tr>
+        <tr><td><code>lit.*</code></td><td>Language-level ops: ownership, references, closures</td></tr>
+        <tr><td><code>llvm.*</code></td><td>LLVM dialect: traps, inline assembly, pointer ops</td></tr>
+        <tr><td><code>nvvm.*</code></td><td>NVIDIA GPU intrinsics: barriers, async copies, tensor ops</td></tr>
+        <tr><td><code>co.*</code></td><td>Coroutine ops: suspend, resume, destroy, await</td></tr>
+      </tbody>
+    </table>
+    <p>The <code>pop</code>, <code>kgen</code>, <code>co</code>, and <code>lit</code> dialects are internal compiler implementation details and may change without notice; built-in dialects like <code>index</code> are stable.</p>
+  </section>
+
+  <!-- ─── Stdlib patterns ─── -->
+  <section id="stdlib">
+    <h2>7. Stdlib Patterns: Wrapper Structs</h2>
+    <p>The standard library uses inline MLIR in one dominant pattern: a Mojo struct wraps a raw MLIR type in a field called <code>_mlir_value</code> — the struct provides a Mojo-friendly interface, the field holds the hardware value. <code>Bool</code> wraps a single bit this way; <code>SIMD</code>, <code>UnsafePointer</code>, <code>Tuple</code>, <code>Variant</code>, and <code>Optional</code> all use the same shape.</p>
+
+    <div class="code-playground">
+      <div class="tabs"><div class="tab active" data-target="mlir-counter">Mojo</div>
+      <div class="tab" data-target="mlir-counter-out">output</div></div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mlir-counter"><code><span class="kw">struct</span> <span class="type">Counter</span>:
+    <span class="str">"""A counter with addition, backed by a raw MLIR index."""</span>
+    <span class="kw">var</span> _mlir_value: __mlir_type.index
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>):
+        <span class="kw">self</span>._mlir_value = __mlir_attr.<span class="str">`0 : index`</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, *, mlir_value: __mlir_type.index):
+        <span class="kw">self</span>._mlir_value = mlir_value
+
+    <span class="kw">def</span> <span class="fn">increment</span>(<span class="kw">mut</span> <span class="kw">self</span>):
+        <span class="kw">var</span> one: __mlir_type.index = __mlir_attr.<span class="str">`1 : index`</span>
+        <span class="kw">self</span>._mlir_value = __mlir_op.<span class="str">`index.add`</span>(<span class="kw">self</span>._mlir_value, one)
+
+    <span class="kw">def</span> <span class="fn">__add__</span>(<span class="kw">self</span>, rhs: <span class="type">Counter</span>) -&gt; <span class="type">Counter</span>:
+        <span class="kw">return</span> <span class="type">Counter</span>(mlir_value=__mlir_op.<span class="str">`index.add`</span>(
+            <span class="kw">self</span>._mlir_value, rhs._mlir_value))
+
+    <span class="kw">def</span> <span class="fn">value</span>(<span class="kw">self</span>) -&gt; <span class="type">Int</span>:
+        <span class="kw">return</span> <span class="type">Int</span>(mlir_value=<span class="kw">self</span>._mlir_value)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> a = <span class="type">Counter</span>()
+    a.<span class="fn">increment</span>()   <span class="com"># 1</span>
+    a.<span class="fn">increment</span>()   <span class="com"># 2</span>
+    <span class="kw">var</span> b = <span class="type">Counter</span>()
+    b.<span class="fn">increment</span>()   <span class="com"># 1</span>
+    <span class="kw">var</span> c = a + b
+    <span class="fn">print</span>(c.<span class="fn">value</span>())   <span class="com"># 3</span></code></pre>
+        <pre class="code-block" id="mlir-counter-out"><code>3</code></pre>
+      </div>
+    </div>
+
+    <p>Methods delegate to MLIR operations — <code>_mlir_value</code> goes in, the result comes back, and the struct re-wraps it. When the storage type depends on struct parameters (as with <code>SIMD</code>'s <code>dtype</code> and <code>size</code>), define it as a <code>comptime</code> alias with bracket syntax.</p>
+  </section>
+
+  <!-- ─── Quiz ─── -->
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">Quick Check 1</div>
+      <div class="qtext">Which built-in identifier invokes an MLIR operation at runtime?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="true"><code>__mlir_op</code></button>
+        <button class="opt" data-correct="false"><code>__mlir_type</code></button>
+        <button class="opt" data-correct="false"><code>__mlir_attr</code></button>
+        <button class="opt" data-correct="false"><code>__mlir_region</code></button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 2</div>
+      <div class="qtext">In <code>__mlir_op.`index.cmp`[pred=__mlir_attr.`#index&lt;cmp_predicate slt&gt;`](a, b)</code>, what do the square brackets hold?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="true">Compile-time attributes</button>
+        <button class="opt" data-correct="false">Runtime operands</button>
+        <button class="opt" data-correct="false">Region definitions</button>
+        <button class="opt" data-correct="false">Result type bindings — square brackets never set types</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 3</div>
+      <div class="qtext">An MLIR dialect type like <code>!kgen.string</code> must be written…</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="true">In backticks, with the <code>!</code> prefix: <code>__mlir_type.`!kgen.string`</code></button>
+        <button class="opt" data-correct="false">With dot syntax only: <code>__mlir_type.kgen.string</code></button>
+        <button class="opt" data-correct="false">In parentheses as a runtime value</button>
+        <button class="opt" data-correct="false">Only inside <code>__mlir_region</code> blocks</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <div class="chapnav">
+    <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_advanced_16_syntax_tour.html">← Chapter 16: Side-by-Side Syntax Tour</a>
+    <a class="navbtn disabled">Appendix — End of Book 2</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress=document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const group=tab.closest('.code-playground');
+    group.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    group.querySelectorAll('.code-block').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',function(){
+  const active=this.closest('.code-content').querySelector('.code-block.active');
+  if(active){navigator.clipboard.writeText(active.innerText).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);});}
+}));
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,fid){
+  const g=document.getElementById(id),f=document.getElementById(fid);
+  g.querySelectorAll('.opt').forEach(b=>{b.addEventListener('click',()=>{
+    if(g.querySelector('.correct,.wrong'))return;
+    const c=b.dataset.correct==='true';b.classList.add(c?'correct':'wrong');
+    if(!c)g.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});
+    f.textContent=c?'✓ Correct.':'✗ Not quite — correct answer highlighted.';f.classList.add('show');
+  });});
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

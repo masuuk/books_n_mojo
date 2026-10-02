@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Science shelf</title>
+<meta name="description" content="Standalone Data Science Mojo reference pages.">
+<style>
+:root { color-scheme: dark; --bg:#0b1020; --panel:#131a2e; --line:#26304a;
+        --fg:#e8ecf6; --dim:#98a2bd; --accent:#7aa2ff; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+       font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+.wrap { max-width: 62rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+header { border-bottom:1px solid var(--line); padding-bottom:1.5rem; margin-bottom:2rem; }
+h1 { margin:0 0 .4rem; font-size:1.9rem; letter-spacing:-.01em; }
+.lede { margin:0; color:var(--dim); max-width: 46rem; }
+.cards { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:.7rem;
+        padding:1.1rem 1.2rem; }
+.card h2 { margin:0 0 .35rem; font-size:1.05rem; }
+.card p { margin:0 0 .8rem; color:var(--dim); font-size:.9rem; }
+a { color:var(--accent); }
+a.big { display:inline-block; font-weight:600; text-decoration:none; }
+a.big::after { content:" 92"; }
+ul { margin:.4rem 0 0; padding-left:1.1rem; color:var(--dim); font-size:.9rem; }
+li { margin:.15rem 0; }
+h2.sec { margin:2.5rem 0 1rem; font-size:1.15rem; }
+footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line);
+         color:var(--dim); font-size:.85rem; }
+@media (prefers-color-scheme: light) {
+  :root { color-scheme: light; --bg:#f7f8fc; --panel:#fff; --line:#dfe3ee;
+          --fg:#141a2b; --dim:#5a6280; --accent:#2f5bd8; }
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Data Science shelf</h1>
+      <p class="lede">65 standalone reference pages. Each one is self-contained and opens without the app.</p>
+    </header>
+
+    <div class="cards">
+      <div class="card">
+        <h2>Back to the book</h2>
+        <p>All three parts of this book in one place.</p>
+        <a class="big" href="../index.html">Data Science home</a>
+      </div>
+      <div class="card">
+        <h2>Interactive tutorial</h2>
+        <p>Hands-on modules with live widgets.</p>
+        <a class="big" href="../data_science_mojo/index.html">Open the app</a>
+      </div>
+      <div class="card">
+        <h2>Single source of truth</h2>
+        <p>The full manual.</p>
+        <a class="big" href="../single_source_of_truth%20mojo/index.html">Read the manual</a>
+      </div>
+    </div>
+
+    <h2 class="sec">All pages</h2>
+    <ul>
+      <li><a href="ai_agents_python_vs_mojo.html">ai agents python vs mojo</a></li>
+      <li><a href="data_science.html">data science</a></li>
+      <li><a href="decision_aware_ml.html">decision aware ml</a></li>
+      <li><a href="ds_advanced_00_cover.html">ds advanced 00 cover</a></li>
+      <li><a href="ds_advanced_01_why_mojo.html">ds advanced 01 why mojo</a></li>
+      <li><a href="ds_advanced_02_syntax.html">ds advanced 02 syntax</a></li>
+      <li><a href="ds_advanced_03_interop.html">ds advanced 03 interop</a></li>
+      <li><a href="ds_advanced_04_data_loading.html">ds advanced 04 data loading</a></li>
+      <li><a href="ds_advanced_05_vectorized.html">ds advanced 05 vectorized</a></li>
+      <li><a href="ds_advanced_06_zero_copy.html">ds advanced 06 zero copy</a></li>
+      <li><a href="ds_advanced_07_linear_algebra.html">ds advanced 07 linear algebra</a></li>
+      <li><a href="ds_advanced_08_statistics.html">ds advanced 08 statistics</a></li>
+      <li><a href="ds_advanced_09_autodiff.html">ds advanced 09 autodiff</a></li>
+      <li><a href="ds_advanced_10_tensors.html">ds advanced 10 tensors</a></li>
+      <li><a href="ds_advanced_11_training.html">ds advanced 11 training</a></li>
+      <li><a href="ds_advanced_12_inference.html">ds advanced 12 inference</a></li>
+      <li><a href="ds_advanced_13_benchmarking.html">ds advanced 13 benchmarking</a></li>
+      <li><a href="ds_advanced_14_cicd.html">ds advanced 14 cicd</a></li>
+      <li><a href="ds_advanced_15_future.html">ds advanced 15 future</a></li>
+      <li><a href="ds_advanced_16_syntax_tour.html">ds advanced 16 syntax tour</a></li>
+      <li><a href="ds_advanced_17_mlir.html">ds advanced 17 mlir</a></li>
+      <li><a href="ds_ml_textbook_00_cover.html">ds ml textbook 00 cover</a></li>
+      <li><a href="ds_ml_textbook_01_intro.html">ds ml textbook 01 intro</a></li>
+      <li><a href="ds_ml_textbook_02_getting_started.html">ds ml textbook 02 getting started</a></li>
+      <li><a href="ds_ml_textbook_03_data_structures.html">ds ml textbook 03 data structures</a></li>
+      <li><a href="ds_ml_textbook_04_numerical.html">ds ml textbook 04 numerical</a></li>
+      <li><a href="ds_ml_textbook_05_ml_fundamentals.html">ds ml textbook 05 ml fundamentals</a></li>
+      <li><a href="ds_ml_textbook_06_building_models.html">ds ml textbook 06 building models</a></li>
+      <li><a href="ds_ml_textbook_07_performance.html">ds ml textbook 07 performance</a></li>
+      <li><a href="ds_ml_textbook_08_advanced.html">ds ml textbook 08 advanced</a></li>
+      <li><a href="ds_ml_textbook_09_syntax_tour.html">ds ml textbook 09 syntax tour</a></li>
+      <li><a href="ds_textbook_00_cover.html">ds textbook 00 cover</a></li>
+      <li><a href="ds_textbook_01_why_mojo.html">ds textbook 01 why mojo</a></li>
+      <li><a href="ds_textbook_02_syntax.html">ds textbook 02 syntax</a></li>
+      <li><a href="ds_textbook_03_type_system.html">ds textbook 03 type system</a></li>
+      <li><a href="ds_textbook_04_ownership.html">ds textbook 04 ownership</a></li>
+      <li><a href="ds_textbook_05_tensors.html">ds textbook 05 tensors</a></li>
+      <li><a href="ds_textbook_06_interop.html">ds textbook 06 interop</a></li>
+      <li><a href="ds_textbook_07_pipelines.html">ds textbook 07 pipelines</a></li>
+      <li><a href="ds_textbook_08_neural_network.html">ds textbook 08 neural network</a></li>
+      <li><a href="ds_textbook_09_autodiff.html">ds textbook 09 autodiff</a></li>
+      <li><a href="ds_textbook_10_gpu.html">ds textbook 10 gpu</a></li>
+      <li><a href="ds_textbook_11_packaging.html">ds textbook 11 packaging</a></li>
+      <li><a href="ds_textbook_12_pytorch.html">ds textbook 12 pytorch</a></li>
+      <li><a href="ds_textbook_13_performance.html">ds textbook 13 performance</a></li>
+      <li><a href="ds_textbook_14_syntax_tour.html">ds textbook 14 syntax tour</a></li>
+      <li><a href="ds_tools.html">ds tools</a></li>
+      <li><a href="fine_tuning_llms.html">fine tuning llms</a></li>
+      <li><a href="future_value_and_annuities.html">future value and annuities</a></li>
+      <li><a href="geo_computations.html">geo computations</a></li>
+      <li><a href="gnss_surveying.html">gnss surveying</a></li>
+      <li><a href="karney_krueger_equations.html">karney krueger equations</a></li>
+      <li><a href="linear_regression.html">linear regression</a></li>
+      <li><a href="linear_regression_detailed.html">linear regression detailed</a></li>
+      <li><a href="mlp_xor.html">mlp xor</a></li>
+      <li><a href="neural_network.html">neural network</a></li>
+      <li><a href="nn_mojo.html">nn mojo</a></li>
+      <li><a href="npv_amortisation.html">npv amortisation</a></li>
+      <li><a href="numerical_python_to_mojo.html">numerical python to mojo</a></li>
+      <li><a href="numoj.html">numoj</a></li>
+      <li><a href="operations_research.html">operations research</a></li>
+      <li><a href="perceptrons_and_activation.html">perceptrons and activation</a></li>
+      <li><a href="simplex_algorithm.html">simplex algorithm</a></li>
+      <li><a href="the_annuity_codex.html">the annuity codex</a></li>
+      <li><a href="time_series_analytics.html">time series analytics</a></li>
+    </ul>
+
+    <footer>
+      <p>Series counts:</p>
+      <ul>
+      <li><strong>Advanced series</strong> (18 pages)</li>
+      <li><strong>Machine learning textbook</strong> (10 pages)</li>
+      <li><strong>Data science textbook</strong> (15 pages)</li>
+      </ul>
+    </footer>
+  </div>
+</body>
+</html>

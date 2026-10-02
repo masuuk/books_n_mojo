@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_14_syntax_tour.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 14 — Mojo vs Python: A Syntax Tour · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+
+nav{
+  position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+  padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{
+  font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);
+  padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);
+}
+
+.callout{
+  border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);
+  padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;
+}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+
+/* code demo */
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+
+/* comparison table */
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+
+.mini-toc{
+  position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:14px;z-index:30;
+}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 14 / 14</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_14_syntax_tour.html#intro"></a>
+  <a href="ds_textbook_14_syntax_tour.html#quadratic"></a>
+  <a href="ds_textbook_14_syntax_tour.html#compound"></a>
+  <a href="ds_textbook_14_syntax_tour.html#npv"></a>
+  <a href="ds_textbook_14_syntax_tour.html#simultaneous"></a>
+  <a href="ds_textbook_14_syntax_tour.html#factorial"></a>
+  <a href="ds_textbook_14_syntax_tour.html#fibonacci"></a>
+  <a href="ds_textbook_14_syntax_tour.html#summarize"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Supplement — Syntax Comparison</div>
+  <h1>🔀 Mojo vs Python: A Syntax Tour</h1>
+  <p class="dek">Six algorithms written idiomatically in Mojo 1.x, with the Python habit each one replaces called out in prose. If you already know Python, this chapter is a fast way to feel at home in Mojo.</p>
+
+  <section id="intro">
+    <p>Mojo borrows shapes from Python — but it isn't a copy. This chapter walks through six common algorithms: mathematical functions, financial formulas, and classic loops, each one a single Mojo program, with the Python habit it replaces noted in prose.</p>
+    <p>We won't explain every line — the point is pattern-matching. Notice where Mojo reads exactly like Python, where it adds types and explicit mutability, and where it's doing something Python doesn't.</p>
+  </section>
+
+  <section id="quadratic">
+    <h2>1. Quadratic Equation Solver</h2>
+    <p>Solving <code class="inline">ax² + bx + c = 0</code> using the quadratic formula. This is a simple function that takes coefficients and returns the two roots — or signals that there are no real roots.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="quadratic"><span class="sw"></span>quadratic.mojo</div>
+      </div>
+      <div class="panes" data-group="quadratic">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> math <span class="tok-kw">import</span> sqrt
+
+<span class="tok-kw">def</span> <span class="tok-fn">solve_quadratic</span>(a: Float64, b: Float64, c: Float64) -&gt; String:
+    <span class="tok-kw">var</span> discriminant = b * b - <span class="tok-num">4.0</span> * a * c
+    <span class="tok-kw">if</span> discriminant &lt; <span class="tok-num">0.0</span>:
+        <span class="tok-kw">return</span> <span class="tok-str">"No real roots"</span>
+    <span class="tok-kw">var</span> sqrt_disc = sqrt(discriminant)
+    <span class="tok-kw">var</span> r1 = (-b + sqrt_disc) / (<span class="tok-num">2.0</span> * a)
+    <span class="tok-kw">var</span> r2 = (-b - sqrt_disc) / (<span class="tok-num">2.0</span> * a)
+    <span class="tok-kw">return</span> <span class="tok-str">"x1 = "</span> + str(r1) + <span class="tok-str">", x2 = "</span> + str(r2)
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    print(solve_quadratic(<span class="tok-num">1.0</span>, -<span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>))   <span class="tok-com"># x1 = 3.0, x2 = 2.0</span>
+    print(solve_quadratic(<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">5.0</span>))   <span class="tok-com"># No real roots</span></pre></div>
+      </div>
+    </div>
+    <p class="cap">Like Python, Mojo uses indentation — not curly braces — to delimit blocks. Mojo's <code class="inline">var</code> declaration is mandatory where Python's plain assignment just creates a name. Mojo's <code class="inline">str()</code> conversion mirrors Python's built-in <code class="inline">str()</code> for formatting output.</p>
+  </section>
+
+  <section id="compound">
+    <h2>2. Compound Interest</h2>
+    <p>The formula <code class="inline">A = P(1 + r/n)^(nt)</code> calculates the future value of an investment. This example shows loops, type annotations, and formatted output.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="compound"><span class="sw"></span>compound.mojo</div>
+      </div>
+      <div class="panes" data-group="compound">
+        <div class="pane active" data-lang="mojo"><pre>from std.math import pow
+
+def compound_interest(
+    principal: Float64,
+    rate: Float64,
+    times_per_year: Int,
+    years: Int
+) -&gt; Float64:
+    var n = Float64(times_per_year)
+    var t = Float64(years)
+    return principal * pow(1.0 + rate / n, n * t)
+
+def show_growth(principal: Float64, rate: Float64, years: Int):
+    for y in range(1, years + 1):
+        var amount = compound_interest(principal, rate, 12, y)
+        print("Year ", y, ": $", amount)
+
+def main():
+    show_growth(10000.0, 0.05, 5)</pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's <code class="inline">range(1, years + 1)</code> is identical to Python's — both produce the same inclusive sequence and the same output.</p>
+  </section>
+
+  <section id="npv">
+    <h2>3. Net Present Value (NPV)</h2>
+    <p>NPV discounts a series of future cash flows to the present. It requires a loop that accumulates a sum — a perfect comparison of iteration styles.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="npv"><span class="sw"></span>npv.mojo</div>
+      </div>
+      <div class="panes" data-group="npv">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">def</span> <span class="tok-fn">npv</span>(rate: Float64, cashflows: List[Float64]) -&gt; Float64:
+    <span class="tok-kw">var</span> total: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-fn">range</span>(len(cashflows)):
+        total += cashflows[i] / pow(<span class="tok-num">1.0</span> + rate, Float64(i))
+    <span class="tok-kw">return</span> total
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">var</span> flows = List[Float64](-<span class="tok-num">1000.0</span>, <span class="tok-num">300.0</span>, <span class="tok-num">420.0</span>, <span class="tok-num">680.0</span>)
+    <span class="tok-kw">var</span> result = npv(<span class="tok-num">0.10</span>, flows)
+    print(<span class="tok-str">"NPV = $"</span>, result)</pre></div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="lbl">🔑 Key difference</span>
+      <p>Mojo's loop is Python-shaped: index with <code class="inline">range(len(...))</code>, accumulate with <code class="inline">var</code>. There is no <code class="inline">enumerate</code>, so the loop walks indices and casts the discount exponent with <code class="inline">Float64(i)</code> instead of using it bare. Same shape you already know, compiled to native code.</p>
+    </div>
+  </section>
+
+  <section id="simultaneous">
+    <h2>4. Simultaneous Equations (2×2)</h2>
+    <p>Solving <code class="inline">ax + by = e</code> and <code class="inline">cx + dy = f</code> using Cramer's rule. This shows how each language handles math expressions, conditionals for degenerate cases, and multiple return values.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="simultaneous"><span class="sw"></span>solve_2x2.mojo</div>
+      </div>
+      <div class="panes" data-group="simultaneous">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">struct</span> <span class="tok-ty">Solution</span>:
+    <span class="tok-kw">var</span> x: Float64
+    <span class="tok-kw">var</span> y: Float64
+
+<span class="tok-kw">def</span> <span class="tok-fn">solve_2x2</span>(
+    a: Float64, b: Float64, e: Float64,
+    c: Float64, d: Float64, f: Float64
+) -&gt; <span class="tok-ty">Solution</span>:
+    <span class="tok-kw">var</span> det = a * d - b * c
+    <span class="tok-kw">if</span> abs(det) &lt; 1e-12:
+        print(<span class="tok-str">"Degenerate — no unique solution"</span>)
+        <span class="tok-kw">return</span> <span class="tok-ty">Solution</span>(<span class="tok-num">0.0</span>, <span class="tok-num">0.0</span>)
+    <span class="tok-kw">var</span> x = (e * d - b * f) / det
+    <span class="tok-kw">var</span> y = (a * f - e * c) / det
+    <span class="tok-kw">return</span> <span class="tok-ty">Solution</span>(x, y)
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">var</span> s = solve_2x2(<span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">8.0</span>, <span class="tok-num">5.0</span>, -<span class="tok-num">2.0</span>, <span class="tok-num">7.0</span>)
+    print(<span class="tok-str">"x ="</span>, s.x, <span class="tok-str">"y ="</span>, s.y)</pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's <code class="inline">struct</code> lives on the stack with no heap allocation by default — a compiled-data version of Python's <code class="inline">@dataclass</code>, without the runtime overhead.</p>
+  </section>
+
+  <section id="factorial">
+    <h2>5. Factorial — Loops vs Recursion</h2>
+    <p>Two implementations: iterative and recursive. This highlights how Mojo handles loops, recursion, and type safety for natural numbers.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="factorial"><span class="sw"></span>factorial.mojo</div>
+      </div>
+      <div class="panes" data-group="factorial">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">def</span> <span class="tok-fn">factorial_iter</span>(n: Int) -&gt; Int:
+    <span class="tok-kw">var</span> result: Int = <span class="tok-num">1</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-fn">range</span>(<span class="tok-num">2</span>, n + <span class="tok-num">1</span>):
+        result *= i
+    <span class="tok-kw">return</span> result
+
+<span class="tok-kw">def</span> <span class="tok-fn">factorial_rec</span>(n: Int) -&gt; Int:
+    <span class="tok-kw">if</span> n &lt;= <span class="tok-num">1</span>:
+        <span class="tok-kw">return</span> <span class="tok-num">1</span>
+    <span class="tok-kw">return</span> n * factorial_rec(n - <span class="tok-num">1</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-fn">range</span>(<span class="tok-num">11</span>):
+        print(i, <span class="tok-str">"! ="</span>, factorial_iter(i))</pre></div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="lbl">📝 Type note</span>
+      <p>Python's <code class="inline">int</code> is arbitrary precision — it grows as needed. Mojo uses a fixed-width signed <code class="inline">Int</code> for simplicity; the compiler will optimize either way. Both produce identical results for the range shown here.</p>
+    </div>
+  </section>
+
+  <section id="fibonacci">
+    <h2>6. Fibonacci Sequence</h2>
+    <p>Generating the first N Fibonacci numbers. This shows list/array construction, mutable state in loops, and how Mojo handles growing collections.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="fibonacci"><span class="sw"></span>fibonacci.mojo</div>
+      </div>
+      <div class="panes" data-group="fibonacci">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">def</span> <span class="tok-fn">fibonacci</span>(n: Int) -&gt; List[Int]:
+    <span class="tok-kw">var</span> seq = List[Int]()
+    <span class="tok-kw">var</span> a: Int = <span class="tok-num">0</span>
+    <span class="tok-kw">var</span> b: Int = <span class="tok-num">1</span>
+    <span class="tok-kw">for</span> _ <span class="tok-kw">in</span> <span class="tok-fn">range</span>(n):
+        seq.append(a)
+        <span class="tok-kw">var</span> temp = a + b
+        a = b
+        b = temp
+    <span class="tok-kw">return</span> seq
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">var</span> fib = fibonacci(<span class="tok-num">15</span>)
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-fn">range</span>(len(fib)):
+        print(<span class="tok-str">"fib["</span>, i, <span class="tok-str">"] ="</span>, fib[i])</pre></div>
+      </div>
+    </div>
+    <p class="cap">Python's one-line tuple swap <code class="inline">a, b = b, a + b</code> has no Mojo equivalent: assignment is a single binding, so the loop threads a <code class="inline">var</code> temp variable instead. The output is the same either way: 0, 1, 1, 2, 3, 5, 8, ...</p>
+  </section>
+
+  <section id="summarize">
+    <h2>Syntax Cheat Sheet</h2>
+    <table>
+      <tbody><tr><th>Feature</th><th>Mojo</th><th>Python</th></tr>
+      <tr><td>Function</td><td><code class="inline">def name():</code></td><td><code class="inline">def name():</code></td></tr>
+      <tr><td>Immutable var</td><td><code class="inline">var x = 1</code> (never reassigned)</td><td><code class="inline">x = 1</code></td></tr>
+      <tr><td>Mutable var</td><td><code class="inline">var x = 1</code></td><td><code class="inline">x = 1</code></td></tr>
+      <tr><td>Type annotation</td><td><code class="inline">x: Int = 1</code></td><td><code class="inline">x: int = 1</code></td></tr>
+      <tr><td>For loop</td><td><code class="inline">for i in range(n):</code></td><td><code class="inline">for i in range(n):</code></td></tr>
+      <tr><td>Print</td><td><code class="inline">print("hi")</code></td><td><code class="inline">print("hi")</code></td></tr>
+      <tr><td>List/Vec</td><td><code class="inline">List[Int]()</code></td><td><code class="inline">[]</code></td></tr>
+      <tr><td>Struct</td><td><code class="inline">struct Foo:</code></td><td><code class="inline">class Foo:</code></td></tr>
+      <tr><td>Mutable param</td><td><code class="inline">mut x: Int</code></td><td><code class="inline">x: list</code></td></tr>
+      <tr><td>Return type</td><td><code class="inline">-&gt; Int:</code></td><td><code class="inline">-&gt; int:</code></td></tr>
+    </tbody></table>
+
+    <div class="callout">
+      <span class="lbl">💡 The takeaway</span>
+      <p>Mojo is intentionally readable for Python developers — you can often guess what Mojo code does just by knowing Python. But behind the scenes, every type annotation, <code class="inline">var</code> declaration, and ownership convention gives the compiler the information it needs to generate native code that runs far faster than an interpreter. That's the synthesis this book is about.</p>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_13_performance.html">← Chapter 13: Mojo vs Python: Choosing Your Performance Layer</a>
+    <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">Back to Index →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+
+
+<!-- tutme-hl:runtime -->
+<style>
+/* Mojo runtime syntax highlighting (tutme) - dark default, light variant auto-applied */
+pre .hkw{color:#c792ea}
+pre .hty{color:#ffcb6b}
+pre .hfn{color:#82aaff}
+pre .hstr{color:#c3e88d}
+pre .hnum{color:#f78c6c}
+pre .hcm{color:#676e95;font-style:italic}
+pre .hop{color:#89ddff}
+pre.tutme-light .hkw{color:#6d28d9}
+pre.tutme-light .hty{color:#b45309}
+pre.tutme-light .hfn{color:#1d4ed8}
+pre.tutme-light .hstr{color:#15803d}
+pre.tutme-light .hnum{color:#c2410c}
+pre.tutme-light .hcm{color:#6b7280;font-style:italic}
+pre.tutme-light .hop{color:#0f766e}
+</style>
+<script>
+(function(){
+  if (window.__tutmeHL) return; window.__tutmeHL = true;
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var KW='def fn struct trait alias var let return if elif else for while in break continue '+
+    'from import as mut out self yield raise raises try except with match case and or not '+
+    'lambda pass global static public private true false none parameterize is';
+  var TY='Float64 Float32 Float16 Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 '+
+    'String StringRef Bool List Dict Tensor TensorShape SIMD DType Pointer Slice '+
+    'Memory Atomic Scalar Tuple NoneType object Int Index';
+  var kwRe = new RegExp('\\b(?:'+KW.split(' ').join('|')+')\\b','ig');
+  var tyRe = new RegExp('\\b(?:'+TY.split(' ').join('|')+')\\b','g');
+  var RULES = [
+    ['cm', /#[^\n]*/g],
+    ['str', /"""[^]*?"""/g],
+    ['str', /'''[^]*?'''/g],
+    ['str', /"(?:\\.|[^"\\\n])*"/g],
+    ['str', /'(?:\\.|[^'\\\n])*'/g],
+    ['num', /(?:\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?[iu]?|\.\d+)/g],
+    ['kw', kwRe],
+    ['ty', tyRe],
+    ['fn', /([A-Za-z_]\w*)(\s*\()/g],
+    ['op', /(?:\+\+|-{2}|->|=>|==|!=|<=|>=|\+=|-=|\*=|\/=|\/\/|\*\*|::|\|\||&&|\.\.\.|[+\-*/%<>=!@&~|])/g]
+  ];
+
+  function highlight(text){
+    var marks = [];
+    for (var r=0; r<RULES.length; r++){
+      var cls = RULES[r][0], rx = RULES[r][1];
+      rx.lastIndex = 0;
+      var m;
+      while ((m = rx.exec(text)) !== null){
+        if (m[0].length){
+          marks.push([m.index, m.index+m[0].length, cls, m]);
+        }
+        rx.lastIndex = m.index + Math.max(1, m[0].length);
+      }
+    }
+    marks.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+    var out = [], i = 0;
+    for (var k=0; k<marks.length; k++){
+      var st = marks[k][0], en = marks[k][1], cls = marks[k][2], mm = marks[k][3];
+      if (st < i) continue;
+      if (st > i) out.push(esc(text.slice(i, st)));
+      if (cls === 'fn'){
+        out.push('<span class="hfn">'+esc(mm[1])+esc(mm[2])+'</span>');
+      } else {
+        out.push('<span class="h'+cls+'">'+esc(text.slice(st, en))+'</span>');
+      }
+      i = en;
+    }
+    out.push(esc(text.slice(i)));
+    return out.join('');
+  }
+
+  function hexLum(h){
+    h = h.slice(1);
+    if (h.length === 3 || h.length === 4) h = h.split('').map(function(x){ return x+x; }).join('');
+    var n = parseInt(h.slice(0,6), 16);
+    return 0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255);
+  }
+
+  function fallbackLum(){
+    try {
+      var s = window.getComputedStyle(document.body);
+      var colors = ((s.backgroundImage || '') + ' ' + (s.backgroundColor || '')).match(/(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))/ig) || [];
+      var i;
+      for (i=0; i<colors.length; i++){
+        var c = colors[i];
+        if (c.charAt(0) === '#'){
+          if (c.length < 7) continue;
+          return hexLum(c);
+        }
+        var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(c);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > 0.3)){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function detectLum(pre){
+    var n = pre;
+    for (var i=0; i<4 && n; i++, n=n.parentElement){
+      var bg;
+      try { bg = window.getComputedStyle(n).backgroundColor; } catch(e){ return null; }
+      var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(bg);
+      if (m){
+        var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+        if (a > 0.3){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    }
+    return fallbackLum();
+  }
+
+  var pres = document.querySelectorAll('pre');
+  for (var p=0; p<pres.length; p++){
+    var pre = pres[p];
+    if (pre.className && /(^|\s)math(\s|$)/.test(pre.className)) continue;
+    var kids = pre.children.length, el = pre;
+    if (kids === 1 && pre.firstElementChild && pre.firstElementChild.tagName === 'CODE'){
+      el = pre.firstElementChild;
+    } else if (kids > 0) {
+      continue;
+    }
+    if (/<[a-z]/i.test(el.innerHTML)) continue;
+    var txt = el.textContent;
+    if (!/(?:def|fn|struct|trait|var|let|import|from|for|while|return|print|Float64|if|class)\b/.test(txt)) continue;
+    var lum = detectLum(pre);
+    if (lum !== null && lum > 170) pre.className = (pre.className ? pre.className + ' ' : '') + 'tutme-light';
+    el.innerHTML = highlight(txt);
+  }
+})();
+</script>
+</body></html>

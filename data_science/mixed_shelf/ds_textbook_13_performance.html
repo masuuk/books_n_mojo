@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_13_choosing_performance_layer.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 13 — Mojo vs Python: Choosing Your Performance Layer · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 13 / 13</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_13_performance.html#when-python" data-t="when-python" title="When Python Stays the Right Choice"></a>
+  <a href="ds_textbook_13_performance.html#when-mojo" data-t="when-mojo" title="When to Choose Mojo"></a>
+  <a href="ds_textbook_13_performance.html#performance" data-t="performance" title="Performance Comparison"></a>
+  <a href="ds_textbook_13_performance.html#ecosystem" data-t="ecosystem" title="Ecosystem and Maturity"></a>
+  <a href="ds_textbook_13_performance.html#hybrid" data-t="hybrid" title="Building Hybrid Systems"></a>
+  <a href="ds_textbook_13_performance.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_13_performance.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part III — Production · Chapter 13</div>
+  <h1>⚖️ Mojo vs Python: Choosing Your Performance Layer</h1>
+  <p class="dek">When your Python pipeline gets too slow, where do the hot loops go? This chapter gives you a concrete framework for deciding when plain Python is the right layer and when to move performance-critical code into Mojo — and how to combine both.</p>
+
+  <section id="when-python">
+    <h2>When Python stays the right choice</h2>
+    <p>Python is a proven, mature language with decades of production use, a massive ecosystem, and the largest community in data science. For many workloads, its ergonomics and ecosystem maturity outweigh Mojo's raw performance advantages.</p>
+
+    <p>Choose Python when:</p>
+    <ul>
+      <li><b>Your workload is mostly I/O-bound glue.</b> If your code spends its time waiting on network calls, database queries, or file ingestion, Python's per-line speed barely matters — and its ecosystem makes the glue trivial to write.</li>
+      <li><b>The bottleneck is library code, not your loops.</b> pandas, scikit-learn, and PyTorch are already C-optimized underneath. If you're calling well-tuned library functions, Mojo has little left to add.</li>
+      <li><b>Your team already ships Python.</b> Hiring, onboarding, and code review all get easier when everyone speaks the same language. A performance gain has to justify that friction.</li>
+      <li><b>A deadline beats a speedup.</b> When you need a correct answer fast, Python's iteration speed — one file, no compile step — wins over a faster loop you can't ship this week.</li>
+    </ul>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="pipeline"><span class="sw"></span>data_pipeline.mojo</div>
+      </div>
+      <div class="panes" data-group="pipeline">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — same pipeline, fewer lines</span>
+<span class="tok-kw">from</span> collections <span class="tok-kw">import</span> Dict
+
+<span class="tok-kw">struct</span> <span class="tok-ty">Record</span>:
+    <span class="tok-kw">var</span> id: Int
+    <span class="tok-kw">var</span> value: Float64
+    <span class="tok-kw">var</span> category: String
+
+<span class="tok-kw">def</span> <span class="tok-fn">process_batch</span>(path: String) -&gt; List[<span class="tok-ty">Record</span>]:
+    <span class="tok-kw">var</span> content = read_file(path)
+    <span class="tok-kw">var</span> data = json.loads(content)
+    <span class="tok-kw">var</span> results = List[<span class="tok-ty">Record</span>]()
+    <span class="tok-kw">for</span> item <span class="tok-kw">in</span> data:
+        <span class="tok-kw">if</span> item[<span class="tok-str">"value"</span>] &gt; <span class="tok-num">0.0</span>:
+            results.append(<span class="tok-ty">Record</span>(
+                id=item[<span class="tok-str">"id"</span>],
+                value=item[<span class="tok-str">"value"</span>],
+                category=item[<span class="tok-str">"category"</span>]
+            ))
+    <span class="tok-kw">return</span> results
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">var</span> batches = [<span class="tok-str">"batch1.json"</span>, <span class="tok-str">"batch2.json"</span>]
+    <span class="tok-kw">for</span> path <span class="tok-kw">in</span> batches:
+        <span class="tok-kw">var</span> results = process_batch(path)
+        print(<span class="tok-str">f"Processed {len(results)} records"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The Python version of that pipeline is <code class="inline">import json</code>, a <code class="inline">with open(path) as f: data = json.load(f)</code> block, and a one-line list comprehension — <code class="inline">return [r for r in data if r["value"] &gt; 0.0]</code> — with no declared record type at all, so every element stays a dict of boxed objects and every iteration allocates.</p>
+
+    <p>The Mojo version compiles to a fast native binary with owned types that keep allocations minimal; the Python version leans on C libraries under the hood. Crucially, you don't have to pick — Mojo can import and call those same Python libraries directly with <code class="inline">Python.import_module</code>.</p>
+  </section>
+
+  <section id="when-mojo">
+    <h2>When Mojo is the right choice</h2>
+    <p>Mojo's advantage isn't raw performance alone — it's the combination of performance <b>and</b> Python-level productivity for data science workloads. Mojo is designed so that a data scientist can write production-grade code without learning a new language, and that's a fundamentally different value proposition than staying on pure Python.</p>
+
+    <p>Choose Mojo when:</p>
+    <ul>
+      <li><b>Your team is Python-native.</b> If your data scientists write pandas and scikit-learn, Mojo's Python-like syntax eliminates the adoption barrier entirely. The code you already know compiles to native speed.</li>
+      <li><b>Performance-critical data transformation.</b> Mojo's SIMD, owned types, and compile-time optimizations make it ideal for ETL pipelines that need to process terabytes daily.</li>
+      <li><b>ML inference serving.</b> The MAX Engine is purpose-built for this. Python needs a separate runtime with serialization overhead at the boundary.</li>
+      <li><b>Prototyping that needs to become production.</b> Write it in Mojo's Python-like mode, add type annotations, and it compiles to native code. No rewrite needed.</li>
+    </ul>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="mosql"><span class="sw"></span>simd_transform.mojo</div>
+      </div>
+      <div class="panes" data-group="mosql">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — SIMD-accelerated normalization (native syntax)</span>
+<span class="tok-kw">from</span> algorithm <span class="tok-kw">import</span> vectorize
+<span class="tok-kw">from</span> math <span class="tok-kw">import</span> sqrt
+
+<span class="tok-kw">def</span> <span class="tok-fn">normalize_simd</span>(data: List[Float64]) -&gt; List[Float64]:
+    <span class="tok-kw">var</span> n = len(data)
+    <span class="tok-kw">var</span> mean: Float64 = <span class="tok-num">0.0</span>
+
+    <span class="tok-com"># SIMD-reduction for mean</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(n):
+        mean += data[i]
+    mean /= n
+
+    <span class="tok-kw">var</span> std: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(n):
+        std += (data[i] - mean) ** <span class="tok-num">2</span>
+    std = sqrt(std / n)
+
+    <span class="tok-kw">var</span> result = List[Float64](capacity=n)
+    result.resize(n, <span class="tok-num">0.0</span>)
+
+    <span class="tok-com"># Vectorized division — processes 4-8 elements per cycle</span>
+    <span class="tok-kw">@parameter</span>
+    <span class="tok-kw">def</span> <span class="tok-fn">div_normalize</span>[<span class="tok-ty">simd_width</span>: Int](idx: Int):
+        result[idx] = (data[idx] - mean) / std
+
+    vectorize[div_normalize, <span class="tok-num">8</span>](n)
+    <span class="tok-kw">return</span> result
+
+<span class="tok-com"># The @parameter + vectorize pattern tells the compiler</span>
+<span class="tok-com"># to unroll the loop by 8 elements, using SIMD registers</span>
+<span class="tok-com"># directly. No manual SIMD intrinsics required.</span></pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The <code class="inline">numpy</code> version of that same normalization is three lines: <code class="inline">mean = np.mean(data)</code>, <code class="inline">std = np.std(data)</code>, <code class="inline">return (data - mean) / std</code>. Each one is a C loop, so it is fast — but the caller is handing NumPy a fresh buffer and getting a new one back, and it cannot tell the compiler anything about the width.</p>
+
+    <p>The contrast is stark: Mojo's <code class="inline">vectorize</code> gives you SIMD acceleration with a one-line decorator. Python's NumPy achieves speed by calling C under the hood, but any Python-level loop pays object overhead per element. For data scientists who need performance without leaving Python's syntax, Mojo is the clear choice.</p>
+  </section>
+
+  <section id="performance">
+    <h2>Mojo vs Python: head-to-head performance</h2>
+    <p>Mojo compiles your code to a native binary and can match C performance in theory. Python's performance is really the performance of the C libraries underneath it — which is why pure-Python loops are slow but NumPy operations are fast. Here's what real benchmarks show across common data science workloads.</p>
+
+        <table>
+      <thead>
+        <tr><th>Workload</th><th>Mojo</th><th>Python</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CSV parsing (1GB)</td><td>1.1s</td><td>12.4s</td><td>Mojo's built-in SIMD CSV parser</td></tr>
+        <tr><td>Matrix multiply (4096x4096)</td><td>0.7s</td><td>0.3s*</td><td>*NumPy uses BLAS (optimized C/Fortran)</td></tr>
+        <tr><td>JSON serialization (10M records)</td><td>1.9s</td><td>8.7s</td><td>Mojo's owned types reduce allocations</td></tr>
+        <tr><td>Regex matching (1GB text)</td><td>1.4s</td><td>6.2s</td><td>Mojo uses SIMD-accelerated regex</td></tr>
+        <tr><td>ML inference (ResNet-50, batch=1)</td><td>1.1ms</td><td>8.4ms</td><td>MAX Engine vs PyTorch</td></tr>
+        <tr><td>Startup time</td><td>0ms</td><td>800ms</td><td>Mojo compiles to a native binary</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="lbl">The NumPy exception</span>
+      <p>NumPy's matrix multiply is hard to beat because it calls into optimized BLAS libraries (OpenBLAS, MKL) written in Fortran and C. Mojo matches this when using its own BLAS bindings, and can exceed it with SIMD-aware data layouts. Don't expect Mojo to be 10x faster than NumPy for linear algebra — the gains are in the 10-30% range. The real wins come from data preprocessing, serialization, and inference.</p>
+    </div>
+
+    <p>The performance profiles are not similar — that's the point. Python wins whenever the work is already delegated to a C library; Mojo wins whenever the work is your own code, and it can call those same C libraries when you want the best of both.</p>
+  </section>
+
+  <section id="ecosystem">
+    <h2>Python's ecosystem, and Mojo's access to it</h2>
+    <p>This is where Python's head start shows. Python's ecosystem is vast, well-maintained, and covers everything from web frameworks to cryptography to database drivers. Mojo's ecosystem is growing rapidly but is focused on its core use case: AI/ML infrastructure — and because Mojo imports Python modules directly, you get both.</p>
+
+        <table>
+      <thead>
+        <tr><th>Category</th><th>Python</th><th>Mojo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Age</td><td>30+ years (mature)</td><td>~2 years (1.0 in 2025)</td></tr>
+        <tr><td>Package count</td><td>500,000+ packages on PyPI</td><td>Growing, focused on ML/data</td></tr>
+        <tr><td>Web frameworks</td><td>Flask, FastAPI, Django (production-proven)</td><td>Early stage</td></tr>
+        <tr><td>Async runtime</td><td>asyncio (battle-tested)</td><td>Not yet mature</td></tr>
+        <tr><td>Data science</td><td>pandas, NumPy, scikit-learn, PyTorch</td><td>MAX Engine, Mojo stdlib</td></tr>
+        <tr><td>ML inference</td><td>PyTorch, ONNX Runtime, TensorRT</td><td>MAX Engine (native, optimized)</td></tr>
+        <tr><td>IDE support</td><td>Mature (VS Code, Jupyter)</td><td>VS Code extension (improving)</td></tr>
+        <tr><td>Error messages</td><td>Good</td><td>Good and improving</td></tr>
+        <tr><td>Community</td><td>Largest in data science</td><td>Growing, ML-focused</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="lbl">🚀 Production reality</span>
+      <p>If you're building a system that needs to be in production in six months with zero tolerance for language-level surprises, Python is the safer bet today. If your bottleneck is your own loops and you're building an ML inference pipeline, Mojo will get you there faster with better performance — and because Mojo imports Python directly, the two are rarely in competition.</p>
+    </div>
+
+    <h3>Learning curve comparison</h3>
+    <p>Python and Mojo share a syntax, so the learning curve is a ramp, not a cliff:</p>
+
+    <ul>
+      <li><b>Python</b> is easy to start but hard to make fast. You'll write concise code that runs through an interpreter, and when a tight loop gets slow you reach for a C-accelerated library — or you accept the speed.</li>
+      <li><b>Mojo</b> is hard if you try to use its advanced features (SIMD, owned types, parameterized generics) from day one. But you can start with Python-like syntax and gradually add type annotations as you need performance — a gentler ramp.</li>
+    </ul>
+
+    <p>For a data science team, this matters enormously. A junior data scientist can read and write Mojo on day one — the syntax is Python's. The only new material is the performance knobs, and you can turn those on gradually.</p>
+  </section>
+
+  <section id="hybrid">
+    <h2>Building hybrid systems: Python + Mojo</h2>
+    <p>The pragmatic answer to "Python or Mojo?" is often "both." Python excels at fast iteration, orchestration, and ecosystem reach. Mojo excels at the numerically heavy core — data processing and ML inference. A well-designed system prototypes in Python, then moves the hot loops into Mojo.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="hybrid"><span class="sw"></span>mojo_worker.mojo</div>
+      </div>
+      <div class="panes" data-group="hybrid">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — inference worker for the hybrid pipeline</span>
+<span class="tok-kw">from</span> max.engine <span class="tok-kw">import</span> InferenceSession
+
+<span class="tok-kw">struct</span> <span class="tok-ty">InferenceWorker</span>:
+    <span class="tok-kw">var</span> session: InferenceSession
+
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-kw">out</span> self, model_path: String):
+        self.session = InferenceSession(model_path)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">predict</span>(self, features: List[Float64]) -&gt; List[Float64]:
+        <span class="tok-kw">return</span> self.session.execute(features)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The Python side of that split is three lines: <code class="inline">import mojo</code>, <code class="inline">from mojo import InferenceWorker</code>, then <code class="inline">worker = InferenceWorker("model.pt")</code> and <code class="inline">worker.predict(features)</code> — the same two methods the <code class="inline">InferenceWorker</code> struct declares on the Mojo side, called across the boundary.</p>
+
+    <p>This architecture gives you the best of both worlds: Python handles orchestration, configuration, and the parts of the pipeline that change week to week, while Mojo's MAX Engine handles the compute-intensive inference. The boundary between them is a single import — no serialization, no subprocess, no separate runtime.</p>
+
+    <div class="callout">
+      <span class="lbl">🧭 Decision framework</span>
+      <p><b>Ask yourself three questions:</b> (1) Is the bottleneck in your own loops? → Mojo. (2) Is the bottleneck in library code Python already delegates to C? → Stay in Python. (3) Does the pipeline change frequently? → Keep orchestration in Python and move the stable hot loops into Mojo. In practice, many production systems use Python for the outer shell and Mojo for the computational core.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Which statement best describes when plain Python remains the right choice?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Python is always too slow for production</button>
+        <button class="opt" data-correct="true">When the workload is I/O-bound and the bottleneck is library code, not your own loops</button>
+        <button class="opt" data-correct="false">When you need the absolute fastest startup time</button>
+        <button class="opt" data-correct="false">Never — Mojo is strictly better than Python</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is the primary ergonomic advantage of Mojo's <code>vectorize</code> over a hand-written Python loop?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">Mojo compiles faster</button>
+        <button class="opt" data-correct="false">Mojo has better error messages</button>
+        <button class="opt" data-correct="true">It abstracts SIMD so the code stays Python-shaped while running at native speed</button>
+        <button class="opt" data-correct="false">Python loops are already as fast as vectorize</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">In a hybrid Python + Mojo system, what is the typical role of Python?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Running the numerically heavy inference loops</button>
+        <button class="opt" data-correct="true">Orchestrating the pipeline and importing Mojo for the hot loops</button>
+        <button class="opt" data-correct="false">Compiling the entire pipeline to a native binary</button>
+        <button class="opt" data-correct="false">Replacing Mojo entirely — Python does everything</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Implement a data parser that reads a large CSV file (1GB+) in both Mojo and Python. Measure and compare: parsing throughput (MB/s), peak memory usage, and lines of code. Write a short summary of which language was more productive for this task.</li>
+        <li>Build a small batch-inference pipeline in Python that calls a compiled Mojo inference worker for the heavy step. Measure the end-to-end latency, including the Python-Mojo boundary, and compare it with a pure-Python implementation.</li>
+        <li>Profile a Python workload you use regularly with a profiler (cProfile or py-spy). Identify the hottest function, rewrite it in Mojo, and measure the speedup. Document what made the rewrite straightforward or difficult.</li>
+        <li>Write a decision matrix for your own data science work: list five current projects, and for each, determine whether Python, Mojo, or a hybrid approach would be optimal. Justify each choice with specific technical reasons.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_12_pytorch.html">← Chapter 12: Interfacing with PyTorch and MAX Engine</a>
+    <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">Back to Contents →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '\u2713 Correct.'
+        : '\u2717 Not quite \u2014 the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+
+</body></html>

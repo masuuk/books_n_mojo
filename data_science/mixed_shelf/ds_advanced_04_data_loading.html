@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)m10_04_high_performance_data_loading.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 4 — High-Performance Data Loading · Mojo 1.x</title>
+<style>
+:root{
+  --bg:#0f1115;--surface:#16181d;--surface-hover:#1e2128;
+  --text:#f4f6fc;--text-muted:#ffe4a3;
+  --accent:#6c5ce7;--accent-light:#a29bfe;
+  --success:#00cec9;--warning:#fdcb6e;
+  --code-bg:#111317;--border:#434b59;
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent-light);text-decoration:none;transition:color 0.2s;}
+a:hover{color:var(--accent);}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--success));z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:56px;background:rgba(15,17,21,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1rem;color:var(--text);text-decoration:none;}
+.brand .icon{width:28px;height:28px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.chnum{font-family:var(--font-mono);font-size:0.75rem;color:var(--success);letter-spacing:0.04em;}
+
+.container{max-width:820px;margin:0 auto;padding:0 24px;}
+.wrap{padding:4.5rem 0 7rem;}
+
+.kicker{display:inline-block;background:rgba(108,92,231,0.15);color:var(--accent-light);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;letter-spacing:0.5px;margin-bottom:16px;border:1px solid rgba(108,92,231,0.3);}
+h1{font-size:clamp(2rem,4.5vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+h1 .hl{background:linear-gradient(to right,var(--accent-light),var(--success));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.dek{font-size:1.1rem;color:var(--text-muted);margin-bottom:36px;max-width:580px;line-height:1.7;}
+
+h2{font-size:1.5rem;font-weight:700;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.15rem;font-weight:600;margin:2rem 0 0.8rem;}
+p{color:var(--text-muted);margin:0 0 1rem;line-height:1.8;}
+p strong{color:var(--text);}
+ul,ol{color:var(--text-muted);padding-left:20px;line-height:1.8;}
+li{margin-bottom:4px;}
+code{font-family:var(--font-mono);font-size:0.88em;background:rgba(108,92,231,0.1);padding:2px 6px;border-radius:4px;color:var(--accent-light);}
+
+.info-box{padding:16px 20px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:16px 0;}
+.info-box strong{color:var(--text);}
+.info-box p{margin-top:4px;}
+.tip-box{background:rgba(0,206,201,0.06);border-color:rgba(0,206,201,0.12);}
+.tip-box strong{color:var(--success);}
+
+.code-playground{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin:20px 0;}
+.tabs{display:flex;background:var(--code-bg);border-bottom:1px solid var(--border);}
+.tab{padding:10px 18px;cursor:pointer;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all 0.2s;font-size:0.9rem;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent-light);border-bottom-color:var(--accent-light);background:rgba(108,92,231,0.08);}
+.code-content{padding:16px 20px;background:var(--code-bg);min-height:200px;position:relative;}
+.code-block{display:none;font-family:var(--font-mono);font-size:0.88rem;line-height:1.7;white-space:pre;overflow-x:auto;}
+.code-block.active{display:block;}
+.kw{color:#c792ea;}.fn{color:#82aaff;}.str{color:#c3e88d;}.num{color:#f78c6c;}.com{color:#546e7a;font-style:italic;}.type{color:#ffcb6b;}.op{color:#89ddff;}
+
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.quiz{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:20px;margin:24px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--success);margin-bottom:10px;}
+.qtext{font-size:1.05rem;font-weight:600;margin-bottom:14px;}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{text-align:left;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.92rem;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.opt:hover{border-color:var(--accent);color:var(--text);}
+.opt.correct{border-color:var(--success);background:rgba(0,206,201,0.08);color:var(--success);}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:10px;font-size:0.88rem;color:var(--text-muted);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;background:var(--surface);margin:20px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);padding:8px 14px;border-radius:8px;transition:all 0.2s;}
+.navbtn:hover{border-color:var(--accent);color:var(--text);}
+
+.mini-toc{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30;}
+.mini-toc a{width:7px;height:7px;border-radius:50%;background:var(--border);display:block;transition:all .2s;}
+.mini-toc a.active{background:var(--success);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+@media(max-width:600px){h1{font-size:1.8rem;}.wrap{padding:3rem 0 4rem;}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html"><span class="icon">M</span> Mojo 1.x</a>
+  <span class="chnum">Chapter 04 / 15</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_advanced_04_data_loading.html#stream-parsing"></a>
+  <a href="ds_advanced_04_data_loading.html#async-io"></a>
+  <a href="ds_advanced_04_data_loading.html#memory-efficient"></a>
+  <a href="ds_advanced_04_data_loading.html#file-formats"></a>
+  <a href="ds_advanced_04_data_loading.html#quiz"></a>
+  <a href="ds_advanced_04_data_loading.html#exercises"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Part II: Data Pipelines</span>
+  <h1>⚡ High-Performance <span class="hl">Data Loading</span></h1>
+  <p class="dek">Stream parsing, async I/O, memory-efficient loading, and optimized file format handling in Mojo.</p>
+
+  <section id="stream-parsing">
+    <h2>Stream Parsing: Process Data as It Arrives</h2>
+    <p>In Python, loading a large CSV typically reads the entire file into memory first (via <code>pandas.read_csv</code>), which can cause OOM crashes on datasets larger than RAM. Mojo's stream parsing processes data incrementally, byte by byte, keeping memory usage constant regardless of file size.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-stream">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-stream"><code><span class="com"># Stream-parse a large CSV without loading it all into memory</span>
+<span class="kw">from</span> std.sys.io <span class="kw">import</span> FileHandle
+
+<span class="kw">def</span> <span class="fn">count_rows</span>(path: String) raises -&gt; Int:
+    <span class="kw">var</span> f = FileHandle(path, <span class="str">"r"</span>)
+    <span class="kw">var</span> count = <span class="num">0</span>
+    <span class="kw">var</span> buffer = String()
+
+    <span class="kw">while</span> <span class="kw">True</span>:
+        <span class="kw">var</span> chunk = f.read(<span class="num">8192</span>)
+        <span class="kw">if</span> chunk == <span class="str">""</span>:
+            <span class="kw">break</span>
+        buffer += chunk
+        <span class="kw">while</span> <span class="str">"\n"</span> <span class="kw">in</span> buffer:
+            buffer = buffer.split(<span class="str">"\n"</span>, <span class="num">1</span>)[<span class="num">1</span>]
+            count += <span class="num">1</span>
+
+    f.close()
+    <span class="kw">return</span> count
+
+<span class="com"># Process chunks lazily</span>
+<span class="kw">def</span> <span class="fn">process_csv</span>(path: String) raises:
+    <span class="kw">var</span> f = FileHandle(path, <span class="str">"r"</span>)
+    <span class="kw">var</span> row_idx = <span class="num">0</span>
+
+    <span class="kw">for</span> line <span class="kw">in</span> f:
+        <span class="kw">var</span> fields = line.split(<span class="str">","</span>)
+        <span class="com"># Process each row immediately</span>
+        <span class="kw">if</span> <span class="fn">Float64</span>(fields[<span class="num">3</span>]) &gt; <span class="num">100.0</span>:
+            <span class="kw">print</span>(<span class="str">"Row"</span>, row_idx, <span class="str">": high value"</span>)
+        row_idx += <span class="num">1</span>
+
+    f.close()</code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>❓ Why this matters:</strong>
+      <p>A 50GB CSV file can be processed with only a few MB of memory using Mojo streams. In Python, you'd either need 50GB+ of RAM or switch to chunked pandas (which is slower and more complex).</p>
+    </div>
+  </section>
+
+  <section id="async-io">
+    <h2>Async I/O: Overlapping Computation and Reads</h2>
+    <p>While one chunk is being parsed on the CPU, the next chunk can be read from disk in parallel. Mojo's async I/O model enables this pipelining, effectively hiding I/O latency behind computation.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-async">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-async"><code><span class="com"># Async file reading with double buffering</span>
+<span class="kw">from</span> std.sys.io <span class="kw">import</span> FileHandle
+<span class="kw">from</span> std.collections <span class="kw">import</span> Dict
+
+<span class="kw">struct</span> <span class="type">AsyncReader</span>:
+    <span class="kw">var</span> path: String
+    <span class="kw">var</span> chunk_size: Int
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="kw">self</span>, path: String, chunk_size: Int = <span class="num">65536</span>):
+        <span class="kw">self</span>.path = path
+        <span class="kw">self</span>.chunk_size = chunk_size
+
+    <span class="kw">def</span> <span class="fn">read_all</span>(<span class="kw">self</span>) raises -&gt; List[UInt8]:
+        <span class="kw">var</span> f = FileHandle(<span class="kw">self</span>.path, <span class="str">"r"</span>)
+        <span class="kw">var</span> result = List[UInt8]()
+        <span class="kw">while</span> <span class="kw">True</span>:
+            <span class="kw">var</span> chunk = f.read_bytes(<span class="kw">self</span>.chunk_size)
+            <span class="kw">if</span> len(chunk) == <span class="num">0</span>:
+                <span class="kw">break</span>
+            <span class="kw">for</span> b <span class="kw">in</span> chunk:
+                result.append(b)
+        f.close()
+        <span class="kw">return</span> result
+
+<span class="com"># Parallel read + process pipeline</span>
+<span class="kw">def</span> <span class="fn">pipeline_load</span>(path: String) raises -&gt; List[Float64]:
+    <span class="kw">var</span> reader = <span class="type">AsyncReader</span>(path)
+    <span class="kw">var</span> raw = reader.read_all()
+
+    <span class="com"># Parse float values from raw bytes</span>
+    <span class="kw">var</span> values = List[Float64]()
+    <span class="kw">var</span> current = String()
+
+    <span class="kw">for</span> byte <span class="kw">in</span> raw:
+        <span class="kw">if</span> byte == <span class="num">44</span> <span class="kw">or</span> byte == <span class="num">10</span>:  <span class="com"># comma or newline</span>
+            <span class="kw">if</span> len(current) &gt; <span class="num">0</span>:
+                values.append(<span class="fn">atof</span>(current))
+            current = String()
+        <span class="kw">else</span>:
+            current += <span class="fn">chr</span>(byte)
+
+    <span class="kw">return</span> values</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="memory-efficient">
+    <h2>Memory-Efficient Loading Strategies</h2>
+    <p>Mojo gives you fine-grained control over memory allocation. You can pre-allocate buffers, use memory-mapped files, and control when data is freed — critical for loading large datasets without exhausting system RAM.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-memmap">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-memmap"><code><span class="com"># Pre-allocate a fixed buffer for zero-allocation parsing</span>
+<span class="kw">def</span> <span class="fn">load_with_prealloc</span>(path: String, expected_rows: Int) raises -&gt; Tensor[Float32]:
+    <span class="com"># Allocate the exact amount of memory upfront</span>
+    <span class="kw">var</span> t = Tensor[Float32](expected_rows)
+    <span class="kw">var</span> f = FileHandle(path, <span class="str">"r"</span>)
+
+    <span class="kw">var</span> idx = <span class="num">0</span>
+    <span class="kw">var</span> buffer = String()
+
+    <span class="kw">while</span> <span class="kw">True</span>:
+        <span class="kw">var</span> line = f.readline()
+        <span class="kw">if</span> len(line) == <span class="num">0</span>:
+            <span class="kw">break</span>
+
+        <span class="com"># Direct write into tensor — no intermediate allocation</span>
+        t[idx] = <span class="fn">atof</span>(line.strip())
+        idx += <span class="num">1</span>
+
+    f.close()
+
+    <span class="com"># Free unused portion if we read fewer rows than expected</span>
+    <span class="kw">if</span> idx &lt; expected_rows:
+        <span class="kw">return</span> t[:idx]  <span class="com"># slice to actual size</span>
+    <span class="kw">return</span> t
+
+<span class="com"># Memory-mapped file access</span>
+<span class="kw">def</span> <span class="fn">mmap_read</span>(path: String):
+    <span class="com"># Map file into virtual address space</span>
+    <span class="com"># OS loads pages on-demand — no upfront copy</span>
+    <span class="kw">var</span> f = FileHandle(path, <span class="str">"r"</span>)
+    <span class="kw">var</span> mapped = f.mmap()
+    f.close()
+
+    <span class="com"># Access bytes lazily — OS handles page faults</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, len(mapped), <span class="num">4096</span>):
+        <span class="kw">var</span> page = mapped[i:i+<span class="num">4096</span>]
+        <span class="fn">process_page</span>(page)</code></pre>
+      </div>
+    </div>
+
+    <div class="tip-box info-box">
+      <strong>💡 Tip:</strong>
+      <p>Pre-allocating tensors avoids the overhead of dynamic resizing. If you know the expected number of rows (e.g., from file metadata), allocate exactly that much and fill in-place.</p>
+    </div>
+  </section>
+
+  <section id="file-formats">
+    <h2>Optimized File Format Handling</h2>
+    <p>Different file formats require different parsing strategies. Mojo's zero-copy design enables efficient handling of binary formats like Parquet, Arrow, and HDF5, while stream parsing handles text formats like CSV and JSON.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo-formats">Mojo</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo-formats"><code><span class="com"># Reading binary formats with zero-copy</span>
+<span class="kw">from</span> std.sys.io <span class="kw">import</span> FileHandle
+
+<span class="com"># Binary tensor format: [num_elements: u32][data: f32 * N]</span>
+<span class="kw">def</span> <span class="fn">read_binary_tensor</span>(path: String) raises -&gt; Tensor[Float32]:
+    <span class="kw">var</span> f = FileHandle(path, <span class="str">"rb"</span>)
+
+    <span class="com"># Read header (4 bytes for element count)</span>
+    <span class="kw">var</span> header = f.read_bytes(<span class="num">4</span>)
+    <span class="kw">var</span> n = header[<span class="num">0</span>] | (header[<span class="num">1</span>] &lt;&lt; <span class="num">8</span>) | (header[<span class="num">2</span>] &lt;&lt; <span class="num">16</span>) | (header[<span class="num">3</span>] &lt;&lt; <span class="num">24</span>)
+
+    <span class="com"># Read raw float data directly into tensor</span>
+    <span class="kw">var</span> tensor = Tensor[Float32](n)
+    <span class="kw">var</span> raw = f.read_bytes(n * <span class="num">4</span>)
+    f.close()
+
+    <span class="com"># Zero-copy reinterpret</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        tensor[i] = <span class="fn">bitcast</span>[Float32, Int32](
+            raw[i*<span class="num">4</span>] | (raw[i*<span class="num">4</span>+<span class="num">1</span>] &lt;&lt; <span class="num">8</span>) |
+            (raw[i*<span class="num">4</span>+<span class="num">2</span>] &lt;&lt; <span class="num">16</span>) | (raw[i*<span class="num">4</span>+<span class="num">3</span>] &lt;&lt; <span class="num">24</span>)
+        )
+
+    <span class="kw">return</span> tensor
+
+<span class="com"># Format detection by magic bytes</span>
+<span class="kw">def</span> <span class="fn">detect_format</span>(path: String) raises -&gt; String:
+    <span class="kw">var</span> f = FileHandle(path, <span class="str">"rb"</span>)
+    <span class="kw">var</span> magic = f.read_bytes(<span class="num">4</span>)
+    f.close()
+
+    <span class="kw">if</span> magic[<span class="num">0</span>] == <span class="num">0x50</span> <span class="kw">and</span> magic[<span class="num">1</span>] == <span class="num">0x41</span>:  <span class="com"># "PA"</span>
+        <span class="kw">return</span> <span class="str">"parquet"</span>
+    <span class="kw">elif</span> magic[<span class="num">0</span>] == <span class="num">0x1F</span> <span class="kw">and</span> magic[<span class="num">1</span>] == <span class="num">0x8B</span>:
+        <span class="kw">return</span> <span class="str">"gzip"</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">"unknown"</span></code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Binary vs Text:</strong>
+      <p>Binary formats (Parquet, Arrow) are 10-100x faster to parse than text formats (CSV, JSON) because they avoid string-to-number conversion. Mojo's <code>bitcast</code> enables zero-copy reinterpretation of binary data, making binary format parsing nearly free.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">Quick Check 1</div>
+      <div class="qtext">Why is stream parsing preferred over loading the entire file into memory?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Stream parsing is always slower</button>
+        <button class="opt" data-correct="true">It keeps memory usage constant regardless of file size, avoiding OOM crashes</button>
+        <button class="opt" data-correct="false">It only works for binary files</button>
+        <button class="opt" data-correct="false">Python can't do stream parsing</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 2</div>
+      <div class="qtext">What is the benefit of pre-allocating a tensor before filling it?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">It makes the code more readable</button>
+        <button class="opt" data-correct="true">It avoids repeated reallocation and copying when growing the buffer dynamically</button>
+        <button class="opt" data-correct="false">It compresses the data</button>
+        <button class="opt" data-correct="false">It enables async I/O</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 3</div>
+      <div class="qtext">What does <code>bitcast</code> enable when reading binary data?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Automatic file format detection</button>
+        <button class="opt" data-correct="false">Compression of the data</button>
+        <button class="opt" data-correct="true">Zero-copy reinterpretation of raw bytes as typed values</button>
+        <button class="opt" data-correct="false">Network data transfer</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a Mojo function that reads a CSV file line by line and returns only the rows where a specific column exceeds a threshold, without loading the entire file.</li>
+        <li>Implement a binary format reader that reads a header containing [magic: u32, version: u32, num_rows: u32, num_cols: u32] followed by float data in row-major order.</li>
+        <li>Compare the memory usage of <code>pandas.read_csv()</code> vs stream-parsing the same file in Mojo on a 1GB dataset. Report the peak memory for each approach.</li>
+        <li>Write a function that detects whether a file is CSV, Parquet, or binary based on the first 4 bytes (magic number detection).</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_advanced_03_interop.html">← Chapter 3: Interoperability</a>
+    <a class="navbtn" href="ds_advanced_05_vectorized.html">Chapter 5: Vectorized Transformations →</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress=document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.code-block').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+  });
+});
+
+document.querySelector('.copy-btn')?.addEventListener('click',function(){
+  const active=document.querySelector('.code-block.active');
+  if(active){navigator.clipboard.writeText(active.innerText).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);});}
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,fid){
+  const g=document.getElementById(id),f=document.getElementById(fid);
+  g.querySelectorAll('.opt').forEach(b=>{b.addEventListener('click',()=>{
+    if(g.querySelector('.correct,.wrong'))return;
+    const c=b.dataset.correct==='true';b.classList.add(c?'correct':'wrong');
+    if(!c)g.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});
+    f.textContent=c?'✓ Correct.':'✗ Not quite — correct answer highlighted.';f.classList.add('show');
+  });});
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

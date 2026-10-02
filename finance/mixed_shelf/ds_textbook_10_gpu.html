@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_10_gpu_kernels.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 10 — Writing GPU Kernels for Training and Inference · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 10 / 13</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_10_gpu.html#intro" data-t="intro" title="Introduction"></a>
+  <a href="ds_textbook_10_gpu.html#architecture" data-t="architecture" title="GPU Architecture"></a>
+  <a href="ds_textbook_10_gpu.html#first-kernel" data-t="first-kernel" title="First Kernel"></a>
+  <a href="ds_textbook_10_gpu.html#matmul" data-t="matmul" title="Tiled Matmul"></a>
+  <a href="ds_textbook_10_gpu.html#activation" data-t="activation" title="Activation Functions"></a>
+  <a href="ds_textbook_10_gpu.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_10_gpu.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+
+  <div class="kicker">Part V — GPU Programming · Chapter 10</div>
+  <h1>🎮 Writing GPU Kernels for Training and Inference</h1>
+  <p class="dek">Understand GPU architecture — SMs, warps, threads — and write Mojo GPU kernels that accelerate matrix operations, activation functions, and entire training steps beyond what CPU-only code can achieve.</p>
+
+  <section id="intro">
+    <p>Modern ML runs on GPUs because matrix multiplication — the core operation in neural networks — is embarrassingly parallel. A GPU with thousands of cores can perform thousands of multiply-accumulate operations simultaneously, while a CPU can only do a few at a time. The challenge is that GPU programming requires thinking in terms of threads, blocks, and shared memory — concepts that don't exist in Python.</p>
+    <p>Mojo makes GPU programming accessible by providing a high-level kernel API that compiles down to the same PTX instructions as hand-written CUDA, but with Mojo's safety guarantees, type system, and comptime features. In this chapter, you'll write GPU kernels for matrix multiplication, vector operations, and a full forward pass — comparing Mojo's approach with CUDA C++ and Python's CuPy.</p>
+  </section>
+
+  <section id="architecture">
+    <h2>GPU architecture essentials</h2>
+    <p>Before writing kernels, you need to understand how a GPU executes code. A GPU is organized as a hierarchy of processing units:</p>
+    <ul>
+      <li><b>Streaming Multiprocessors (SMs):</b> Each SM is a self-contained processor with its own registers, shared memory, and thread schedulers. A modern GPU has 20-100+ SMs.</li>
+      <li><b>Warps:</b> An SM executes threads in groups of 32 called warps. All threads in a warp execute the same instruction simultaneously (SIMT — Single Instruction, Multiple Threads).</li>
+      <li><b>Thread blocks:</b> A block is a group of threads that can share data through <b>shared memory</b> and synchronize with barriers. Blocks are assigned to SMs.</li>
+      <li><b>Grid:</b> The grid is the collection of all thread blocks launched by a single kernel call.</li>
+    </ul>
+
+    <div class="code-block">
+      <div class="head">GPU hierarchy overview</div>
+      <pre><span class="tok-com">Grid</span>
+├── Block (0,0) ──→ SM 0
+│   ├── Thread (0,0)
+│   ├── Thread (0,1)
+│   ├── ...
+│   └── Thread (31,31)  ← 1024 threads per block
+├── Block (1,0) ──→ SM 1
+│   └── ...
+├── Block (0,1) ──→ SM 0  ← SM can run multiple blocks
+│   └── ...
+└── Block (1,1) ──→ SM 1
+    └── ...
+
+<span class="tok-com">Within each SM:</span>
+├── 32 warp schedulers
+├── Shared memory (up to 48KB per block)
+├── Register file (65K+ registers per SM)
+└── CUDA cores (FP32/INT32 ALUs)</pre>
+    </div>
+
+    <p>The key insight for performance: <b>shared memory is fast (100x faster than global memory) but small.</b> Your kernel design must minimize global memory accesses by loading data into shared memory once and reusing it across many computations.</p>
+
+    <div class="callout">
+      <span class="lbl">🗄️ Memory hierarchy</span>
+      <p>Registers (1 cycle) → Shared memory (5-30 cycles) → L1/L2 cache (50-200 cycles) → Global memory (400-800 cycles). A kernel that reads from global memory for every multiply will be 100-800x slower than one that uses shared memory.</p>
+    </div>
+  </section>
+
+  <section id="first-kernel">
+    <h2>Your first Mojo GPU kernel</h2>
+    <p>Mojo 1.x's GPU story splits in two: the device-side built-ins stay in the standard library — <code class="inline">from std.gpu import thread_idx, block_idx, block_dim</code> identify each thread's position in the grid — while the host-side APIs (device discovery, memory allocation, kernel launch) moved to the <code class="inline">max.gpu</code> package that ships with MAX. A kernel is an ordinary <code class="inline">def</code> function that gets compiled to GPU machine code (PTX) and launched through a <code class="inline">DeviceContext</code>.</p>
+
+    <div class="callout">
+      <span class="lbl">As of Mojo 1.x final</span>
+      <p>The accelerator APIs left the standard library: <code class="inline">std.gpu.host</code>, <code class="inline">std.gpu.memory</code>, <code class="inline">std.algorithm</code>, and friends are now <code class="inline">max.gpu.*</code> and <code class="inline">max.algorithm</code> in the MAX accelerator library. Also note: <code class="inline">Int</code> and <code class="inline">UInt</code> are no longer passable to GPU kernels — use fixed-width types like <code class="inline">Int32</code> for scalar kernel arguments.</p>
+    </div>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="k1"><span class="sw"></span>kernel.mojo</div>
+      </div>
+      <div class="panes" data-group="k1">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — vector addition GPU kernel (Mojo 1.x / MAX 26.5)</span>
+<span class="tok-kw">from</span> std.gpu <span class="tok-kw">import</span> thread_idx, block_idx, block_dim
+<span class="tok-kw">from</span> max.gpu.host <span class="tok-kw">import</span> DeviceContext, DeviceBuffer
+<span class="tok-kw">from</span> std.math <span class="tok-kw">import</span> ceildiv
+
+<span class="tok-kw">comptime</span> BLOCK_SIZE = <span class="tok-num">256</span>
+<span class="tok-kw">comptime</span> N = <span class="tok-num">1_000_000</span>
+
+<span class="tok-kw">def</span> <span class="tok-fn">vec_add_kernel</span>(a: DeviceBuffer, b: DeviceBuffer,
+                   c: DeviceBuffer, n: Int32):
+    <span class="tok-kw">var</span> tid = block_idx.x * block_dim.x + thread_idx.x
+    <span class="tok-kw">if</span> tid &lt; n:
+        c[tid] = a[tid] + b[tid]
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>() raises:
+    <span class="tok-kw">var</span> ctx = DeviceContext()
+
+    <span class="tok-com"># Allocate GPU memory (asynchronous, queued on the device stream)</span>
+    <span class="tok-kw">var</span> d_a = ctx.enqueue_create_buffer[float32](N)
+    <span class="tok-kw">var</span> d_b = ctx.enqueue_create_buffer[float32](N)
+    <span class="tok-kw">var</span> d_c = ctx.enqueue_create_buffer[float32](N)
+    <span class="tok-com"># ... copy inputs from host with ctx.enqueue_copy(...) ...</span>
+
+    <span class="tok-com"># Compile and launch the kernel on the GPU</span>
+    <span class="tok-kw">comptime</span> num_blocks = ceildiv(N, BLOCK_SIZE)
+    ctx.enqueue_function[vec_add_kernel](
+        d_a, d_b, d_c, Int32(N),
+        grid_dim=num_blocks, block_dim=BLOCK_SIZE,
+    )
+    ctx.synchronize()</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">In CuPy the elementwise case is <code class="inline">c = a + b</code> with no launch code at all, and the custom-kernel route means wrapping the same C source in <code class="inline">cp.RawModule(code=...).get_function('vec_add')</code> before passing <code class="inline">(n//256,), (256,)</code> as the grid and block. Here the kernel is an ordinary Mojo function and its launch sits in the same file.</p>
+
+    <p>The Mojo kernel compiles to the same PTX (Parallel Thread Execution) instructions a hand-written CUDA kernel would — and <code class="inline">enqueue_function</code> type-checks the kernel's arguments at compile time, so a mismatched argument is a build error, not a runtime crash.</p>
+  </section>
+
+  <section id="matmul">
+    <h2>Tiled matrix multiplication with shared memory</h2>
+    <p>Matrix multiplication is the most important GPU kernel in ML. A naive implementation loads each element from global memory many times. The <b>tiled</b> approach loads a block of each matrix into shared memory once, then computes a tile of the output from that shared data — reducing global memory traffic by a factor equal to the tile size.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="mm"><span class="sw"></span>matmul.mojo</div>
+      </div>
+      <div class="panes" data-group="mm">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — tiled matrix multiplication kernel</span>
+<span class="tok-kw">from</span> std.gpu <span class="tok-kw">import</span> thread_idx, block_idx
+<span class="tok-kw">from</span> max.gpu.sync <span class="tok-kw">import</span> barrier
+<span class="tok-kw">from</span> std.memory <span class="tok-kw">import</span> stack_allocation
+<span class="tok-kw">from</span> std.memory.address_space <span class="tok-kw">import</span> AddressSpace
+
+<span class="tok-kw">comptime</span> TILE = <span class="tok-num">16</span>  <span class="tok-com"># tile size (16x16 = 256 threads)</span>
+
+<span class="tok-kw">def</span> <span class="tok-fn">matmul_kernel</span>(M: Int32, N: Int32, K: Int32,
+                   A: DeviceBuffer, B: DeviceBuffer, C: DeviceBuffer):
+    <span class="tok-com"># Shared memory tiles</span>
+    <span class="tok-kw">var</span> sA = stack_allocation[TILE*TILE, Float32,
+        address_space=AddressSpace.SHARED]()
+    <span class="tok-kw">var</span> sB = stack_allocation[TILE*TILE, Float32,
+        address_space=AddressSpace.SHARED]()
+
+    <span class="tok-kw">var</span> row = block_idx.y * TILE + thread_idx.y
+    <span class="tok-kw">var</span> col = block_idx.x * TILE + thread_idx.x
+    <span class="tok-kw">var</span> sum: Float32 = <span class="tok-num">0.0</span>
+
+    <span class="tok-com"># Loop over tiles</span>
+    <span class="tok-kw">var</span> num_tiles = (K + TILE - <span class="tok-num">1</span>) // TILE
+    <span class="tok-kw">for</span> t <span class="tok-kw">in</span> range(num_tiles):
+        <span class="tok-com"># Load tile into shared memory</span>
+        <span class="tok-kw">var</span> a_col = t * TILE + thread_idx.x
+        <span class="tok-kw">var</span> b_row = t * TILE + thread_idx.y
+
+        <span class="tok-kw">if</span> row &lt; M <span class="tok-kw">and</span> a_col &lt; K:
+            sA[thread_idx.y * TILE + thread_idx.x] = A[row * K + a_col]
+        <span class="tok-kw">else</span>:
+            sA[thread_idx.y * TILE + thread_idx.x] = <span class="tok-num">0.0</span>
+
+        <span class="tok-kw">if</span> b_row &lt; K <span class="tok-kw">and</span> col &lt; N:
+            sB[thread_idx.y * TILE + thread_idx.x] = B[b_row * N + col]
+        <span class="tok-kw">else</span>:
+            sB[thread_idx.y * TILE + thread_idx.x] = <span class="tok-num">0.0</span>
+
+        barrier()  <span class="tok-com"># wait for all threads to load</span>
+
+        <span class="tok-com"># Compute partial dot product from shared memory</span>
+        <span class="tok-kw">for</span> k <span class="tok-kw">in</span> range(TILE):
+            sum += sA[thread_idx.y * TILE + k] * sB[k * TILE + thread_idx.x]
+
+        barrier()  <span class="tok-com"># wait before loading next tile</span>
+
+    <span class="tok-com"># Write result to global memory</span>
+    <span class="tok-kw">if</span> row &lt; M <span class="tok-kw">and</span> col &lt; N:
+        C[row * N + col] = sum
+
+<span class="tok-com"># Launch: grid of tiles, block of TILE x TILE threads</span>
+<span class="tok-kw">var</span> grid = ((N + TILE - <span class="tok-num">1</span>) // TILE, (M + TILE - <span class="tok-num">1</span>) // TILE)
+ctx.enqueue_function[matmul_kernel](
+    Int32(M), Int32(N), Int32(K), d_A, d_B, d_C,
+    grid_dim=grid, block_dim=(TILE, TILE),
+)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">From Python the same multiply is <code class="inline">C = A @ B</code> on CuPy device arrays, or <code class="inline">torch.randn(M, K, device='cuda')</code> followed by the same <code class="inline">@</code> — either way it dispatches to a vendor GEMM, which is the <code class="inline">cuBLAS</code> row in the table below. Reaching that last row's level of control in Python means Triton or a hand-written CUDA extension; in Mojo it is the kernel above.</p>
+
+    <h3>Why tiled matmul is faster</h3>
+    <p>Without tiling, each element of A is read from global memory K times (once per column of B). With 16x16 tiles, each element is read once into shared memory and reused 16 times. For a 1024x1024 matrix multiply, this reduces global memory reads from 2 billion to 128 million — a <b>16x reduction</b> in memory traffic.</p>
+
+    <table>
+      <thead><tr><th>Implementation</th><th>GFLOPS (1024x1024)</th><th>Memory bandwidth</th></tr></thead>
+      <tbody>
+        <tr><td>CPU (Mojo single-thread)</td><td>~5 GFLOPS</td><td>Memory-bound</td></tr>
+        <tr><td>GPU (naive, no tiling)</td><td>~500 GFLOPS</td><td>Memory-bound</td></tr>
+        <tr><td>GPU (tiled, shared memory)</td><td>~3,000 GFLOPS</td><td>Compute-bound</td></tr>
+        <tr><td>GPU (cuBLAS GEMM)</td><td>~10,000 GFLOPS</td><td>Compute-bound</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="activation">
+    <h2>GPU-accelerated activation functions</h2>
+    <p>Activation functions like ReLU, sigmoid, and softmax are element-wise operations — each thread handles one element. These are the simplest GPU kernels to write but are critical for training performance because they appear in every layer of a network.</p>
+
+    <div class="code-block">
+      <div class="head">activation kernels in Mojo</div>
+      <pre><span class="tok-com"># Element-wise ReLU kernel</span>
+<span class="tok-kw">def</span> <span class="tok-fn">relu_kernel</span>(x: DeviceBuffer, y: DeviceBuffer, n: Int32):
+    <span class="tok-kw">var</span> tid = block_idx.x * block_dim.x + thread_idx.x
+    <span class="tok-kw">if</span> tid &lt; n:
+        y[tid] = max(x[tid], <span class="tok-num">0.0</span>)
+
+<span class="tok-com"># Element-wise sigmoid kernel</span>
+<span class="tok-kw">def</span> <span class="tok-fn">sigmoid_kernel</span>(x: DeviceBuffer, y: DeviceBuffer, n: Int32):
+    <span class="tok-kw">var</span> tid = block_idx.x * block_dim.x + thread_idx.x
+    <span class="tok-kw">if</span> tid &lt; n:
+        y[tid] = <span class="tok-num">1.0</span> / (<span class="tok-num">1.0</span> + exp(-x[tid]))
+
+<span class="tok-com"># Batched softmax (more complex — needs reduction)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">softmax_kernel</span>(x: DeviceBuffer, y: DeviceBuffer,
+                   rows: Int32, cols: Int32):
+    <span class="tok-kw">var</span> row = block_idx.x * block_dim.x + thread_idx.x
+    <span class="tok-kw">if</span> row &gt;= rows:
+        <span class="tok-kw">return</span>
+
+    <span class="tok-com"># Find max for numerical stability</span>
+    <span class="tok-kw">var</span> row_max: Float32 = x[row * cols]
+    <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(<span class="tok-num">1</span>, cols):
+        row_max = max(row_max, x[row * cols + j])
+
+    <span class="tok-com"># Compute exp and sum</span>
+    <span class="tok-kw">var</span> row_sum: Float32 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(cols):
+        <span class="tok-kw">var</span> val = exp(x[row * cols + j] - row_max)
+        y[row * cols + j] = val
+        row_sum += val
+
+    <span class="tok-com"># Normalize</span>
+    <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(cols):
+        y[row * cols + j] /= row_sum
+
+<span class="tok-com"># Launch: one thread per row for softmax</span>
+ctx.enqueue_function[softmax_kernel](
+    d_x, d_y, Int32(rows), Int32(cols),
+    grid_dim=num_blocks, block_dim=<span class="tok-num">256</span>,
+)</pre>
+    </div>
+
+    <div class="callout">
+      <span class="lbl">⚡ Performance tip</span>
+      <p>For element-wise kernels (ReLU, sigmoid), each thread does very little work. The bottleneck is memory bandwidth — loading the data costs more time than computing the result. Use <b>vectorized loads</b> (loading 4 or 16 floats at once) to maximize memory throughput. Mojo's <code class="inline">SIMD</code> type makes this natural: just load a <code class="inline">SIMD[float32, 8]</code> instead of individual floats.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Why does tiled matrix multiplication use shared memory?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">To store the final result before copying to global memory</button>
+        <button class="opt" data-correct="true">To load matrix tiles once and reuse them across multiple multiplications, reducing global memory traffic</button>
+        <button class="opt" data-correct="false">Because shared memory is larger than global memory</button>
+        <button class="opt" data-correct="false">To enable communication between different thread blocks</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is a "warp" in GPU architecture?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">A group of thread blocks that execute together</button>
+        <button class="opt" data-correct="false">A memory allocation unit on the GPU</button>
+        <button class="opt" data-correct="true">A group of 32 threads that execute the same instruction simultaneously</button>
+        <button class="opt" data-correct="false">A scheduling algorithm for SMs</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">In the <code>relu_kernel</code>, why do we check <code>if tid &lt; n</code> before accessing the array?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">To prevent division by zero</button>
+        <button class="opt" data-correct="true">Because the grid may have more threads than elements (grid size is rounded up to fill the last block)</button>
+        <button class="opt" data-correct="false">To skip negative indices</button>
+        <button class="opt" data-correct="false">Because GPU threads execute in random order</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a GPU kernel that computes the cross-entropy loss for a batch of predictions and labels. The kernel should handle batched inputs (one thread per sample) and be numerically stable (subtract the max logit before exponentiating).</li>
+        <li>Implement a vectorized ReLU kernel that processes 8 floats at a time using <code class="inline">SIMD[float32, 8]</code> loads. Compare the memory throughput with the scalar version from this chapter.</li>
+        <li>Write a GPU kernel for the forward pass of a single linear layer: <code class="inline">output = input @ weight + bias</code>. Use the tiled matmul kernel from this chapter as a building block.</li>
+        <li>Profile the tiled matmul kernel with different tile sizes (8, 16, 32) on a 2048x2048 matrix. Which tile size gives the best performance and why?</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_09_autodiff.html">← Chapter 9: Autodiff and Metaprogramming</a>
+    <a class="navbtn" href="ds_textbook_11_packaging.html">Chapter 11: Deployment →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '\u2713 Correct.'
+        : '\u2717 Not quite \u2014 the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

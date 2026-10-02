@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS Tools — TutMe</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: linear-gradient(160deg, #f6f4ff 0%, #eef6fc 60%, #e6faf3 100%);
+            min-height: 100vh;
+            color: #1c2b3b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 48px 20px;
+        }
+        .home-link {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            text-decoration: none;
+            font-weight: 700;
+            color: #1c2b3b;
+            background: #fff;
+            border: 1px solid #e4edf4;
+            border-radius: 999px;
+            padding: 8px 16px;
+            box-shadow: 0 4px 14px rgba(23, 37, 59, .12);
+        }
+        .home-link:hover { background: #eef6fc; }
+        h1 { font-size: 2rem; margin-bottom: 6px; }
+        .sub { color: #5a7086; margin-bottom: 36px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 960px;
+        }
+        .card {
+            display: block;
+            background: #fff;
+            border: 1px solid #e4edf4;
+            border-radius: 18px;
+            padding: 26px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 8px 24px rgba(23, 37, 59, .08);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(23, 37, 59, .16); }
+        .card .emoji { font-size: 2rem; }
+        .card h2 { font-size: 1.15rem; margin: 10px 0 6px; }
+        .card p { font-size: .92rem; color: #5a7086; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <a class="home-link" href="../index.html">← TutMe</a>
+    <h1>🧪 DS Tools</h1>
+    <p class="sub">Offline reference books for data science, neural-network basics, and LLM fine-tuning.</p>
+    <div class="grid">
+        <a class="card" href="data_science.html">
+            <span class="emoji">📊</span>
+            <h2>Data Science</h2>
+            <p>The hands-on data-science companion — data wrangling, exploration, and the workflow from raw data to insight.</p>
+        </a>
+        <a class="card" href="perceptrons_and_activation.html">
+            <span class="emoji">🧠</span>
+            <h2>Perceptrons &amp; Activation Functions</h2>
+            <p>From the perceptron learning rule to modern activation functions — the math and code behind every neuron, with offline formulae.</p>
+        </a>
+        <a class="card" href="neural_network.html">
+            <span class="emoji">🔬</span>
+            <h2>Neural Network from Scratch</h2>
+            <p>A 2-2-1 MLP that learns XOR — sigmoid step-neurons, gradient descent, and backprop, every value explicit in Mojo 1.x.</p>
+        </a>
+        <a class="card" href="mlp_xor.html">
+            <span class="emoji">🤖</span>
+            <h2>NN from Scratch · MLP XOR Lab</h2>
+            <p>A 2-4-1 MLP solves XOR and a single sigmoid neuron learns to add — hand-rolled matrices, backprop and optimizer in Mojo.</p>
+        </a>
+        <a class="card" href="nn_mojo.html">
+            <span class="emoji">🧮</span>
+            <h2>3-4-1 NN · Mojo &amp; NumPy Side by Side</h2>
+            <p>One XOR network written twice — a hand-rolled matrix struct in Mojo 1.x against the NumPy original, every shape and loss curve computed.</p>
+        </a>
+        <a class="card" href="numoj.html">
+            <span class="emoji">🧰</span>
+            <h2>nj · A NumPy-Shaped Library for Mojo</h2>
+            <p>Fifteen operations that shrink the same network from 193 lines to 36, verified bit-identical.</p>
+        </a>
+        <a class="card" href="fine_tuning_llms.html">
+            <span class="emoji">🤖</span>
+            <h2>Fine-Tuning LLMs</h2>
+            <p>LoRA and QLoRA from the equations up: VRAM math, low-rank updates, NF4 quantization, merging and serving — in Python and Mojo 1.x.</p>
+        </a>
+        <a class="card" href="time_series_analytics.html">
+            <span class="emoji">📈</span>
+            <h2>Time Series Analytics</h2>
+            <p>Time series from first principles — stationarity, ARIMA, exponential smoothing, and forecasting — in Python and Mojo 1.x.</p>
+        </a>
+        <a class="card" href="linear_regression.html">
+            <span class="emoji">📉</span>
+            <h2>Linear Regression</h2>
+            <p>From one straight line to multiple regression, diagnostics, and regularisation — every fit derived, then coded in Python and Mojo 1.x.</p>
+        </a>
+    </div>
+    
+</body>
+</html>

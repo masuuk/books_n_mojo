@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)file:///C:/Users/user/Desktop/Qwen_html_20260902_v7fla90wm.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Annuity Codex — A Small Book on Time Value of Money</title>
+<style>
+  :root{
+    --bg-0:#0a0a14;
+    --bg-1:#12122a;
+    --bg-2:#1a1a3a;
+    --ink:#e8e6f0;
+    --ink-dim:#ffd98f;
+    --gold:#d4af6a;
+    --gold-soft:#f0d8a8;
+    --accent:#7c6ef0;
+    --accent-2:#4fd1c5;
+    --danger:#ff6b6b;
+    --card:rgba(255,255,255,0.04);
+    --border:rgba(212,175,106,0.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    color:var(--ink);
+    background:radial-gradient(ellipse at top left,#1a1040 0%,var(--bg-0) 55%) fixed;
+    overflow-x:hidden;
+    line-height:1.7;
+    font-weight:300;
+  }
+  /* Floating orbs background */
+  .orb{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(80px);
+    opacity:.35;
+    pointer-events:none;
+    z-index:0;
+    animation:float 18s ease-in-out infinite;
+  }
+  .orb.o1{width:400px;height:400px;background:#7c6ef0;top:-100px;left:-100px}
+  .orb.o2{width:350px;height:350px;background:#d4af6a;bottom:-100px;right:-100px;animation-delay:-6s}
+  .orb.o3{width:300px;height:300px;background:#4fd1c5;top:40%;right:10%;animation-delay:-12s;opacity:.2}
+  @keyframes float{
+    0%,100%{transform:translate(0,0) scale(1)}
+    50%{transform:translate(40px,-30px) scale(1.08)}
+  }
+
+  /* Book container */
+  .book{
+    position:relative;
+    z-index:1;
+    max-width:900px;
+    margin:0 auto;
+    padding:40px 32px 120px;
+  }
+
+  /* Page */
+  .page{display:none;animation:fadeIn .6s ease}
+  .page.active{display:block}
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* Cover */
+  .cover{
+    min-height:calc(100vh - 80px);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:40px 20px;
+  }
+  .cover .eyebrow{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:12px;
+    letter-spacing:6px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:28px;
+    opacity:0;animation:rise .8s .2s forwards;
+  }
+  .cover h1{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:clamp(48px,8vw,96px);
+    font-weight:700;
+    line-height:1.05;
+    letter-spacing:-1px;
+    background:linear-gradient(135deg,#fff 0%,var(--gold-soft) 50%,var(--gold) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    margin-bottom:20px;
+    opacity:0;animation:rise .9s .4s forwards;
+  }
+  .cover .subtitle{
+    font-family:Georgia,'Times New Roman',serif;
+    font-style:italic;
+    font-size:clamp(18px,2.4vw,26px);
+    color:var(--ink-dim);
+    max-width:600px;
+    margin-bottom:48px;
+    opacity:0;animation:rise .9s .6s forwards;
+  }
+  .cover .ornament{
+    font-size:28px;
+    color:var(--gold);
+    letter-spacing:12px;
+    margin-bottom:48px;
+    opacity:0;animation:rise .9s .8s forwards;
+  }
+  .cover .meta{
+    font-size:13px;
+    color:var(--ink-dim);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-bottom:60px;
+    opacity:0;animation:rise .9s 1s forwards;
+  }
+  @keyframes rise{
+    from{opacity:0;transform:translateY(20px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:16px 36px;
+    background:linear-gradient(135deg,var(--gold) 0%,#b8904a 100%);
+    color:#1a1a2e;
+    border:none;
+    border-radius:999px;
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:all .3s;
+    box-shadow:0 10px 40px rgba(212,175,106,.3);
+    opacity:0;animation:rise .9s 1.2s forwards;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 15px 50px rgba(212,175,106,.5)}
+  .btn.ghost{
+    background:transparent;
+    color:var(--gold);
+    border:1px solid var(--border);
+    box-shadow:none;
+    animation:none;opacity:1;
+  }
+  .btn.ghost:hover{background:rgba(212,175,106,.08)}
+
+  /* Chapter pages */
+  .chapter-head{
+    margin-bottom:48px;
+    padding-bottom:32px;
+    border-bottom:1px solid var(--border);
+  }
+  .chapter-num{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:12px;
+    color:var(--gold);
+    letter-spacing:4px;
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .chapter-title{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:clamp(36px,5vw,56px);
+    font-weight:600;
+    line-height:1.1;
+    color:#fff;
+    letter-spacing:-.5px;
+  }
+  .chapter-lead{
+    font-family:Georgia,'Times New Roman',serif;
+    font-style:italic;
+    font-size:20px;
+    color:var(--ink-dim);
+    margin-top:16px;
+    max-width:640px;
+  }
+
+  h2{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:32px;
+    font-weight:600;
+    color:#fff;
+    margin:48px 0 16px;
+  }
+  h3{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:24px;
+    font-weight:600;
+    color:var(--gold-soft);
+    margin:32px 0 12px;
+  }
+  p{margin-bottom:16px;color:var(--ink)}
+  p.lead{font-size:18px;color:var(--ink-dim);font-style:italic}
+
+  .formula{
+    background:linear-gradient(135deg,rgba(124,110,240,.08),rgba(212,175,106,.06));
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px 28px;
+    margin:24px 0;
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:22px;
+    text-align:center;
+    color:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  .formula::before{
+    content:'';
+    position:absolute;
+    top:0;left:0;right:0;
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .formula .label{
+    display:block;
+    font-family:Consolas,'Courier New',monospace;
+    font-size:10px;
+    letter-spacing:3px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  sup{font-size:.65em;vertical-align:super}
+  sub{font-size:.65em;vertical-align:sub}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:24px 28px;
+    margin:24px 0;
+    backdrop-filter:blur(10px);
+  }
+  .card h4{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:20px;
+    color:var(--gold-soft);
+    margin-bottom:8px;
+  }
+  .card ul{list-style:none;padding-left:0}
+  .card li{
+    padding:8px 0 8px 24px;
+    position:relative;
+    color:var(--ink-dim);
+    font-size:15px;
+  }
+  .card li::before{
+    content:'◆';
+    position:absolute;
+    left:0;
+    color:var(--gold);
+    font-size:10px;
+    top:12px;
+  }
+
+  /* Code blocks */
+  pre{
+    background:#0d0d1f;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px 24px;
+    margin:20px 0;
+    overflow-x:auto;
+    font-family:Consolas,'Courier New',monospace;
+    font-size:13.5px;
+    line-height:1.6;
+    color:#e8e6f0;
+  }
+  .kw{color:#c792ea}
+  .fn{color:#82aaff}
+  .str{color:#c3e88d}
+  .num{color:#f78c6c}
+  .com{color:#676e95;font-style:italic}
+  .op{color:#89ddff}
+
+  /* language labels for the Mojo 1.x panes */
+  pre.mojo{border-left:3px solid #82aaff;background:#0c1024}
+  pre.mojo::before{
+    display:block;font-size:10px;letter-spacing:3px;text-transform:uppercase;
+    font-family:Consolas,'Courier New',monospace;margin-bottom:10px;color:#676e95;
+  }
+  pre.mojo::before{content:"mojo 1.x — native port";color:#82aaff}
+  /* A data-label attribute overrides the default snippet captions above */
+  pre.mojo[data-label]::before{content:attr(data-label)}
+
+  /* Small caption introducing a code pair */
+  .code-note{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:32px 0 -4px;
+  }
+
+  /* Calculator */
+  .calc-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin:24px 0;
+  }
+  @media(max-width:640px){.calc-grid{grid-template-columns:1fr}}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--gold);
+    text-transform:uppercase;
+  }
+  .field input, .field select{
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 14px;
+    color:var(--ink);
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-size:15px;
+    transition:all .2s;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--gold);
+    background:rgba(255,255,255,.06);
+  }
+  .result-box{
+    background:linear-gradient(135deg,rgba(212,175,106,.12),rgba(124,110,240,.08));
+    border:1px solid var(--gold);
+    border-radius:14px;
+    padding:28px;
+    margin:24px 0;
+    text-align:center;
+  }
+  .result-label{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .result-value{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:42px;
+    font-weight:600;
+    color:#fff;
+    letter-spacing:-1px;
+  }
+  .result-sub{
+    font-size:13px;
+    color:var(--ink-dim);
+    margin-top:8px;
+  }
+  .loading{color:var(--gold);font-style:italic}
+
+  /* Table */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:20px 0;
+    font-size:14px;
+  }
+  th,td{
+    padding:12px 16px;
+    text-align:right;
+    border-bottom:1px solid var(--border);
+  }
+  th{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--gold);
+    text-transform:uppercase;
+    text-align:right;
+    font-weight:500;
+  }
+  th:first-child,td:first-child{text-align:left}
+  tr:hover td{background:rgba(212,175,106,.04)}
+
+  /* Navigation — vertical rail docked to the left edge (falls back to the
+     horizontal bottom pill on narrow screens, where a rail would cover text) */
+  .nav-bar{
+    position:fixed;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    background:rgba(10,10,20,.85);
+    backdrop-filter:blur(20px);
+    border:1px solid var(--border);
+    border-left:none;
+    border-radius:0 18px 18px 0;
+    padding:8px 5px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    z-index:100;
+    box-shadow:8px 0 30px rgba(0,0,0,.5);
+  }
+  .nav-bar button{
+    background:transparent;
+    border:none;
+    color:var(--ink-dim);
+    padding:6px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-size:12px;
+    font-weight:500;
+    transition:all .2s;
+  }
+  .nav-bar button:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+  .nav-bar button.active{background:var(--gold);color:#1a1a2e}
+  .nav-bar button:disabled{opacity:.3;cursor:not-allowed}
+  /* Make room for the vertical rail on screens where the column reaches it */
+  @media(min-width:901px) and (max-width:1140px){
+    .book{padding-left:100px}
+  }
+  @media(max-width:900px){
+    .nav-bar{
+      top:auto;
+      bottom:16px;
+      left:50%;
+      transform:translateX(-50%);
+      flex-direction:row;
+      padding:8px;
+      border-left:1px solid var(--border);
+      border-radius:999px;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .nav-bar button{padding:10px 18px;font-size:13px}
+  }
+
+  .progress{
+    position:fixed;
+    top:0;left:0;right:0;
+    height:2px;
+    background:rgba(255,255,255,.05);
+    z-index:200;
+  }
+  .progress-bar{
+    height:100%;
+    background:linear-gradient(90deg,var(--gold),var(--accent));
+    width:0%;
+    transition:width .4s;
+  }
+
+  .toc-list{list-style:none;padding:0}
+  .toc-list li{
+    padding:18px 24px;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+    transition:all .2s;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .toc-list li:hover{background:rgba(212,175,106,.05);padding-left:32px}
+  .toc-list .toc-num{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:12px;
+    color:var(--gold);
+    letter-spacing:2px;
+  }
+  .toc-list .toc-title{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:22px;
+    color:#fff;
+  }
+  .toc-list .toc-arrow{color:var(--gold);opacity:0;transition:opacity .2s}
+  .toc-list li:hover .toc-arrow{opacity:1}
+
+  .quote{
+    border-left:2px solid var(--gold);
+    padding:16px 24px;
+    margin:28px 0;
+    font-family:Georgia,'Times New Roman',serif;
+    font-style:italic;
+    font-size:20px;
+    color:var(--ink-dim);
+  }
+  .quote cite{
+    display:block;
+    font-size:13px;
+    color:var(--gold);
+    margin-top:8px;
+    font-style:normal;
+    font-family:Consolas,'Courier New',monospace;
+    letter-spacing:2px;
+  }
+
+  .end-mark{
+    text-align:center;
+    margin:80px 0 40px;
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:32px;
+    color:var(--gold);
+    letter-spacing:20px;
+  }
+
+  /* In-chapter prev / next */
+  .chap-nav{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    margin-top:48px;
+    padding-top:32px;
+    border-top:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  .chap-nav a{
+    flex:1;
+    min-width:180px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:16px 20px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    text-decoration:none;
+    color:var(--ink);
+    background:var(--card);
+    backdrop-filter:blur(10px);
+    transition:all .2s;
+  }
+  .chap-nav a:hover{
+    border-color:var(--gold);
+    background:rgba(212,175,106,.06);
+    transform:translateY(-2px);
+  }
+  .chap-nav .next{text-align:right;margin-left:auto}
+  .chap-nav .nav-label{
+    font-family:Consolas,'Courier New',monospace;
+    font-size:10px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+  .chap-nav .nav-title{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:16px;
+    color:#fff;
+  }
+</style>
+</head>
+<body>
+
+<nav style="position:sticky;top:0;z-index:999;display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#12122aee;backdrop-filter:blur(10px);padding:10px 20px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:0.88rem;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+  <a href="../index.html" style="color:#fff;font-weight:700;text-decoration:none;">📚 TutMe</a>
+  <a href="../data_science_mojo/index.html" style="color:#f0d8a8;text-decoration:none;">🧩 Applications lessons</a>
+  <a href="../index.html" style="color:#f0d8a8;text-decoration:none;">💰 Finance shelf</a>
+  <a href="../index.html" style="color:#f0d8a8;text-decoration:none;">🏠 Home</a>
+</nav>
+
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="book">
+
+  <!-- COVER -->
+  <section class="page active" data-page="0">
+    <div class="cover">
+      <div class="eyebrow">A Monograph in Five Chapters</div>
+      <h1>The Annuity<br>Codex</h1>
+      <p class="subtitle">On the Future Value of Annuities, the Patience of Compounding, and the Quiet Mathematics of Time.</p>
+      <div class="ornament">❦ ❦ ❦</div>
+      <div class="meta">With Calculations in Mojo 1.x · MMXXVI</div>
+      <button class="btn" onclick="goPage(1)">Begin Reading →</button>
+    </div>
+  </section>
+
+  <!-- TOC -->
+  <section class="page" data-page="1">
+    <div class="chapter-head">
+      <div class="chapter-num">Prologue</div>
+      <h1 class="chapter-title">Table of Contents</h1>
+      <p class="chapter-lead">Six short chapters, each a door into a small and elegant corner of financial mathematics.</p>
+    </div>
+    <ul class="toc-list">
+      <li onclick="goPage(2)"><span class="toc-num">I ·</span><span class="toc-title">Time, Money, and the Seed</span><span class="toc-arrow">→</span></li>
+      <li onclick="goPage(3)"><span class="toc-num">II ·</span><span class="toc-title">The Anatomy of an Annuity</span><span class="toc-arrow">→</span></li>
+      <li onclick="goPage(4)"><span class="toc-num">III ·</span><span class="toc-title">Future Value Interest Factor of Annuity</span><span class="toc-arrow">→</span></li>
+      <li onclick="goPage(5)"><span class="toc-num">IV ·</span><span class="toc-title">Present Value Interest Factor of Annuity</span><span class="toc-arrow">→</span></li>
+      <li onclick="goPage(6)"><span class="toc-num">V ·</span><span class="toc-title">Mojo 1.x, the Scribes</span><span class="toc-arrow">→</span></li>
+    </ul>
+  </section>
+
+  <!-- CHAPTER 1 -->
+  <section class="page" data-page="2">
+    <div class="chapter-head">
+      <div class="chapter-num">Chapter I</div>
+      <h1 class="chapter-title">Time, Money, and the Seed</h1>
+      <p class="chapter-lead">A dollar today is not a dollar tomorrow. This is the first and last law of finance.</p>
+    </div>
+
+    <p class="lead">If you plant a seed today, it will not remain a seed forever. Given soil, water, and time, it grows. Money behaves the same way: given an interest rate and time, it grows into something larger than itself.</p>
+
+    <h2>The Future Value of a Single Sum</h2>
+    <p>The <em>future value</em> (FV) of a present amount (PV) invested at an interest rate <em>r</em> per period for <em>n</em> periods is:</p>
+
+    <div class="formula">
+      <span class="label">Formula 1.1 — Future Value</span>
+      FV = PV · (1 + r)<sup>n</sup>
+    </div>
+
+    <p>The term <strong>(1 + r)<sup>n</sup></strong> is called the <em>Future Value Interest Factor</em> (FVIF). It is the multiplier by which a single sum grows over time.</p>
+
+    <p class="code-note">Formula 1.1 — in code</p>
+
+<pre class="mojo" data-label="mojo 1.x — future value">from std.math import pow
+
+def fv_single(pv: Float64, r: Float64, n: Int) -&gt; Float64:
+    """FV = PV · (1 + r)^n"""
+    return pv * pow(1.0 + r, Float64(n))
+
+def main():
+    # $1,000 at 6% for 10 years
+    print("FV = $", fv_single(1000.0, 0.06, 10))  # 1790.847...</pre>
+
+    <div class="card">
+      <h4>A small example</h4>
+      <p style="margin:0">Invest $1,000 at 6% per year for 10 years. The FVIF is (1.06)<sup>10</sup> ≈ 1.7908. Your $1,000 becomes <strong>$1,790.85</strong>. The extra $790.85 is the gift of time.</p>
+    </div>
+
+    <div class="quote">
+      "Compound interest is the eighth wonder of the world. He who understands it, earns it; he who doesn't, pays it."
+      <cite>— often attributed to A. Einstein</cite>
+    </div>
+
+    <div class="chap-nav">
+      <div></div>
+      <a href="javascript:void(0)" onclick="goPage(3)" class="next">
+        <span class="nav-label">Next →</span>
+        <span class="nav-title">Chapter II · The Anatomy of an Annuity</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- CHAPTER 2 -->
+  <section class="page" data-page="3">
+    <div class="chapter-head">
+      <div class="chapter-num">Chapter II</div>
+      <h1 class="chapter-title">The Anatomy of an Annuity</h1>
+      <p class="chapter-lead">A stream of equal payments, spaced evenly across time — the humble annuity.</p>
+    </div>
+
+    <p class="lead">Most financial decisions are not one-off. We save monthly, pay rent each month, receive dividends quarterly. An <em>annuity</em> is the mathematical name for such a stream.</p>
+
+    <h2>Two Kinds of Annuity</h2>
+
+    <div class="card">
+      <h4>Ordinary Annuity</h4>
+      <p style="margin:0">Payments occur at the <strong>end</strong> of each period. Rent, mortgage payments, and most bond coupons are ordinary annuities.</p>
+    </div>
+
+    <div class="card">
+      <h4>Annuity Due</h4>
+      <p style="margin:0">Payments occur at the <strong>beginning</strong> of each period. Lease payments and insurance premiums are often annuities due.</p>
+    </div>
+
+    <p>Because each payment in an annuity due earns interest for one extra period, its value is simply the ordinary-annuity value multiplied by <strong>(1 + r)</strong>.</p>
+
+    <h2>Why We Need New Formulas</h2>
+    <p>Summing the future value of each individual payment one by one would be tedious. Fortunately, the payments form a <em>geometric series</em>, and the sum collapses into a single, elegant expression.</p>
+
+    <div class="chap-nav">
+      <a href="javascript:void(0)" onclick="goPage(2)" class="prev">
+        <span class="nav-label">← Previous</span>
+        <span class="nav-title">Chapter I · Time, Money, and the Seed</span>
+      </a>
+      <a href="javascript:void(0)" onclick="goPage(4)" class="next">
+        <span class="nav-label">Next →</span>
+        <span class="nav-title">Chapter III · FVIFA</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- CHAPTER 3 -->
+  <section class="page" data-page="4">
+    <div class="chapter-head">
+      <div class="chapter-num">Chapter III</div>
+      <h1 class="chapter-title">Future Value Interest Factor of Annuity</h1>
+      <p class="chapter-lead">FVIFA — the multiplier that turns a stream of payments into a single future sum.</p>
+    </div>
+
+    <p class="lead">If you deposit <em>PMT</em> at the end of every period for <em>n</em> periods at rate <em>r</em>, the future value is:</p>
+
+    <div class="formula">
+      <span class="label">Formula 3.1 — FV of an Ordinary Annuity</span>
+      FV = PMT · [ (1 + r)<sup>n</sup> − 1 ] / r
+    </div>
+
+    <p>The bracketed term is the <strong>Future Value Interest Factor of Annuity</strong>, or <em>FVIFA(r, n)</em>:</p>
+
+    <div class="formula">
+      <span class="label">Formula 3.2 — FVIFA</span>
+      FVIFA(r, n) = [ (1 + r)<sup>n</sup> − 1 ] / r
+    </div>
+
+    <p>So: <strong>FV = PMT × FVIFA(r, n)</strong>.</p>
+
+    <p class="code-note">Formulas 3.1 &amp; 3.2 — in code</p>
+
+<pre class="mojo" data-label="mojo 1.x — fvifa &amp; fv_annuity">from std.math import pow
+
+def fvifa(r: Float64, n: Int) -&gt; Float64:
+    """[ (1 + r)^n - 1 ] / r"""
+    if r == 0.0:
+        return Float64(n)
+    return (pow(1.0 + r, Float64(n)) - 1.0) / r
+
+def fv_annuity(pmt: Float64, r: Float64, n: Int, due: Bool = False) -&gt; Float64:
+    """FV = PMT × FVIFA(r, n), × (1 + r) if due"""
+    var factor = fvifa(r, n)
+    if due:
+        factor *= (1.0 + r)
+    return pmt * factor
+
+def main():
+    # $200 / month, 20 years, 7% compounded monthly
+    var r = 0.07 / 12.0
+    var n = 240
+    print("FVIFA = ", fvifa(r, n))              # 520.9267...
+    print("FV    = $", fv_annuity(200.0, r, n))  # 104185.34...</pre>
+
+    <h3>For an Annuity Due</h3>
+    <div class="formula">
+      <span class="label">Formula 3.3 — FV of Annuity Due</span>
+      FV<sub>due</sub> = PMT · FVIFA(r, n) · (1 + r)
+    </div>
+
+    <p class="code-note">Formula 3.3 — one extra term</p>
+
+<pre class="mojo" data-label="mojo 1.x — annuity due"><span class="com"># Same stream, paid at the start of each period instead</span>
+<span class="kw">var</span> fv_due = fv_annuity(<span class="num">200.0</span>, r, n, due=<span class="kw">True</span>)
+<span class="fn">print</span>(<span class="str">"FV due = $"</span>, fv_due)   <span class="com"># 104793.09...</span></pre>
+
+    <h2>A Numerical Example</h2>
+    <p>Save $200 per month for 20 years at 7% annual interest, compounded monthly.</p>
+    <ul style="padding-left:24px;color:var(--ink-dim)">
+      <li>r = 0.07 / 12 = 0.005833…</li>
+      <li>n = 20 × 12 = 240</li>
+      <li>FVIFA ≈ 520.93</li>
+      <li>FV = 200 × 520.93 ≈ <strong>$104,186</strong></li>
+    </ul>
+    <p>Of that, only $48,000 was your own money. The rest — <strong>$56,186</strong> — is the quiet labor of compounding.</p>
+
+    <div class="chap-nav">
+      <a href="javascript:void(0)" onclick="goPage(3)" class="prev">
+        <span class="nav-label">← Previous</span>
+        <span class="nav-title">Chapter II · The Anatomy of an Annuity</span>
+      </a>
+      <a href="javascript:void(0)" onclick="goPage(5)" class="next">
+        <span class="nav-label">Next →</span>
+        <span class="nav-title">Chapter IV · PVIFA</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- CHAPTER 4 -->
+  <section class="page" data-page="5">
+    <div class="chapter-head">
+      <div class="chapter-num">Chapter IV</div>
+      <h1 class="chapter-title">Present Value Interest Factor of Annuity</h1>
+      <p class="chapter-lead">PVIFA — the mirror of FVIFA. How much is a stream of future payments worth today?</p>
+    </div>
+
+    <p class="lead">If someone promises to pay you <em>PMT</em> at the end of each period for <em>n</em> periods, what is that promise worth <em>now</em>?</p>
+
+    <div class="formula">
+      <span class="label">Formula 4.1 — PV of an Ordinary Annuity</span>
+      PV = PMT · [ 1 − (1 + r)<sup>−n</sup> ] / r
+    </div>
+
+    <p>The bracketed term is the <strong>Present Value Interest Factor of Annuity</strong>:</p>
+
+    <div class="formula">
+      <span class="label">Formula 4.2 — PVIFA</span>
+      PVIFA(r, n) = [ 1 − (1 + r)<sup>−n</sup> ] / r
+    </div>
+
+    <p class="code-note">Formulas 4.1 &amp; 4.2 — in code</p>
+
+<pre class="mojo" data-label="mojo 1.x — pvifa &amp; pv_annuity">from std.math import pow
+
+def pvifa(r: Float64, n: Int) -&gt; Float64:
+    """[ 1 - (1 + r)^-n ] / r"""
+    if r == 0.0:
+        return Float64(n)
+    return (1.0 - pow(1.0 + r, -Float64(n))) / r
+
+def pv_annuity(pmt: Float64, r: Float64, n: Int, due: Bool = False) -&gt; Float64:
+    """PV = PMT × PVIFA(r, n), × (1 + r) if due"""
+    var factor = pvifa(r, n)
+    if due:
+        factor *= (1.0 + r)
+    return pmt * factor
+
+def main():
+    # $50,000 a year for 20 years, discounted at 5%
+    print("PVIFA = ", pvifa(0.05, 20))              # 12.4622...
+    print("PV    = $", pv_annuity(50000.0, 0.05, 20))  # 623110.50...</pre>
+
+    <h3>For an Annuity Due</h3>
+    <div class="formula">
+      <span class="label">Formula 4.3 — PV of Annuity Due</span>
+      PV<sub>due</sub> = PMT · PVIFA(r, n) · (1 + r)
+    </div>
+
+    <p class="code-note">Formula 4.3 — one extra term</p>
+
+<pre class="mojo" data-label="mojo 1.x — annuity due"><span class="com"># The same lottery, paid at the start of each year</span>
+<span class="kw">var</span> pv_due = pv_annuity(<span class="num">50000.0</span>, <span class="num">0.05</span>, <span class="num">20</span>, due=<span class="kw">True</span>)
+<span class="fn">print</span>(<span class="str">"PV due = $"</span>, pv_due)   <span class="com"># 654266.02...</span></pre>
+
+    <h2>The Relationship</h2>
+    <p>Notice the elegant symmetry:</p>
+    <ul style="padding-left:24px;color:var(--ink-dim)">
+      <li>FVIFA grows with n — more time, more accumulation.</li>
+      <li>PVIFA shrinks with n — a payment far in the future is worth less today.</li>
+      <li>FV = PV × (1 + r)<sup>n</sup>, just as for single sums.</li>
+    </ul>
+
+    <div class="card">
+      <h4>Example</h4>
+      <p style="margin:0">A lottery offers $50,000 per year for 20 years. At a discount rate of 5%, PVIFA(5%, 20) ≈ 12.4622. The prize is worth <strong>$623,110</strong> today — not the $1,000,000 headline.</p>
+    </div>
+
+    <div class="chap-nav">
+      <a href="javascript:void(0)" onclick="goPage(4)" class="prev">
+        <span class="nav-label">← Previous</span>
+        <span class="nav-title">Chapter III · FVIFA</span>
+      </a>
+      <a href="javascript:void(0)" onclick="goPage(6)" class="next">
+        <span class="nav-label">Next →</span>
+        <span class="nav-title">Chapter V · Mojo 1.x</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- CHAPTER 5: MOJO -->
+  <section class="page" data-page="6">
+    <div class="chapter-head">
+      <div class="chapter-num">Chapter V</div>
+      <h1 class="chapter-title">Mojo 1.x, the Scribes</h1>
+      <p class="chapter-lead">The formulas as code, function for function. Clean, readable, and yours to take.</p>
+    </div>
+
+    <p class="lead">Below is the full module behind the formulas in this book, written in Mojo 1.x. Every rate and payment is a typed <code>Float64</code>, so a percentage handed in where a decimal belongs is a compile error, not a silent wrong answer — and the compiled version evaluates a whole portfolio of annuities in the time an interpreter spends importing.</p>
+
+    <p>Here it is, function for function. Everything that distinguishes this from a scripting-language version of the same arithmetic is a compile-time guarantee: typed arguments and returns, <code>pow</code> with an explicit exponent, and no boxing of numbers on the heap:</p>
+
+<pre class="mojo">from std.math import pow
+
+def fvifa(r: Float64, n: Int) -&gt; Float64:
+    """Future Value Interest Factor of Annuity."""
+    if r == 0.0:
+        return Float64(n)
+    return (pow(1.0 + r, Float64(n)) - 1.0) / r
+
+def pvifa(r: Float64, n: Int) -&gt; Float64:
+    """Present Value Interest Factor of Annuity."""
+    if r == 0.0:
+        return Float64(n)
+    return (1.0 - pow(1.0 + r, -Float64(n))) / r
+
+def fv_annuity(pmt: Float64, r: Float64, n: Int, due: Bool = False) -&gt; Float64:
+    """Future value of an annuity."""
+    var factor = fvifa(r, n)
+    if due:
+        factor *= (1.0 + r)
+    return pmt * factor
+
+def pv_annuity(pmt: Float64, r: Float64, n: Int, due: Bool = False) -&gt; Float64:
+    """Present value of an annuity."""
+    var factor = pvifa(r, n)
+    if due:
+        factor *= (1.0 + r)
+    return pmt * factor
+
+# ---- Example ----
+def main():
+    var pmt = 200.0
+    var annual_rate = 0.07
+    var years = 20
+    var freq = 12
+
+    var r = annual_rate / Float64(freq)
+    var n = years * freq
+
+    print("FVIFA  = ", fvifa(r, n))
+    print("PVIFA  = ", pvifa(r, n))
+    print("FV     = $", fv_annuity(pmt, r, n))
+    print("PV     = $", pv_annuity(pmt, r, n))</pre>
+
+    <h2>Using the Standard Library</h2>
+    <p>Mojo 1.x has no numpy-financial — and for these closed-form formulas it doesn't need one. The standard library is enough, and the two lines you'd spend installing the dependency become the whole program. If the rest of your stack lives in Python, the same calls also ride the interop bridge (<code>Python.import_module("numpy_financial")</code>) while Mojo keeps the loop around them:</p>
+
+<pre class="mojo"><span class="com"># No dependency needed — the factors are two lines each (see above).</span>
+<span class="com"># mojoproject.toml has no [dependencies] section at all.</span>
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> pmt = <span class="num">200.0</span>
+    <span class="kw">var</span> r = <span class="num">0.07</span> / <span class="num">12.0</span>
+    <span class="kw">var</span> n = <span class="num">240</span>
+
+    <span class="fn">print</span>(<span class="str">"FV = $"</span>, fv_annuity(pmt, r, n))
+    <span class="fn">print</span>(<span class="str">"PV = $"</span>, pv_annuity(pmt, r, n))</pre>
+
+    <h2>Amortization Table</h2>
+    <p>A common companion task: printing a period-by-period schedule.</p>
+
+    <p>The amortization loop is where Mojo 1.x earns its keep: 360 rows for one mortgage is trivial, but a bank running sensitivity sweeps — thousands of rate scenarios × millions of loans — turns this exact loop into the hot path. Ported, it compiles to straight-line Float64 arithmetic with no interpreter between the rows:</p>
+
+<pre class="mojo">from std.math import pow
+
+def amortization(pv: Float64, annual_rate: Float64, years: Int, freq: Int = 12):
+    var r = annual_rate / Float64(freq)
+    var n = years * freq
+    var pmt = pv * r / (1.0 - pow(1.0 + r, -Float64(n)))
+    var balance = pv
+    for i in range(1, n + 1):
+        var interest = balance * r
+        var principal = pmt - interest
+        balance -= principal
+        print(i, pmt, interest, principal, balance)
+
+def main():
+    amortization(250000.0, 0.06, 30)</pre>
+
+    <p>Want the schedule as data instead of print lines? Accumulate the four columns into a <code>Tensor[DType.float64](n, 4)</code> and return it — the whole 30-year table is one contiguous allocation, ready for the sensitivity sweep or a chart.</p>
+
+    <div class="end-mark">❦ ❦ ❦</div>
+
+    <div class="quote">
+      "The mathematics of annuities is the mathematics of patience — a quiet argument that small, regular acts, compounded across time, become extraordinary things."
+      <cite>— The Author</cite>
+    </div>
+
+    <div class="chap-nav">
+      <a href="javascript:void(0)" onclick="goPage(5)" class="prev">
+        <span class="nav-label">← Previous</span>
+        <span class="nav-title">Chapter IV · PVIFA</span>
+      </a>
+      <a href="javascript:void(0)" onclick="goPage(0)" class="next">
+        <span class="nav-label">› Cover</span>
+        <span class="nav-title">Return to Cover</span>
+      </a>
+    </div>
+
+    <div style="text-align:center;margin-top:40px">
+      <button class="btn ghost" onclick="goPage(0)">↺ Return to Cover</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- Navigation -->
+<nav class="nav-bar">
+  <button onclick="goPage(currentPage-1)" id="prevBtn">← Prev</button>
+  <button onclick="goPage(0)" class="active" data-nav="0">Cover</button>
+  <button onclick="goPage(1)" data-nav="1">TOC</button>
+  <button onclick="goPage(2)" data-nav="2">I</button>
+  <button onclick="goPage(3)" data-nav="3">II</button>
+  <button onclick="goPage(4)" data-nav="4">III</button>
+  <button onclick="goPage(5)" data-nav="5">IV</button>
+  <button onclick="goPage(6)" data-nav="6">V</button>
+  <button onclick="goPage(currentPage+1)" id="nextBtn">Next →</button>
+</nav>
+
+<script>
+  const pages = document.querySelectorAll('.page');
+  const totalPages = pages.length;
+  let currentPage = 0;
+
+  function goPage(n){
+    if(n<0||n>=totalPages) return;
+    pages.forEach(p=>p.classList.remove('active'));
+    pages[n].classList.add('active');
+    currentPage = n;
+    window.scrollTo({top:0,behavior:'smooth'});
+    document.querySelectorAll('.nav-bar button[data-nav]').forEach(b=>{
+      b.classList.toggle('active', parseInt(b.dataset.nav)===n);
+    });
+    document.getElementById('prevBtn').disabled = n===0;
+    document.getElementById('nextBtn').disabled = n===totalPages-1;
+    document.getElementById('progressBar').style.width = (n/(totalPages-1)*100)+'%';
+  }
+
+  // Keyboard nav
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight') goPage(currentPage+1);
+    if(e.key==='ArrowLeft') goPage(currentPage-1);
+  });
+</script>
+
+
+<!-- tutme-hl:runtime -->
+<style>
+/* Mojo runtime syntax highlighting (tutme) - dark default, light variant auto-applied */
+pre .hkw{color:#c792ea}
+pre .hty{color:#ffcb6b}
+pre .hfn{color:#82aaff}
+pre .hstr{color:#c3e88d}
+pre .hnum{color:#f78c6c}
+pre .hcm{color:#676e95;font-style:italic}
+pre .hop{color:#89ddff}
+pre.tutme-light .hkw{color:#6d28d9}
+pre.tutme-light .hty{color:#b45309}
+pre.tutme-light .hfn{color:#1d4ed8}
+pre.tutme-light .hstr{color:#15803d}
+pre.tutme-light .hnum{color:#c2410c}
+pre.tutme-light .hcm{color:#6b7280;font-style:italic}
+pre.tutme-light .hop{color:#0f766e}
+</style>
+<script>
+(function(){
+  if (window.__tutmeHL) return; window.__tutmeHL = true;
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var KW='def fn struct trait alias var let return if elif else for while in break continue '+
+    'from import as mut out self yield raise raises try except with match case and or not '+
+    'lambda pass global static public private true false none parameterize is';
+  var TY='Float64 Float32 Float16 Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 '+
+    'String StringRef Bool List Dict Tensor TensorShape SIMD DType Pointer Slice '+
+    'Memory Atomic Scalar Tuple NoneType object Int Index';
+  var kwRe = new RegExp('\\b(?:'+KW.split(' ').join('|')+')\\b','ig');
+  var tyRe = new RegExp('\\b(?:'+TY.split(' ').join('|')+')\\b','g');
+  var RULES = [
+    ['cm', /#[^\n]*/g],
+    ['str', /"""[^]*?"""/g],
+    ['str', /'''[^]*?'''/g],
+    ['str', /"(?:\\.|[^"\\\n])*"/g],
+    ['str', /'(?:\\.|[^'\\\n])*'/g],
+    ['num', /(?:\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?[iu]?|\.\d+)/g],
+    ['kw', kwRe],
+    ['ty', tyRe],
+    ['fn', /([A-Za-z_]\w*)(\s*\()/g],
+    ['op', /(?:\+\+|-{2}|->|=>|==|!=|<=|>=|\+=|-=|\*=|\/=|\/\/|\*\*|::|\|\||&&|\.\.\.|[+\-*/%<>=!@&~|])/g]
+  ];
+
+  function highlight(text){
+    var marks = [];
+    for (var r=0; r<RULES.length; r++){
+      var cls = RULES[r][0], rx = RULES[r][1];
+      rx.lastIndex = 0;
+      var m;
+      while ((m = rx.exec(text)) !== null){
+        if (m[0].length){
+          marks.push([m.index, m.index+m[0].length, cls, m]);
+        }
+        rx.lastIndex = m.index + Math.max(1, m[0].length);
+      }
+    }
+    marks.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+    var out = [], i = 0;
+    for (var k=0; k<marks.length; k++){
+      var st = marks[k][0], en = marks[k][1], cls = marks[k][2], mm = marks[k][3];
+      if (st < i) continue;
+      if (st > i) out.push(esc(text.slice(i, st)));
+      if (cls === 'fn'){
+        out.push('<span class="hfn">'+esc(mm[1])+esc(mm[2])+'</span>');
+      } else {
+        out.push('<span class="h'+cls+'">'+esc(text.slice(st, en))+'</span>');
+      }
+      i = en;
+    }
+    out.push(esc(text.slice(i)));
+    return out.join('');
+  }
+
+  function hexLum(h){
+    h = h.slice(1);
+    if (h.length === 3 || h.length === 4) h = h.split('').map(function(x){ return x+x; }).join('');
+    var n = parseInt(h.slice(0,6), 16);
+    return 0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255);
+  }
+
+  function fallbackLum(){
+    try {
+      var s = window.getComputedStyle(document.body);
+      var colors = ((s.backgroundImage || '') + ' ' + (s.backgroundColor || '')).match(/(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))/ig) || [];
+      var i;
+      for (i=0; i<colors.length; i++){
+        var c = colors[i];
+        if (c.charAt(0) === '#'){
+          if (c.length < 7) continue;
+          return hexLum(c);
+        }
+        var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(c);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > 0.3)){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function detectLum(pre){
+    var n = pre;
+    for (var i=0; i<4 && n; i++, n=n.parentElement){
+      var bg;
+      try { bg = window.getComputedStyle(n).backgroundColor; } catch(e){ return null; }
+      var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(bg);
+      if (m){
+        var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+        if (a > 0.3){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    }
+    return fallbackLum();
+  }
+
+  var pres = document.querySelectorAll('pre');
+  for (var p=0; p<pres.length; p++){
+    var pre = pres[p];
+    if (pre.className && /(^|\s)math(\s|$)/.test(pre.className)) continue;
+    var kids = pre.children.length, el = pre;
+    if (kids === 1 && pre.firstElementChild && pre.firstElementChild.tagName === 'CODE'){
+      el = pre.firstElementChild;
+    } else if (kids > 0) {
+      continue;
+    }
+    if (/<[a-z]/i.test(el.innerHTML)) continue;
+    var txt = el.textContent;
+    if (!/(?:def|fn|struct|trait|var|let|import|from|for|while|return|print|Float64|if|class)\b/.test(txt)) continue;
+    var lum = detectLum(pre);
+    if (lum !== null && lum > 170) pre.className = (pre.className ? pre.className + ' ' : '') + 'tutme-light';
+    el.innerHTML = highlight(txt);
+  }
+})();
+</script>
+</body></html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_11_packaging_testing_shipping.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 11 — Packaging, Testing, and Shipping Mojo Projects · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 11 / 13</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_11_packaging.html#project-structure" data-t="project-structure" title="Project Structure"></a>
+  <a href="ds_textbook_11_packaging.html#package-mgmt" data-t="package-mgmt" title="Package Management"></a>
+  <a href="ds_textbook_11_packaging.html#testing" data-t="testing" title="Testing with MojoTest"></a>
+  <a href="ds_textbook_11_packaging.html#benchmarking" data-t="benchmarking" title="Benchmarking"></a>
+  <a href="ds_textbook_11_packaging.html#cicd" data-t="cicd" title="CI/CD and Deployment"></a>
+  <a href="ds_textbook_11_packaging.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_11_packaging.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part III — Production · Chapter 11</div>
+  <h1>📦 Packaging, Testing, and Shipping Mojo Projects</h1>
+  <p class="dek">From source files to a reliable artifact — how Mojo's project model, built-in test runner, and benchmarking tools get your data pipeline from a notebook to production.</p>
+
+  <section id="project-structure">
+    <h2>Mojo project structure</h2>
+    <p>A Mojo project follows a straightforward convention that will feel familiar to Python developers. The root of your project contains a <code class="inline">mojoproject.toml</code> manifest that declares metadata, dependencies, and build targets — the Mojo equivalent of <code class="inline">pyproject.toml</code>.</p>
+
+    <div class="code-block">
+      <div class="head">typical Mojo project layout</div>
+      <pre>my_project/
+├── mojoproject.toml
+├── src/
+│   ├── __init__.mojo
+│   ├── data_loader.mojo
+│   └── pipeline.mojo
+├── tests/
+│   ├── test_data_loader.mojo
+│   └── test_pipeline.mojo
+├── examples/
+│   └── demo.mojo
+└── README.md</pre>
+    </div>
+
+    <p>The <code class="inline">mojoproject.toml</code> file declares your project identity and its dependencies:</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="projtoml"><span class="sw"></span>mojoproject.toml</div>
+      </div>
+      <div class="panes" data-group="projtoml">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo project manifest</span>
+[project]
+name = <span class="tok-str">"ml_pipeline"</span>
+version = <span class="tok-str">"0.3.1"</span>
+description = <span class="tok-str">"Production ML data pipeline"</span>
+authors = [{name = <span class="tok-str">"Your Name"</span>, email = <span class="tok-str">"you@example.com"</span>}]
+
+[dependencies]
+max-engine = <span class="tok-str">"^1.0"</span>
+numpy = <span class="tok-str">"^1.26"</span>
+
+[features]
+avx512 = [<span class="tok-str">"max-engine/avx512"</span>]
+
+[bin]
+name = <span class="tok-str">"pipeline"</span>
+source = <span class="tok-str">"src/main.mojo"</span></pre></div>
+      </div>
+    </div>
+    </section></div>
+
+    <p class="cap">The <code class="inline">pyproject.toml</code> equivalent is the same <code class="inline">[project]</code> table with three different keys: <code class="inline">requires-python = "&gt;=3.11"</code> instead of a MAX version, a <code class="inline">[project.dependencies]</code> table instead of <code class="inline">[dependencies]</code>, and a <code class="inline">[project.scripts]</code> entry pointing at <code class="inline">src.main:main</code> — so Python has to name both the module and the function to produce one runnable command.</p>
+
+    <p>Unlike Python, where source files are scattered into packages with <code class="inline">__init__.py</code>, Mojo projects use a clean <code class="inline">src/</code> layout. The compiler resolves imports from the <code class="inline">src/</code> directory automatically, so you never need to manipulate <code class="inline">sys.path</code> or install your own package in editable mode.</p>
+
+    <div class="callout">
+      <span class="lbl">💡 Why this matters</span>
+      <p>In Python, most production bugs trace back to "it works on my machine" — a dependency is missing, a version is wrong, or the wrong Python is active. Mojo's <code class="inline">mojoproject.toml</code> pins exact versions and resolves the entire dependency graph at build time, eliminating this class of errors entirely.</p>
+    </div>
+  
+
+  <section id="package-mgmt">
+    <h2>Package management and dependency resolution</h2>
+    <p>Mojo's package manager is built into the compiler. When you run <code class="inline">mojo build</code>, it reads <code class="inline">mojoproject.toml</code>, resolves all dependencies, downloads what's needed, and compiles everything into a single binary. There's no equivalent of <code class="inline">pip install</code> — the entire dependency lifecycle is managed by the build system.</p>
+
+    <div class="code-block">
+      <div class="head">managing dependencies</div>
+      <pre><span class="tok-com"># Add a dependency to your project</span>
+mojo add max-engine
+
+<span class="tok-com"># Add a specific version</span>
+mojo add numpy@1.26.4
+
+<span class="tok-com"># Remove a dependency</span>
+mojo remove numpy
+
+<span class="tok-com"># List all resolved dependencies</span>
+mojo list
+
+<span class="tok-com"># Build the project (resolves + compiles)</span>
+mojo build
+
+<span class="tok-com"># Build with optimization</span>
+mojo build -O3
+
+<span class="tok-com"># Run the project</span>
+mojo run src/main.mojo</pre>
+    </div>
+
+    <p>For data science teams, this means reproducibility is built in. When a teammate checks out your repository and runs <code class="inline">mojo build</code>, they get the exact same binary, built with the exact same dependencies, on their machine. No virtual environments, no conda conflicts, no "install these 12 packages in this exact order."</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="deps"><span class="sw"></span>importing packages.mojo</div>
+      </div>
+      <div class="panes" data-group="deps">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> max.engine <span class="tok-kw">import</span> InferenceSession
+<span class="tok-kw">from</span> math import sqrt, sin, cos
+<span class="tok-kw">from</span> collections import Dict
+
+<span class="tok-kw">def</span> <span class="tok-fn">load_model</span>(path: String) -&gt; InferenceSession:
+    <span class="tok-kw">var</span> session = InferenceSession(path)
+    <span class="tok-kw">return</span> session</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The same three imports in Python read <code class="inline">from max.engine import InferenceSession</code>, <code class="inline">from math import sqrt, sin, cos</code>, and <code class="inline">from collections import defaultdict</code> — with <code class="inline">str</code> where this page says <code class="inline">String</code>, and <code class="inline">defaultdict</code> where this page says <code class="inline">Dict</code>. Same lookup, different vocabulary.</p>
+  </section>
+
+  <section id="testing">
+    <h2>Testing with MojoTest</h2>
+    <p>Mojo ships with a built-in test framework that integrates directly with the compiler. You don't need to install <code class="inline">pytest</code> or <code class="inline">unittest</code> — the test runner is part of the <code class="inline">mojo</code> command. Tests are just Mojo files with functions decorated with <code class="inline">@test</code>.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="test"><span class="sw"></span>test_data_loader.mojo</div>
+      </div>
+      <div class="panes" data-group="test">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> testing import test, assert_equal, assert_true
+
+<span class="tok-com"># Simple assertion test</span>
+<span class="tok-kw">@test</span>
+<span class="tok-kw">def</span> <span class="tok-fn">test_csv_parsing</span>():
+    <span class="tok-kw">var</span> rows = parse_csv(<span class="tok-str">"name,age\nAlice,30\nBob,25"</span>)
+    assert_equal(rows.num_rows(), <span class="tok-num">2</span>)
+    assert_equal(rows[<span class="tok-num">0</span>][<span class="tok-str">"name"</span>], <span class="tok-str">"Alice"</span>)
+    assert_equal(rows[<span class="tok-num">0</span>][<span class="tok-str">"age"</span>], <span class="tok-str">"30"</span>)
+
+<span class="tok-com"># Test with exception expectation</span>
+<span class="tok-kw">@test</span>
+<span class="tok-kw">def</span> <span class="tok-fn">test_empty_input_raises</span>():
+    <span class="tok-kw">try</span>:
+        parse_csv(<span class="tok-str">""</span>)
+        assert_true(<span class="tok-kw">False</span>, <span class="tok-str">"Should have raised ValueError"</span>)
+    <span class="tok-kw">except</span> Error:
+        <span class="tok-kw">pass</span>  <span class="tok-com"># expected</span>
+
+<span class="tok-com"># Parameterized test</span>
+<span class="tok-kw">@test</span>
+<span class="tok-kw">def</span> <span class="tok-fn">test_normalize_values</span>():
+    <span class="tok-kw">var</span> cases = [(<span class="tok-num">0.0</span>, <span class="tok-num">0.0</span>), (<span class="tok-num">5.0</span>, <span class="tok-num">1.0</span>), (<span class="tok-num">-3.0</span>, <span class="tok-num">0.0</span>)]
+    <span class="tok-kw">for</span> input_val, expected <span class="tok-kw">in</span> cases:
+        assert_equal(normalize(input_val), expected)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The pytest spelling of those same three tests needs <code class="inline">import pytest</code>, wraps the raising case in <code class="inline">with pytest.raises(ValueError):</code>, and replaces the hand-written case list with <code class="inline">@pytest.mark.parametrize("input_val,expected", [...])</code> — a decorator that generates one test function per row, and that pytest has to reflect over at collection time.</p>
+
+    <p>Running your tests is a single command:</p>
+
+    <div class="code-block">
+      <div class="head">running tests</div>
+      <pre><span class="tok-com"># Run all tests in the project</span>
+mojo test
+
+<span class="tok-com"># Run tests in a specific file</span>
+mojo test tests/test_data_loader.mojo
+
+<span class="tok-com"># Run with verbose output</span>
+mojo test -v
+
+<span class="tok-com"># Run tests matching a pattern</span>
+mojo test --filter csv</pre>
+    </div>
+
+    <p>MojoTest has a significant advantage over Python testing in data science: because tests run compiled code, they execute <b>orders of magnitude faster</b>. A test suite that takes 45 seconds in pytest can complete in under a second with MojoTest, which fundamentally changes how you approach testing in a data pipeline.</p>
+
+    <div class="callout">
+      <span class="lbl">Testing strategy for data pipelines</span>
+      <p>Use <b>pure Mojo tests</b> for transformation logic, schema validation, and output format checks. Use <b>integration tests</b> that call into Python (via <code class="inline">Python.import_module</code>) for testing model predictions against known-good outputs. Reserve notebook-level testing for exploratory validation only.</p>
+    </div>
+  </section>
+
+  <section id="benchmarking">
+    <h2>Benchmarking your Mojo code</h2>
+    <p>Performance is the reason you chose Mojo over Python. But how do you know if your Mojo code is actually faster? The <code class="inline">benchmark</code> module provides a rigorous way to measure execution time, memory allocation, and throughput — with statistical rigor that avoids common benchmarking pitfalls like measuring warmup time or GC pauses.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="bench"><span class="sw"></span>bench_transform.mojo</div>
+      </div>
+      <div class="panes" data-group="bench">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> benchmark <span class="tok-kw">import</span> keep_running, benchmark_function
+<span class="tok-kw">from</span> random import randn
+
+<span class="tok-kw">def</span> <span class="tok-fn">standardize</span>(data: List[Float64]) -&gt; List[Float64]:
+    <span class="tok-kw">var</span> n = len(data)
+    <span class="tok-kw">var</span> mean: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> data:
+        mean += v
+    mean /= n
+
+    <span class="tok-kw">var</span> std: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> data:
+        std += (v - mean) ** <span class="tok-num">2</span>
+    std = (std / n) ** <span class="tok-num">0.5</span>
+
+    <span class="tok-kw">var</span> result = List[Float64](capacity=n)
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> data:
+        result.append((v - mean) / std)
+    <span class="tok-kw">return</span> result
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-kw">var</span> data = randn[Float64](<span class="tok-num">1_000_000</span>)
+
+    <span class="tok-kw">def</span> <span class="tok-fn">bench</span>():
+        _ = standardize(data)
+
+    <span class="tok-kw">var</span> stats = benchmark_function(bench, iterations=<span class="tok-num">50</span>, warmup=<span class="tok-num">10</span>)
+    print(<span class="tok-str">f"Median: {stats.median:.4f}s"</span>)
+    print(<span class="tok-str">f"Mean:   {stats.mean:.4f}s"</span>)
+    print(<span class="tok-str">f"Stddev: {stats.stddev:.4f}s"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The <code class="inline">numpy</code> version of <code class="inline">standardize</code> is <code class="inline">np.mean</code> and <code class="inline">np.std</code> in three lines, timed with <code class="inline">timeit.timeit(lambda: standardize(data), number=50)</code> — one wall-clock number, carrying every failure mode the next paragraph names: no warmup, no distribution, and GC time counted as work.</p>
+
+    <p>The Mojo benchmarking module is integrated with the compiler — it knows about SIMD width, cache line alignment, and allocation patterns. It can detect when your benchmark is measuring garbage collection instead of actual work, something Python's <code class="inline">timeit</code> cannot do automatically.</p>
+  </section>
+
+  <section id="cicd">
+    <h2>CI/CD and deployment</h2>
+    <p>Mojo projects deploy as compiled binaries. This is fundamentally different from Python, where you ship source code and a requirements file and hope the deployment environment has the right interpreter. A Mojo binary includes everything — no runtime dependencies, no interpreter, no shared libraries to hunt down.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="cicd"><span class="sw"></span>.github/workflows/ci.yml</div>
+      </div>
+      <div class="panes" data-group="cicd">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo CI — builds a binary artifact</span>
+name: Mojo CI
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Mojo
+        uses: modular/setup-mojo@v2
+        with:
+          version: latest
+
+      - name: Resolve dependencies
+        run: mojo install
+
+      - name: Run tests
+        run: mojo test
+
+      - name: Build binary
+        run: mojo build -O3 --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-binary
+          path: build/</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The Python workflow for the same repository needs an <code class="inline">actions/setup-python@v5</code> step, a <code class="inline">pip install -r requirements.txt</code> step, and a build step that produces a <i>wheel</i> rather than an executable — <code class="inline">python -m build</code> — so the <code class="inline">pipeline-binary</code> artifact above has no direct counterpart to upload.</p>
+
+    <p>Deployment options for Mojo data pipelines:</p>
+
+    <table>
+      <thead>
+        <tr><th>Strategy</th><th>Use case</th><th>How</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Single binary</td><td>Data processing CLI, batch jobs</td><td><code class="inline">mojo build -O3 --release</code></td></tr>
+        <tr><td>Docker container</td><td>Cloud deployment, microservices</td><td>Multi-stage build with Mojo base image</td></tr>
+        <tr><td>MAX Engine serving</td><td>ML model inference API</td><td><code class="inline">max serve model.onnx</code></td></tr>
+        <tr><td>Precompiled package</td><td>Faster builds, shareable binaries</td><td><code class="inline">mojo precompile</code> creates a <code class="inline">.mojoc</code> (renamed from <code class="inline">mojo package</code> / <code class="inline">.mojopkg</code> in 1.0)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="lbl">🛠️ Practical tip</span>
+      <p>For most data science teams, the simplest deployment path is: compile a Mojo binary, wrap it in a Docker container with your data volume mounted, and schedule it with Airflow or Kubernetes. You get Python-level development speed with C-level runtime performance.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What file declares a Mojo project's metadata and dependencies?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">setup.py</button>
+        <button class="opt" data-correct="true">mojoproject.toml</button>
+        <button class="opt" data-correct="false">mojo.json</button>
+        <button class="opt" data-correct="false">Cargo.toml</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is the primary deployment artifact of a Mojo project?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">A .mojo source archive</button>
+        <button class="opt" data-correct="false">A virtual environment</button>
+        <button class="opt" data-correct="true">A compiled binary</button>
+        <button class="opt" data-correct="false">A Docker image with the Mojo interpreter</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Create a new Mojo project with <code class="inline">mojoproject.toml</code> that depends on <code class="inline">max-engine</code>. Write a simple data transformation function, add three tests with <code class="inline">@test</code>, and run <code class="inline">mojo test</code> to verify they pass.</li>
+        <li>Write a benchmark that compares Mojo's <code class="inline">standardize</code> function against a Python equivalent using NumPy. Measure the median time for 1 million elements and report the speedup factor.</li>
+        <li>Write a Dockerfile for your Mojo project that uses a multi-stage build: first stage compiles the binary, second stage copies only the binary into a minimal base image. What is the final image size?</li>
+        <li>Run <code class="inline">mojo precompile</code> on your library and import the resulting <code class="inline">.mojoc</code> from another project. What changes in build time, and what are the constraints (compiler version, cross-system use)?</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_10_gpu.html">← Chapter 10: Advanced Memory Management</a>
+    <a class="navbtn" href="ds_textbook_12_pytorch.html">Chapter 12: Interfacing with PyTorch and MAX Engine →</a>
+  </div>
+
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '✓ Correct.'
+        : '✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+</script>
+
+</body></html>

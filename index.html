@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Books | Mojo Learning Tracks</title>
+  <meta name="description" content="A curated library of Mojo-based learning tracks spanning data science, finance, geomatics, and operations research.">
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-alt: #0d1c2f;
+      --panel: rgba(16, 25, 40, 0.82);
+      --panel-strong: #101b2e;
+      --line: rgba(132, 160, 216, 0.22);
+      --card: rgba(17, 27, 42, 0.88);
+      --fg: #ebf2ff;
+      --muted: #a9bbd6;
+      --accent: #7cc7ff;
+      --accent-2: #8ef0c6;
+      --accent-3: #f5c16c;
+      --shadow: 0 30px 80px rgba(5, 11, 20, 0.5);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(124, 199, 255, 0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(142, 240, 198, 0.12), transparent 22%),
+        linear-gradient(180deg, var(--bg) 0%, #0a1324 100%);
+      color: var(--fg);
+      font: 16px/1.6 "Segoe UI", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .brand-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 24px rgba(124, 199, 255, 0.8);
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: 0.2s ease;
+    }
+
+    nav a:hover {
+      color: var(--fg);
+      border-color: var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr 0.9fr;
+      gap: 28px;
+      align-items: stretch;
+      padding: 42px 0 26px;
+    }
+
+    .hero-copy,
+    .hero-panel,
+    .card,
+    .mini-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-copy {
+      padding: 34px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-copy::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(135deg, rgba(124, 199, 255, 0.18), rgba(142, 240, 198, 0.04));
+      border-radius: 50%;
+      transform: translate(-35%, -25%);
+    }
+
+    .eyebrow {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--accent);
+      background: rgba(124, 199, 255, 0.04);
+      font-size: 0.76rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1 {
+      position: relative;
+      margin: 0 0 16px;
+      font-size: clamp(2.4rem, 4vw, 4.3rem);
+      line-height: 1.02;
+      letter-spacing: -0.06em;
+    }
+
+    .hero-copy p {
+      position: relative;
+      margin: 0 0 28px;
+      max-width: 48rem;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .cta-row {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.9rem 1.2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent), #8aa8ff);
+      color: #061420;
+      box-shadow: 0 10px 30px rgba(124, 199, 255, 0.35);
+    }
+
+    .button.secondary {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--fg);
+    }
+
+    .hero-panel {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 16px 18px;
+      background: rgba(11, 19, 31, 0.9);
+    }
+
+    .mini-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1.5rem;
+      letter-spacing: -0.04em;
+    }
+
+    .mini-card span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .section-label {
+      margin: 26px 0 16px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 22px;
+      margin-top: 18px;
+    }
+
+    .card {
+      padding: 22px 20px 18px;
+      background: linear-gradient(180deg, rgba(18, 27, 42, 0.94), rgba(13, 19, 30, 0.82));
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent-2);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.04em;
+    }
+
+    .card p {
+      color: var(--muted);
+      margin: 12px 0 18px;
+      min-height: 72px;
+    }
+
+    .card ul {
+      margin: 0 0 18px;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .card li + li { margin-top: 8px; }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .card-actions a {
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--fg);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .card-actions a.primary {
+      background: linear-gradient(135deg, rgba(124, 199, 255, 0.18), rgba(142, 240, 198, 0.1));
+      border-color: rgba(124, 199, 255, 0.32);
+      color: var(--accent);
+    }
+
+    footer {
+      margin-top: 42px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    @media (max-width: 880px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 580px) {
+      .shell {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero-copy,
+      .hero-panel,
+      .card {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span>The Books</span>
+      </div>
+      <nav>
+        <a href="#books">Books</a>
+        <a href="#tracks">Tracks</a>
+        <a href="#resources">Resources</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="books">
+        <div class="hero-copy">
+          <div class="eyebrow">Learning systems</div>
+          <h1>Practical Mojo learning for technical domains.</h1>
+          <p>
+            Explore focused, self-contained learning tracks that combine tutorials, reference manuals,
+            and standalone chapters for numeric computing, financial modeling, geospatial analysis,
+            and optimization.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="#tracks">Browse tracks</a>
+            <a class="button secondary" href="data_science/index.html">Start with data science</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Learning overview">
+          <div class="mini-card">
+            <strong>4</strong>
+            <span>technical domains</span>
+          </div>
+          <div class="stats-grid">
+            <div class="mini-card">
+              <strong>65+</strong>
+              <span>standalone pages</span>
+            </div>
+            <div class="mini-card">
+              <strong>38</strong>
+              <span>manual chapters</span>
+            </div>
+            <div class="mini-card">
+              <strong>4</strong>
+              <span>interactive apps</span>
+            </div>
+            <div class="mini-card">
+              <strong>100%</strong>
+              <span>offline ready</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <div class="section-label" id="tracks">Available tracks</div>
+      <section class="grid" aria-label="Learning track cards">
+        <article class="card">
+          <div class="card-header">
+            <h2>Data Science</h2>
+            <span class="badge">ML / AI</span>
+          </div>
+          <p>From vectors and tensors to model building, training, inference, and modern AI workflows in Mojo.</p>
+          <ul>
+            <li>Interactive tutorial</li>
+            <li>Single-source manual</li>
+            <li>Reference shelf</li>
+          </ul>
+          <div class="card-actions">
+            <a class="primary" href="data_science/index.html">Open track</a>
+            <a href="data_science/mixed_shelf/index.html">Shelf</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Finance</h2>
+            <span class="badge">Quant</span>
+          </div>
+          <p>Quantitative finance in practice: annuities, valuation, risk, and numeric methods built for performance.</p>
+          <ul>
+            <li>Interactive tutorial</li>
+            <li>Finance manual</li>
+            <li>Standalone notes</li>
+          </ul>
+          <div class="card-actions">
+            <a class="primary" href="finance/index.html">Open track</a>
+            <a href="finance/mixed_shelf/index.html">Shelf</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Geomatics</h2>
+            <span class="badge">Spatial</span>
+          </div>
+          <p>Geodesy, projections, GNSS workflows, and positional computations with a strong numerical foundation.</p>
+          <ul>
+            <li>Spatial computations</li>
+            <li>Reference formulas</li>
+            <li>Surveying notes</li>
+          </ul>
+          <div class="card-actions">
+            <a class="primary" href="geomatics/index.html">Open track</a>
+            <a href="geomatics/mixed_shelf/index.html">Shelf</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Operations Research</h2>
+            <span class="badge">Optimization</span>
+          </div>
+          <p>Linear programming, simplex methods, network models, and queueing systems for applied decision-making.</p>
+          <ul>
+            <li>Optimization tutorial</li>
+            <li>Problem-solving manual</li>
+            <li>Reference examples</li>
+          </ul>
+          <div class="card-actions">
+            <a class="primary" href="operations_research/index.html">Open track</a>
+            <a href="operations_research/mixed_shelf/index.html">Shelf</a>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-label" id="resources">Quick access</div>
+      <section class="grid" aria-label="Resource links">
+        <article class="card">
+          <div class="card-header">
+            <h2>Manual</h2>
+            <span class="badge">Core</span>
+          </div>
+          <p>Read the full single-source-of-truth reference to understand the language, ownership model, and numeric workflows.</p>
+          <div class="card-actions">
+            <a class="primary" href="data_science/single_source_of_truth%20mojo/index.html">Open manual</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Shelf</h2>
+            <span class="badge">Browse</span>
+          </div>
+          <p>Jump directly into standalone chapters and long-form reference pages without navigating the app shell.</p>
+          <div class="card-actions">
+            <a class="primary" href="data_science/mixed_shelf/index.html">Browse shelf</a>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-label">How to use this library</div>
+      <section class="grid" aria-label="Study flow">
+        <article class="card">
+          <div class="card-header">
+            <h2>1. Start</h2>
+            <span class="badge">Choose</span>
+          </div>
+          <p>Pick the domain that matches your work: machine learning, quantitative finance, geospatial modeling, or optimization.</p>
+          <div class="card-actions">
+            <a class="primary" href="#tracks">Explore tracks</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>2. Learn</h2>
+            <span class="badge">Build</span>
+          </div>
+          <p>Move through the track-specific app, then study the reference chapters and examples that reinforce the same workflow.</p>
+          <div class="card-actions">
+            <a class="primary" href="data_science/index.html">Open tutorial</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>3. Apply</h2>
+            <span class="badge">Solve</span>
+          </div>
+          <p>Use the standalone shelf for deeper examples, formulas, and reusable patterns when you need a focused reference.</p>
+          <div class="card-actions">
+            <a class="primary" href="data_science/mixed_shelf/index.html">Browse shelf</a>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      Built for focused technical learning in Mojo — from fundamentals to applied modeling.
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance Mojo</title>
+  <meta name="description" content="Quantitative finance in Mojo: tutorials, valuation concepts, and standalone reference material.">
+  <style>
+    :root {
+      --bg: #081b18;
+      --bg-alt: #0f2c28;
+      --panel: rgba(16, 35, 32, 0.9);
+      --panel-strong: #112f2c;
+      --line: rgba(110, 255, 201, 0.22);
+      --fg: #ebfff7;
+      --muted: #bbd8ce;
+      --accent: #63f0b7;
+      --accent-2: #7ad9ff;
+      --glow: rgba(99, 240, 183, 0.25);
+      --shadow: 0 28px 70px rgba(2, 11, 10, 0.48);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(99, 240, 183, 0.15), transparent 26%),
+        linear-gradient(180deg, var(--bg) 0%, #0a1b1a 100%);
+      color: var(--fg);
+      font: 16px/1.6 "Segoe UI", Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    a { color: inherit; }
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 0 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .brand-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 20px var(--glow);
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: 0.2s ease;
+    }
+    nav a:hover {
+      border-color: var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--fg);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr 0.85fr;
+      gap: 24px;
+      padding: 36px 0 12px;
+    }
+    .hero-copy, .hero-panel, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .hero-copy {
+      position: relative;
+      overflow: hidden;
+      padding: 32px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(99, 240, 183, 0.04);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      line-height: 1.02;
+      letter-spacing: -0.06em;
+    }
+    .lede {
+      margin: 0;
+      max-width: 46rem;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.9rem 1.15rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+    .button:hover { transform: translateY(-1px); }
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent), #8aa7ff);
+      color: #041711;
+      box-shadow: 0 12px 28px rgba(99, 240, 183, 0.26);
+    }
+    .button.secondary {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--fg);
+    }
+    .hero-panel {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .mini-card {
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(10, 21, 20, 0.9);
+      border: 1px solid var(--line);
+    }
+    .mini-card strong {
+      display: block;
+      font-size: 1.7rem;
+      letter-spacing: -0.05em;
+      margin-bottom: 4px;
+    }
+    .mini-card span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .section-label {
+      margin: 24px 0 16px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 22px;
+    }
+    .card {
+      padding: 22px 20px 18px;
+      background: linear-gradient(180deg, rgba(18, 38, 35, 0.94), rgba(10, 20, 18, 0.8));
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      color: var(--accent-2);
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.04em;
+    }
+    .card p {
+      color: var(--muted);
+      margin: 12px 0 18px;
+      min-height: 72px;
+    }
+    .card ul {
+      margin: 0 0 18px;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .card li + li { margin-top: 8px; }
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .card-actions a {
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      font-weight: 700;
+      color: var(--fg);
+    }
+    .card-actions a.primary {
+      background: linear-gradient(135deg, rgba(99, 240, 183, 0.15), rgba(122, 217, 255, 0.08));
+      border-color: rgba(99, 240, 183, 0.28);
+      color: var(--accent);
+    }
+    .ref-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .ref-list a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--fg);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+    footer {
+      margin-top: 36px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding-left: 14px; padding-right: 14px; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .hero-copy, .hero-panel, .card { padding-left: 18px; padding-right: 18px; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html">
+        <span class="brand-mark"></span>
+        <span>The Books</span>
+      </a>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#resources">Resources</a>
+        <a href="#references">References</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="overview">
+        <div class="hero-copy">
+          <div class="eyebrow">Finance</div>
+          <h1>Model money with Mojo.</h1>
+          <p class="lede">Study valuation, annuities, amortization, and practical quantitative-finance workflows with a clear mix of examples, references, and applied notes.</p>
+          <div class="cta-row">
+            <a class="button primary" href="finance_mojo/index.html">Open tutorial</a>
+            <a class="button secondary" href="mixed_shelf/index.html">Browse shelf</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Finance overview">
+          <div class="mini-card">
+            <strong>Quant</strong>
+            <span>Value, risk, annuities, and cash flows</span>
+          </div>
+          <div class="stats-grid">
+            <div class="mini-card"><strong>NPV</strong><span>cash-flow logic</span></div>
+            <div class="mini-card"><strong>PV</strong><span>discounting</span></div>
+            <div class="mini-card"><strong>38</strong><span>manual chapters</span></div>
+            <div class="mini-card"><strong>65+</strong><span>standalone pages</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <div class="section-label">Resources</div>
+      <section class="grid" aria-label="Finance resource cards">
+        <article class="card">
+          <div class="card-header">
+            <h2>Interactive tutorial</h2>
+            <span class="badge">App</span>
+          </div>
+          <p>Work through practical quant-finance examples and numeric building blocks in a guided problem format.</p>
+          <div class="card-actions">
+            <a class="primary" href="finance_mojo/index.html">Open app</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Single source of truth</h2>
+            <span class="badge">Manual</span>
+          </div>
+          <p>Read the language and modeling reference behind the quantitative methods and conventions used here.</p>
+          <div class="card-actions">
+            <a class="primary" href="single_source_of_truth%20mojo/index.html">Read manual</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Standalone shelf</h2>
+            <span class="badge">Browse</span>
+          </div>
+          <p>Jump directly to chapter-level content for annuities, amortization, and valuation examples without setup overhead.</p>
+          <div class="card-actions">
+            <a class="primary" href="mixed_shelf/index.html">Browse shelf</a>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-label" id="references">Reference pages</div>
+      <section class="card" aria-label="Finance references">
+        <ul class="ref-list">
+          <li><a href="mixed_shelf/future_value_and_annuities.html">Future value and annuities</a></li>
+          <li><a href="mixed_shelf/npv_amortisation.html">NPV and amortisation</a></li>
+          <li><a href="mixed_shelf/the_annuity_codex.html">The annuity codex</a></li>
+          <li><a href="mixed_shelf/valuation_pricing.html">Valuation and pricing</a></li>
+        </ul>
+        <div class="card-actions" style="margin-top:16px;">
+          <a class="primary" href="mixed_shelf/index.html">See all shelf pages</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Quantitative learning in Mojo — built for modelling, valuation, and applied finance.
+    </footer>
+  </div>
+</body>
+</html>

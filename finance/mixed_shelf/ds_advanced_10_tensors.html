@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)m10_10_tensor_architecture.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 10 — Tensor Architecture · Mojo 1.x</title>
+<style>
+:root{
+  --bg:#0f1115;--surface:#16181d;--surface-hover:#1e2128;
+  --text:#f4f6fc;--text-muted:#ffe4a3;
+  --accent:#6c5ce7;--accent-light:#a29bfe;
+  --success:#00cec9;--warning:#fdcb6e;
+  --code-bg:#111317;--border:#434b59;
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent-light);text-decoration:none;transition:color 0.2s;}
+a:hover{color:var(--accent);}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--success));z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:56px;background:rgba(15,17,21,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1rem;color:var(--text);text-decoration:none;}
+.brand .icon{width:28px;height:28px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.chnum{font-family:var(--font-mono);font-size:0.75rem;color:var(--success);letter-spacing:0.04em;}
+
+.container{max-width:820px;margin:0 auto;padding:0 24px;}
+.wrap{padding:4.5rem 0 7rem;}
+
+.kicker{display:inline-block;background:rgba(108,92,231,0.15);color:var(--accent-light);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;letter-spacing:0.5px;margin-bottom:16px;border:1px solid rgba(108,92,231,0.3);}
+h1{font-size:clamp(2rem,4.5vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+h1 .hl{background:linear-gradient(to right,var(--accent-light),var(--success));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.dek{font-size:1.1rem;color:var(--text-muted);margin-bottom:36px;max-width:580px;line-height:1.7;}
+
+h2{font-size:1.5rem;font-weight:700;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.15rem;font-weight:600;margin:2rem 0 0.8rem;}
+p{color:var(--text-muted);margin:0 0 1rem;line-height:1.8;}
+p strong{color:var(--text);}
+ul,ol{color:var(--text-muted);padding-left:20px;line-height:1.8;}
+li{margin-bottom:4px;}
+code{font-family:var(--font-mono);font-size:0.88em;background:rgba(108,92,231,0.1);padding:2px 6px;border-radius:4px;color:var(--accent-light);}
+
+.info-box{padding:16px 20px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:16px 0;}
+.info-box strong{color:var(--text);}
+.info-box p{margin-top:4px;}
+.tip-box{background:rgba(0,206,201,0.06);border-color:rgba(0,206,201,0.12);}
+.tip-box strong{color:var(--success);}
+
+.code-playground{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin:20px 0;}
+.tabs{display:flex;background:var(--code-bg);border-bottom:1px solid var(--border);}
+.tab{padding:10px 18px;cursor:pointer;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all 0.2s;font-size:0.9rem;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent-light);border-bottom-color:var(--accent-light);background:rgba(108,92,231,0.08);}
+.code-content{padding:16px 20px;background:var(--code-bg);min-height:200px;position:relative;}
+.code-block{display:none;font-family:var(--font-mono);font-size:0.88rem;line-height:1.7;white-space:pre;overflow-x:auto;}
+.code-block.active{display:block;}
+.kw{color:#c792ea;}.fn{color:#82aaff;}.str{color:#c3e88d;}.num{color:#f78c6c;}.com{color:#546e7a;font-style:italic;}.type{color:#ffcb6b;}.op{color:#89ddff;}
+
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.quiz{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:20px;margin:24px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--success);margin-bottom:10px;}
+.qtext{font-size:1.05rem;font-weight:600;margin-bottom:14px;}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{text-align:left;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.92rem;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.opt:hover{border-color:var(--accent);color:var(--text);}
+.opt.correct{border-color:var(--success);background:rgba(0,206,201,0.08);color:var(--success);}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:10px;font-size:0.88rem;color:var(--text-muted);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;background:var(--surface);margin:20px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);padding:8px 14px;border-radius:8px;transition:all 0.2s;}
+.navbtn:hover{border-color:var(--accent);color:var(--text);}
+
+.mini-toc{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30;}
+.mini-toc a{width:7px;height:7px;border-radius:50%;background:var(--border);display:block;transition:all .2s;}
+.mini-toc a.active{background:var(--success);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+@media(max-width:600px){h1{font-size:1.8rem;}.wrap{padding:3rem 0 4rem;}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html"><span class="icon">M</span> Mojo 1.x</a>
+  <span class="chnum">Chapter 10 / 15</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_advanced_10_tensors.html#shape-inference"></a>
+  <a href="ds_advanced_10_tensors.html#layouts"></a>
+  <a href="ds_advanced_10_tensors.html#kernels"></a>
+  <a href="ds_advanced_10_tensors.html#memory-layout"></a>
+  <a href="ds_advanced_10_tensors.html#quiz"></a>
+  <a href="ds_advanced_10_tensors.html#exercises"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Part IV: Systems Programming</span>
+  <h1>🧬 Tensor <span class="hl">Architecture</span></h1>
+  <p class="dek">Shape inference, memory layouts, compute kernels, and the design of high-performance tensor systems in Mojo.</p>
+
+  <section id="shape-inference">
+    <h2>Shape Inference</h2>
+    <p>Tensor operations require compatible shapes. Shape inference determines output shapes from input shapes without executing the computation. This catches shape errors at compile time and enables optimizations like memory pre-allocation.</p>
+
+    <h3>Broadcasting Rules</h3>
+    <p>Broadcasting allows operations on tensors with different shapes by implicitly expanding dimensions. The rules are: (1) dimensions are aligned from the right, (2) dimensions of size 1 are broadcast to match, (3) missing dimensions are treated as size 1.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo"><code><span class="kw">from</span> tensor <span class="kw">import</span> Tensor, TensorSpec, TensorShape
+
+<span class="kw">def</span> <span class="fn">broadcast_shapes</span>(a: TensorShape, b: TensorShape) raises -&gt; TensorShape:
+    <span class="com">// Align dimensions from the right</span>
+    <span class="kw">var</span> ndim = <span class="fn">max</span>(a.rank(), b.rank())
+    <span class="kw">var</span> result = List[Int]()
+
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(ndim):
+        <span class="kw">var</span> dim_a = <span class="num">1</span> <span class="kw">if</span> i &lt; a.rank() <span class="kw">else</span> a[i]
+        <span class="kw">var</span> dim_b = <span class="num">1</span> <span class="kw">if</span> i &lt; b.rank() <span class="kw">else</span> b[i]
+
+        <span class="kw">if</span> dim_a != dim_b <span class="kw">and</span> dim_a != <span class="num">1</span> <span class="kw">and</span> dim_b != <span class="num">1</span>:
+            <span class="kw">raise</span> <span class="str">"Cannot broadcast shapes"</span>
+
+        result.append(<span class="fn">max</span>(dim_a, dim_b))
+
+    <span class="kw">return</span> TensorShape(result)
+
+
+<span class="com">// Example: (3, 1) + (1, 4) -&gt; (3, 4)</span>
+<span class="kw">var</span> a = Tensor[Float32](TensorShape(<span class="num">3</span>, <span class="num">1</span>))
+<span class="kw">var</span> b = Tensor[Float32](TensorShape(<span class="num">1</span>, <span class="num">4</span>))
+<span class="kw">var</span> c = a + b  <span class="com">// shape: (3, 4) -- broadcast automatically</span>
+
+
+<span class="com">// Reshape with compile-time dimensions</span>
+<span class="kw">def</span> <span class="fn">flatten_batch</span>[N: Int, C: Int, H: Int, W: Int](
+    t: Tensor[Float32]
+) -&gt; Tensor[Float32]:
+    <span class="kw">return</span> t.reshape(N, C * H * W)</code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Compile-time shape checking:</strong>
+      <p>Mojo's parametric types let you encode tensor shapes as type parameters. Shape mismatches are caught at compile time, not runtime. A <code>Tensor[Float32, 3, 224, 224]</code> is a different type from <code>Tensor[Float32, 3, 128, 128]</code>.</p>
+    </div>
+  </section>
+
+  <section id="layouts">
+    <h2>Tensor Layouts</h2>
+    <p>A tensor's layout defines how logical indices map to physical memory addresses. The choice of layout affects cache performance, vectorization, and interoperability with other frameworks.</p>
+
+    <h3>Common Layouts</h3>
+    <ul>
+      <li><strong>Row-major (C-contiguous):</strong> Last dimension varies fastest. Default in NumPy, PyTorch.</li>
+      <li><strong>Column-major (Fortran-contiguous):</strong> First dimension varies fastest. Used in MATLAB, Julia.</li>
+      <li><strong>Strided:</strong> Arbitrary strides between dimensions. Supports views and broadcasting without copying.</li>
+      <li><strong>Packed:</strong> No padding, tightly packed. Best for compute, but limits some operations.</li>
+    </ul>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo2">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo2"><code><span class="kw">from</span> tensor <span class="kw">import</span> Tensor, LayoutTensor, NDBuffer
+
+<span class="com">// Mojo encodes stride pattern at compile time</span>
+<span class="kw">def</span> <span class="fn">row_major_index</span>(i: Int, j: Int, cols: Int) -&gt; Int:
+    <span class="kw">return</span> i * cols + j
+
+<span class="kw">def</span> <span class="fn">col_major_index</span>(i: Int, j: Int, rows: Int) -&gt; Int:
+    <span class="kw">return</span> j * rows + i
+
+
+<span class="com">// Strided tensor view -- no data copy</span>
+<span class="kw">def</span> <span class="fn">transpose_view</span>(
+    t: Tensor[Float32]
+) -&gt; Tensor[Float32]:
+    <span class="com">// Swaps strides, not data</span>
+    <span class="kw">var</span> new_strides = (t.stride(<span class="num">1</span>), t.stride(<span class="num">0</span>))
+    <span class="kw">return</span> Tensor[Float32](
+        data=t.data(),
+        shape=TensorShape(t.shape[<span class="num">1</span>], t.shape[<span class="num">0</span>]),
+        strides=new_strides
+    )
+
+
+<span class="com">// Compute optimal stride for alignment</span>
+<span class="kw">def</span> <span class="fn">aligned_stride</span>(
+    shape: TensorShape,
+    elem_size: Int,
+    alignment: Int = <span class="num">64</span>
+) -&gt; Int:
+    <span class="kw">var</span> stride = shape[<span class="num">1</span>] * elem_size
+    <span class="kw">return</span> (stride + alignment - <span class="num">1</span>) &amp; ~(alignment - <span class="num">1</span>)</code></pre>
+      </div>
+    </div>
+
+    <h3>Memory Layout Comparison</h3>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+      <tbody><tr><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Layout</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Cache Behavior</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Best For</th></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--accent-light);font-family:var(--font-mono);font-size:0.85rem;">Row-major</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Sequential along last dim</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Row-wise operations, C interop</td></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--warning);font-family:var(--font-mono);font-size:0.85rem;">Column-major</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Sequential along first dim</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Column-wise ops, BLAS/LAPACK</td></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--success);font-family:var(--font-mono);font-size:0.85rem;">Strided</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Depends on strides</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Views, slicing, broadcasting</td></tr>
+      <tr><td style="padding:8px 12px;color:var(--text);font-family:var(--font-mono);font-size:0.85rem;">Tiled</td><td style="padding:8px 12px;color:var(--text-muted);">Blocked for L1/L2</td><td style="padding:8px 12px;color:var(--text-muted);">Matrix multiply, convolutions</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="kernels">
+    <h2>Compute Kernels</h2>
+    <p>A kernel is a tightly optimized function that operates on a small tile of data. Modern tensor frameworks decompose large operations into kernel calls. Mojo's SIMD primitives make writing high-performance kernels straightforward.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo3">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo3"><code><span class="kw">from</span> sys.intrinsics <span class="kw">import</span> (
+    simd_load, simd_store, simd_add, simd_mul
+)
+
+<span class="com">// SIMD vectorized element-wise add kernel</span>
+<span class="kw">def</span> <span class="fn">simd_add_kernel</span>(
+    a: Pointer[Float32],
+    b: Pointer[Float32],
+    result: Pointer[Float32],
+    n: Int
+):
+    <span class="kw">var</span> i = <span class="num">0</span>
+    <span class="kw">var</span> simd_width = <span class="num">8</span>
+
+    <span class="com">// Vectorized loop</span>
+    <span class="kw">while</span> i + simd_width &lt;= n:
+        <span class="kw">var</span> va = simd_load[DType.float32, <span class="num">8</span>](a + i)
+        <span class="kw">var</span> vb = simd_load[DType.float32, <span class="num">8</span>](b + i)
+        simd_store(result + i, simd_add(va, vb))
+        i += simd_width
+
+    <span class="com">// Scalar tail</span>
+    <span class="kw">while</span> i &lt; n:
+        result[i] = a[i] + b[i]
+        i += <span class="num">1</span>
+
+
+<span class="com">// ReLU kernel with SIMD</span>
+<span class="kw">def</span> <span class="fn">simd_relu_kernel</span>(
+    input: Pointer[Float32],
+    output: Pointer[Float32],
+    n: Int
+):
+    <span class="kw">var</span> zero = SIMD[DType.float32, <span class="num">8</span>](<span class="num">0.0</span>)
+    <span class="kw">var</span> i = <span class="num">0</span>
+
+    <span class="kw">while</span> i + <span class="num">8</span> &lt;= n:
+        <span class="kw">var</span> v = simd_load[DType.float32, <span class="num">8</span>](input + i)
+        simd_store(output + i, v.max(zero))
+        i += <span class="num">8</span>
+
+    <span class="kw">while</span> i &lt; n:
+        output[i] = <span class="fn">max</span>(input[i], <span class="num">0.0</span>)
+        i += <span class="num">1</span></code></pre>
+      </div>
+    </div>
+
+    <div class="tip-box info-box">
+      <strong>Mojo kernel advantage:</strong>
+      <p>In Python, you need Numba JIT or Cython to write SIMD kernels. In Mojo, SIMD intrinsics are first-class citizens -- the compiler auto-vectorizes scalar loops and gives you explicit control over vector width when needed.</p>
+    </div>
+  </section>
+
+  <section id="memory-layout">
+    <h2>Tensor Memory Layout</h2>
+    <p>Understanding how tensors occupy memory is essential for performance. The memory layout determines cache line utilization, prefetching effectiveness, and whether operations are memory-bound or compute-bound.</p>
+
+    <h3>Cache-Friendly Access Patterns</h3>
+    <p>Modern CPUs load data in cache lines (typically 64 bytes = 16 Float32 values). Sequential access along the contiguous dimension achieves peak memory bandwidth. Strided access causes cache misses and can be 10-100x slower.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo4">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo4"><code><span class="kw">from</span> tensor <span class="kw">import</span> Tensor
+
+<span class="com">// Memory layout analysis</span>
+<span class="kw">def</span> <span class="fn">analyze_layout</span>(t: Tensor[Float32]):
+    <span class="kw">print</span>(<span class="str">"Shape:"</span>, t.shape)
+    <span class="kw">print</span>(<span class="str">"Strides:"</span>, t.strides())
+    <span class="kw">print</span>(<span class="str">"Element size:"</span>, t.element_size(), <span class="str">"bytes"</span>)
+    <span class="kw">print</span>(<span class="str">"Total bytes:"</span>, t.nbytes())
+
+    <span class="com">// Check if contiguous</span>
+    <span class="kw">var</span> is_contiguous = <span class="kw">True</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(t.rank() - <span class="num">1</span>):
+        <span class="kw">if</span> t.stride(i) != t.shape[i + <span class="num">1</span>] * t.stride(i + <span class="num">1</span>):
+            is_contiguous = <span class="kw">False</span>
+            <span class="kw">break</span>
+    <span class="kw">print</span>(<span class="str">"Contiguous:"</span>, is_contiguous)
+
+
+<span class="com">// Pre-allocate output for fused operations</span>
+<span class="kw">def</span> <span class="fn">fused_matmul_add</span>(
+    A: Tensor[Float32],
+    B: Tensor[Float32],
+    bias: Tensor[Float32],
+    output: Tensor[Float32]  <span class="com">// pre-allocated</span>
+):
+    <span class="com">// C = A @ B + bias (fused, no temp allocation)</span>
+    matmul(A, B, output)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(output.shape[<span class="num">0</span>]):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(output.shape[<span class="num">1</span>]):
+            output[i, j] += bias[j]</code></pre>
+      </div>
+    </div>
+
+    <h3>Performance by Access Pattern</h3>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+      <tbody><tr><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Pattern</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Bandwidth</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Use Case</th></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--success);font-family:var(--font-mono);font-size:0.85rem;">Sequential</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--success);">~50 GB/s</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Row-wise sum, contiguous copy</td></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--warning);font-family:var(--font-mono);font-size:0.85rem;">Strided</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--warning);">~2 GB/s</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Column-wise on row-major</td></tr>
+      <tr><td style="padding:8px 12px;color:var(--text);font-family:var(--font-mono);font-size:0.85rem;">Random</td><td style="padding:8px 12px;color:#f87171;">~0.3 GB/s</td><td style="padding:8px 12px;color:var(--text-muted);">Index-based lookups, scatter</td></tr>
+    </tbody></table>
+
+    <div class="info-box">
+      <strong>💡 Key takeaway:</strong>
+      <p>Always prefer operations along the contiguous (innermost) dimension. If you need to operate along a non-contiguous axis, consider transposing the tensor first (zero-cost view) or materializing a contiguous copy for the hot loop.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">Quick Check</div>
+      <div class="qtext">What is the output shape when adding a (3, 1) tensor and a (1, 4) tensor?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">(3, 1)</button>
+        <button class="opt" data-correct="false">(1, 4)</button>
+        <button class="opt" data-correct="true">(3, 4)</button>
+        <button class="opt" data-correct="false">Error: incompatible shapes</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check</div>
+      <div class="qtext">Why is row-wise summation fast on a row-major tensor but column-wise summation is slow?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="true">Row-wise access is sequential in memory, maximizing cache line utilization</button>
+        <button class="opt" data-correct="false">Column-wise summation requires more arithmetic operations</button>
+        <button class="opt" data-correct="false">The CPU cannot perform vertical additions</button>
+        <button class="opt" data-correct="false">Row-major tensors do not store column data</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a function that transposes a 2D tensor by swapping strides (zero-copy view) and verify the transposed tensor shares memory with the original.</li>
+        <li>Implement a SIMD-vectorized multiply kernel and benchmark it against a scalar loop. What speedup do you observe?</li>
+        <li>Design a tiled layout for a 3D tensor that optimizes cache usage for batch matrix multiplication.</li>
+        <li>Write a function that converts a row-major tensor to column-major layout by performing an explicit copy. Compare the performance with a simple reshape.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_advanced_09_autodiff.html">← Chapter 9: Autodiff &amp; Optimization</a>
+    <a class="navbtn" href="ds_advanced_11_training.html">Chapter 11: GPU Programming →</a>
+  </div>
+  <div class="chapnav" style="border-top:none;padding-top:0;margin-top:.75rem;">
+    <a class="navbtn" href="nn_mojo.html">🧮 Hands-on: every shape in a 3-4-1 forward and backward pass</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress=document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.code-block').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
+  });
+});
+
+document.querySelector('.copy-btn')?.addEventListener('click',function(){
+  const active=document.querySelector('.code-block.active');
+  if(active){navigator.clipboard.writeText(active.innerText).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);});}
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,fid){
+  const g=document.getElementById(id),f=document.getElementById(fid);
+  g.querySelectorAll('.opt').forEach(b=>{b.addEventListener('click',()=>{
+    if(g.querySelector('.correct,.wrong'))return;
+    const c=b.dataset.correct==='true';b.classList.add(c?'correct':'wrong');
+    if(!c)g.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});
+    f.textContent=c?'✓ Correct.':'✗ Not quite — correct answer highlighted.';f.classList.add('show');
+  });});
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+</script>
+
+</body></html>

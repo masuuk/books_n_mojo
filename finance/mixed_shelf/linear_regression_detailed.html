@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression – Python &amp; Mojo 1.x</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    
+    <style>
+        /* ── reset & base ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0b1120;
+            --text-secondary: #334155;
+            --border: #e2e8f0;
+            --accent: #2563eb;
+            --accent-light: #dbeafe;
+            --code-bg: #f1f5f9;
+            --code-border: #e2e8f0;
+            --mojo-accent: #8b5cf6;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 76px;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+        /* ── dark mode ──
+           Everything flows through the custom properties, so the whole theme
+           is one override block. Code-token and lede colours that are hardcoded
+           for the light theme get dark-appropriate restatements below. The
+           sidebar is dark in both themes, so it needs no overrides. */
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #0b1020;
+            --surface: #141a2e;
+            --text: #e6eaf6;
+            --text-secondary: #ffe4a3;
+            --border: #2b3350;
+            --accent: #7da7f7;
+            --accent-light: #1a2542;
+            --code-bg: #101527;
+            --code-border: #2b3350;
+            --mojo-accent: #b39dfa;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+        html[data-theme="dark"] .main .lede { color: #9db8f5; }
+        html[data-theme="dark"] .code-block pre .comment { color: #7e8794; }
+        html[data-theme="dark"] .code-block pre .keyword { color: #c4b5fd; }
+        html[data-theme="dark"] .code-block pre .string  { color: #6ee7b7; }
+        html[data-theme="dark"] .code-block pre .number  { color: #fbbf24; }
+        html[data-theme="dark"] .code-block pre .func    { color: #93c5fd; }
+        html[data-theme="dark"] .code-block pre .op      { color: #f87171; }
+
+        #theme-toggle {
+            position: fixed;
+            right: 1.1rem;
+            bottom: 1.1rem;
+            z-index: 150;
+            width: 2.6rem;
+            height: 2.6rem;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+        #theme-toggle:hover { border-color: var(--accent); }
+
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            display: flex;
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        code,
+        .code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+        }
+
+        /* ── sidebar · collapsible, colored ── */
+        .shell-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 100;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .shell-sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+        .sidebar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #171436 0%, #221c56 55%, #2d2879 130%);
+            color: #e0e7ff;
+            border-right: 1px solid rgba(255, 255, 255, 0.09);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 10px 0 38px rgba(23, 20, 54, 0.38);
+        }
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(460px 300px at 92% -12%, rgba(129, 140, 248, 0.38), transparent 62%),
+                radial-gradient(400px 320px at -14% 114%, rgba(99, 102, 241, 0.3), transparent 55%),
+                repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 90px);
+        }
+        .sidebar .brand {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.6rem 1.2rem 1.15rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+            flex-shrink: 0;
+        }
+        .sidebar .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            color: #e0a83c;
+            box-shadow: 0 8px 22px rgba(56, 189, 248, 0.38);
+        }
+        .sidebar .brand-text {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: opacity 0.25s ease, width 0.35s ease;
+        }
+        .sidebar .brand h1 {
+            font-size: 1.02rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: #f4f5ff;
+            margin: 0;
+        }
+        .sidebar .brand p {
+            font-size: 0.68rem;
+            color: #a3b1ee;
+            margin: 0.12rem 0 0;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .sidebar .tocscroll {
+            position: relative;
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.05rem 1rem 1.4rem;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar .toc {
+            list-style: none;
+        }
+        .sidebar .toc li {
+            margin-bottom: 0.15rem;
+        }
+        .sidebar .toc .chapter {
+            font-size: 0.64rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.17em;
+            color: #8d9bf0;
+            padding: 0.9rem 0.7rem 0.35rem;
+            margin-top: 0.35rem;
+            white-space: nowrap;
+        }
+        .sidebar .toc .chapter:first-of-type {
+            margin-top: 0;
+        }
+        .sidebar .toc a {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.42rem 0.65rem;
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: #c6d0f8;
+            border-radius: 10px;
+            border-left: 2px solid transparent;
+            white-space: nowrap;
+            transition: color 0.18s, background 0.18s, transform 0.18s, border-color 0.18s;
+        }
+        .sidebar .toc a:hover {
+            background: rgba(129, 140, 248, 0.15);
+            color: #ffffff;
+            text-decoration: none;
+            transform: translateX(3px);
+        }
+        .sidebar .toc a.active {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            color: #ffffff;
+            border-left-color: #38bdf8;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.42);
+        }
+        .sidebar .toc a.active:hover {
+            transform: none;
+        }
+        .sidebar .sidebar-foot {
+            margin-top: 1.4rem;
+            padding: 1rem 0.7rem 0.2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.09);
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: #ffd98f;
+            white-space: nowrap;
+        }
+        .sidebar-toggle {
+            position: absolute;
+            top: 50%;
+            right: -17px;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            z-index: 120;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            background: #ffffff;
+            color: #4f46e5;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 6px 18px rgba(23, 20, 54, 0.3);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+            font-size: 0;
+        }
+        .sidebar-toggle:hover {
+            box-shadow: 0 8px 26px rgba(99, 102, 241, 0.55);
+        }
+        .sidebar-toggle svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        /* ── collapsed state ── */
+        .shell-sidebar.collapsed .brand {
+            justify-content: center;
+            padding: 1.6rem 0.5rem;
+        }
+        .shell-sidebar.collapsed .brand-text {
+            width: 0;
+            opacity: 0;
+            margin: 0;
+        }
+        .shell-sidebar.collapsed .tocscroll {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .shell-sidebar.collapsed .sidebar-toggle {
+            right: auto;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(180deg);
+        }
+        .shell-sidebar.collapsed ~ .main {
+            margin-left: var(--sidebar-collapsed);
+        }
+        /* ── mobile drawer backdrop ── */
+        .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 12, 38, 0.45);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+            z-index: 95;
+        }
+        .sidebar-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ── main content ── */
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2.5rem 3rem 4rem;
+            max-width: 1000px;
+            min-width: 0;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ── typography ── */
+        .main h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin: 2rem 0 0.75rem;
+            padding-top: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.4rem;
+        }
+        .main h2:first-of-type {
+            margin-top: 0;
+        }
+        .main h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.5rem;
+            letter-spacing: -0.01em;
+        }
+        .main h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 1.25rem 0 0.25rem;
+        }
+        .main p {
+            margin: 0.75rem 0;
+            color: var(--text-secondary);
+        }
+        .main .lede {
+            font-size: 1.05rem;
+            font-style: italic;
+            color: #2345bd;
+            border-left: 3px solid var(--accent);
+            padding-left: 14px;
+            margin: 10px 0 18px 0;
+        }
+        .main ul, .main ol {
+            margin: 0.5rem 0 1rem 1.4rem;
+            color: var(--text-secondary);
+        }
+        .main li {
+            margin: 0.3rem 0;
+        }
+        .main .math {
+            background: var(--code-bg);
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            overflow-x: auto;
+            margin: 0.75rem 0;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .main .note {
+            background: var(--accent-light);
+            padding: 0.8rem 1.2rem;
+            border-radius: var(--radius);
+            border-left: 4px solid var(--accent);
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .main .note strong {
+            color: var(--accent);
+        }
+
+        /* ── code blocks ── */
+        .code-block {
+            margin: 0.75rem 0 1.25rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            background: var(--code-bg);
+        }
+        .code-block .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.3rem 1rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+        .code-block .header .lang {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .code-block .header .lang .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .code-block .header .lang .dot.mojo {
+            background: var(--mojo-accent);
+        }
+        .code-block pre {
+            padding: 1rem 1.25rem;
+            margin: 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            background: var(--code-bg);
+            color: var(--text);
+        }
+        .code-block pre .comment {
+            color: #6b7280;
+            font-style: italic;
+        }
+        .code-block pre .keyword {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+        .code-block pre .string {
+            color: #059669;
+        }
+        .code-block pre .number {
+            color: #d97706;
+        }
+        .code-block pre .func {
+            color: #2563eb;
+        }
+        .code-block pre .op {
+            color: #dc2626;
+        }
+
+        /* ── code layout ── */
+        .code-pair {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin: 0.75rem 0 1.25rem;
+        }
+        .code-pair .code-block {
+            margin: 0;
+        }
+
+        /* ── table ── */
+        .main table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+        }
+        .main table th,
+        .main table td {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .main table th {
+            background: var(--code-bg);
+            font-weight: 600;
+        }
+
+        /* ── responsive · drawer on small screens ── */
+        @media (max-width: 900px) {
+            .shell-sidebar {
+                pointer-events: none;
+                width: var(--sidebar-width) !important;
+            }
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: none;
+                pointer-events: none;
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                pointer-events: auto;
+                box-shadow: 16px 0 48px rgba(23, 20, 54, 0.42);
+            }
+            .sidebar-toggle,
+            .shell-sidebar.collapsed .sidebar-toggle {
+                position: fixed;
+                top: 18px;
+                left: 18px;
+                right: auto;
+                transform: none;
+                pointer-events: auto;
+                box-shadow: 0 8px 22px rgba(23, 20, 54, 0.35);
+            }
+            .sidebar.open ~ .sidebar-toggle {
+                left: calc(var(--sidebar-width) - 17px);
+            }
+            .main,
+            .shell-sidebar.collapsed ~ .main {
+                margin-left: 0 !important;
+                padding: 1.5rem 1rem;
+            }
+            .main h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* ── scrollbar ── */
+        .sidebar .tocscroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar .tocscroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar .tocscroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+        }
+
+        /* ── print-friendly ── */
+        @media print {
+            .shell-sidebar {
+                position: static;
+                width: auto !important;
+                height: auto;
+                box-shadow: none;
+            }
+            .sidebar {
+                position: static;
+                width: var(--sidebar-width);
+                height: auto;
+                transform: none !important;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                box-shadow: none;
+            }
+            .sidebar .tocscroll {
+                opacity: 1 !important;
+                pointer-events: auto;
+            }
+            .shell-sidebar .brand-text {
+                width: auto !important;
+                opacity: 1 !important;
+            }
+            .sidebar-toggle,
+            .sidebar-backdrop {
+                display: none !important;
+            }
+            .main,
+            .shell-sidebar.collapsed ~ .main {
+                margin-left: 0 !important;
+                padding: 1.5rem;
+            }
+            .code-pair {
+                break-inside: avoid;
+            }
+            .code-block {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- SIDEBAR · collapsible, colored                   -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="shell-sidebar" id="shellSidebar">
+        <nav class="sidebar" id="sidebar">
+            <div class="brand">
+                <div class="logo">📈</div>
+                <div class="brand-text">
+                    <h1>Linear Regression</h1>
+                    <p>Mojo 1.x</p>
+                </div>
+            </div>
+            <div class="tocscroll">
+                <ul class="toc">
+                    <li class="chapter">Foundations</li>
+                    <li><a href="#ch1">1. Introduction</a></li>
+                    <li><a href="#ch2">2. Simple Linear Regression</a></li>
+                    <li><a href="#ch3">3. Multiple Linear Regression</a></li>
+
+                    <li class="chapter">Algorithms</li>
+                    <li><a href="#ch4">4. Gradient Descent</a></li>
+                    <li><a href="#ch5">5. Regularization</a></li>
+
+                    <li class="chapter">Evaluation</li>
+                    <li><a href="#ch6">6. Metrics &amp; Diagnostics</a></li>
+                    <li><a href="#ch7">7. Assumptions</a></li>
+
+                    <li class="chapter">Worked Examples</li>
+                    <li><a href="#ch8">8. Farm Yield Prediction</a></li>
+                    <li><a href="#ch9">9. Housing Price Prediction</a></li>
+                    <li><a href="#ch10">10. Sales Forecasting</a></li>
+
+                    <li class="chapter">Why Mojo</li>
+                    <li><a href="#ch11">11. Python vs Mojo 1.x</a></li>
+
+                    <li class="chapter">Reference</li>
+                    <li><a href="#ch12">12. Quick Reference</a></li>
+                    <li><a href="#ch13">13. Cheat Sheet</a></li>
+                    <li><a href="#ch14">14. Exercises</a></li>
+                </ul>
+                <div class="sidebar-foot">14 chapters · 1 language · 1 great model</div>
+            </div>
+        </nav>
+        <button class="sidebar-toggle" id="sideToggle" type="button" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+    </div>
+    <div class="sidebar-backdrop" id="sideBackdrop"></div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- MAIN CONTENT                                     -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <main class="main" id="main">
+
+        <!-- ──── CHAPTER 1 ──── -->
+        <h2 id="ch1">1. Introduction to Linear Regression</h2>
+        <p class="lede">Before any model can learn, it must first admit what it cannot see — and a line, honestly fitted, is the plainest confession of all.</p>
+        <p>
+            <strong>Linear regression</strong> models the relationship between a scalar response
+            <em>y</em> and one or more explanatory variables <em>X</em> by fitting a linear
+            equation to observed data. It is the workhorse of statistical learning — simple,
+            interpretable, and often surprisingly effective. Its appeal is not that it is the most
+            powerful tool in the box, but that it is the most honest: it states plainly how each
+            predictor moves the outcome, and it lets a single number say whether the whole affair
+            was worth the effort.
+        </p>
+        <div class="math">
+            y = β₀ + β₁ x₁ + β₂ x₂ + … + βₚ xₚ + ε
+        </div>
+        <p>
+            The goal is to find coefficients <strong>β</strong> that minimize the sum of squared
+            residuals (ordinary least squares). We implement everything from scratch in
+            <strong>Mojo 1.x</strong> — a high-performance Python superset designed for AI systems.
+            Learning the mathematics first, then writing each kernel out in full, is how the
+            "two-world" gap between prototyping and production finally closes. Where a step is
+            usually reached for NumPy, the listing drives NumPy through Mojo's interop bridge
+            instead; Chapter 11 and the Chapter 12 table map every step back to its NumPy
+            equivalent.
+        </p>
+        <h3>Key quantities</h3>
+        <ul>
+            <li><strong>β₀</strong> (intercept / bias): the value of y when every predictor is 0.</li>
+            <li><strong>βⱼ</strong> (coefficient / weight): expected change in y for a one-unit increase in xⱼ, holding other predictors constant.</li>
+            <li><strong>ε</strong>: unexplained error.</li>
+            <li><strong>ŷ</strong>: the prediction produced by the fitted model.</li>
+        </ul>
+        <div class="note">
+            <strong>💡 ML interpretation:</strong> linear regression is both a statistical model and
+            a supervised-learning algorithm. The training objective is commonly to minimise the sum
+            of squared errors (MSE cost function).
+        </div>
+
+        <!-- ──── CHAPTER 2 ──── -->
+        <h2 id="ch2">2. Simple Linear Regression</h2>
+        <p class="lede">One predictor, one outcome, one line — and yet nearly every idea that matters in statistics hides behind this single straight stroke.</p>
+        <p>
+            The simplest case: one predictor <em>x</em> and one response <em>y</em>.
+            We fit <code>y = w·x + b</code> using least squares. The Ordinary Least Squares (OLS)
+            solution comes from setting the derivatives of the MSE cost to zero — a moment of
+            calculus that hands us the slope and intercept directly, without iteration:
+        </p>
+        <div class="math">
+            w = Σ((xᵢ − x̄)(yᵢ − ȳ)) / Σ(xᵢ − x̄)² &nbsp;&nbsp;,&nbsp;&nbsp; b = ȳ − w·x̄
+        </div>
+        <p>
+            What is being asked here is quietly profound: find the two numbers that make the
+            averaged squared mistakes as small as they can possibly be. Below is a clean
+            class-based Mojo 1.x implementation: explicit typed loops, every weight in plain
+            sight, and systems-level performance and memory safety by construction.
+        </p>
+
+
+        <h4>Mojo 1.x — from scratch</h4>
+        <div class="code-block active">
+            <div class="header">
+                <span class="lang"><span class="dot mojo"></span> Mojo 1.x</span>
+                <span>List — standard prelude</span>
+            </div>
+            <pre><span class="keyword">struct</span> <span class="func">SimpleLinearRegression</span>:
+    <span class="keyword">var</span> w: Float64
+    <span class="keyword">var</span> b: Float64
+
+    <span class="keyword">def</span> <span class="func">__init__</span>(out self):
+        self.w = <span class="number">0.0</span>
+        self.b = <span class="number">0.0</span>
+
+    <span class="keyword">def</span> <span class="func">fit</span>(mut self, X: List[Float64], y: List[Float64]):
+        <span class="keyword">var</span> n = len(X)
+        <span class="keyword">var</span> x_mean: Float64 = <span class="number">0.0</span>
+        <span class="keyword">var</span> y_mean: Float64 = <span class="number">0.0</span>
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+            x_mean += X[i]
+            y_mean += y[i]
+        x_mean /= Float64(n)
+        y_mean /= Float64(n)
+
+        <span class="keyword">var</span> numerator: Float64 = <span class="number">0.0</span>
+        <span class="keyword">var</span> denominator: Float64 = <span class="number">0.0</span>
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+            <span class="keyword">var</span> dx = X[i] - x_mean
+            numerator += dx * (y[i] - y_mean)
+            denominator += dx * dx
+
+        self.w = numerator / denominator
+        self.b = y_mean - self.w * x_mean
+
+    <span class="keyword">def</span> <span class="func">predict</span>(self, X: List[Float64]) -&gt; List[Float64]:
+        <span class="keyword">var</span> preds: List[Float64] = []
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(len(X)):
+            preds.append(self.w * X[i] + self.b)
+        <span class="keyword">return</span> preds</pre>
+        </div>
+
+        <div class="note">
+            <strong>⚡ Mojo difference:</strong> every Mojo function starts with <code>def</code>, yet
+            type annotations let the compiler generate optimized machine code. <code>var</code>/<code>ref</code>
+            bindings and argument conventions — <code>out self</code> for constructors, <code>mut self</code>
+            for methods that change the struct's state — guarantee memory safety at compile time.
+        </div>
+
+        <!-- ──── CHAPTER 3 ──── -->
+        <h2 id="ch3">3. Multiple Linear Regression</h2>
+        <p class="lede">One predictor is a story; several are a negotiation — each feature must earn its room after the others have spoken.</p>
+        <p>
+            With <em>p</em> features, the model becomes <code>y = X·β</code>, and the closed-form
+            solution generalizes into a single line of matrix algebra:
+            <strong>β = (XᵀX)⁻¹ Xᵀ y</strong>. The intercept quietly becomes a column of ones.
+            Each coefficient now answers a harder question — how much does <em>this</em> predictor
+            move the outcome, with every other predictor held still?
+        </p>
+
+        <div class="code-pair">
+            <div class="code-block active">
+                <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x</span></div>
+                <pre><span class="keyword">from</span> std.python <span class="keyword">import</span> Python
+
+<span class="keyword">def</span> <span class="func">main</span>():
+    <span class="keyword">var</span> np = Python.import_module(<span class="string">"numpy"</span>)
+
+    <span class="keyword">var</span> X = np.array([[<span class="number">1</span>, <span class="number">2</span>], [<span class="number">2</span>, <span class="number">3</span>], [<span class="number">3</span>, <span class="number">4</span>], [<span class="number">4</span>, <span class="number">5</span>]])
+    <span class="keyword">var</span> y = np.array([<span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>])
+
+    <span class="comment"># add ones column</span>
+    <span class="keyword">var</span> X_b = np.column_stack([np.ones(X.shape[<span class="number">0</span>]), X])
+
+    <span class="comment"># closed form: β = (XᵀX)⁻¹ Xᵀ y</span>
+    <span class="keyword">var</span> beta = np.linalg.inv(X_b.T @ X_b) @ X_b.T @ y
+
+    <span class="keyword">print</span>(<span class="string">"β ="</span>, beta)  <span class="comment"># [1. 0. 2.] → y = 1 + 0·x₁ + 2·x₂</span>
+
+    <span class="comment"># numerically stable alternative</span>
+    <span class="keyword">var</span> beta2 = np.linalg.lstsq(X_b, y, rcond=None)[<span class="number">0</span>]</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>💡 Mojo note:</strong> Mojo 1.x's standard prelude centers on <code>List</code>,
+            <code>Dict</code>, and <code>SIMD</code> — it ships no built-in tensor or matrix
+            linear-algebra module. This example therefore drives NumPy through Mojo's Python
+            interop (<code>Python.import_module("numpy")</code>), which is the idiomatic way to
+            use BLAS/LAPACK-grade matrix routines from Mojo. When you write your own raw loops
+            (as in Chapters 2, 4, 6, and 8), you stay in pure Mojo with <code>List</code> and
+            compile-time typed code.
+        </div>
+
+        <div class="note">
+            <strong>🧠 Note:</strong> In practice, avoid explicit inversion for numerical stability —
+            use <code>np.linalg.lstsq</code> (Python) or a QR/SVD-based solver (Mojo). The closed
+            form is instructive but not always the most robust, especially when predictors are
+            correlated.
+        </div>
+
+        <!-- ──── CHAPTER 4 ──── -->
+        <h2 id="ch4">4. Gradient Descent</h2>
+        <p class="lede">When the closed form grows too heavy, the line descends a hill it cannot see the bottom of — and yet, step by careful step, it finds the valley floor.</p>
+        <p>
+            For large datasets — or many features — inverting a matrix becomes impractical, so we
+            turn to iterative optimization. The cost is the Mean Squared Error,
+            <code>J(β) = (1/2n) Σ (yᵢ − ŷᵢ)²</code>, and we walk downhill by nudging each parameter
+            in the opposite direction of the gradient:
+        </p>
+        <div class="math">
+            w ← w − α·∂J/∂w &nbsp;&nbsp;,&nbsp;&nbsp; b ← b − α·∂J/∂b
+        </div>
+        <p>
+            Here <strong>α</strong> is the learning rate — the size of each nudge, small enough to
+            stay on the slope, large enough to actually arrive. For multiple features the matrix form
+            is <code>∇J = (1/n) Xᵀ(Xβ − y)</code>.
+        </p>
+
+        <h4>Class-based implementation</h4>
+        <div class="code-pair">
+            <div class="code-block active">
+                <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x</span></div>
+                <pre><span class="keyword">struct</span> <span class="func">GDLinearRegression</span>:
+    <span class="keyword">var</span> w: Float64
+    <span class="keyword">var</span> b: Float64
+    <span class="keyword">var</span> lr: Float64
+    <span class="keyword">var</span> epochs: Int
+
+    <span class="keyword">def</span> <span class="func">__init__</span>(out self, lr: Float64 = <span class="number">0.01</span>, epochs: Int = <span class="number">1000</span>):
+        self.w = <span class="number">0.0</span>
+        self.b = <span class="number">0.0</span>
+        self.lr = lr
+        self.epochs = epochs
+
+    <span class="keyword">def</span> <span class="func">fit</span>(mut self, X: List[Float64], y: List[Float64]):
+        <span class="keyword">var</span> n = Float64(len(X))
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(self.epochs):
+            <span class="keyword">var</span> dw: Float64 = <span class="number">0.0</span>
+            <span class="keyword">var</span> db: Float64 = <span class="number">0.0</span>
+            <span class="keyword">for</span> i <span class="keyword">in</span> range(len(X)):
+                <span class="keyword">var</span> pred = self.w * X[i] + self.b
+                <span class="keyword">var</span> error = y[i] - pred
+                dw += error * X[i]
+                db += error
+            dw = -(<span class="number">2.0</span> / n) * dw
+            db = -(<span class="number">2.0</span> / n) * db
+            self.w -= self.lr * dw
+            self.b -= self.lr * db</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>⚡ Mojo performance:</strong> Mojo functions with type annotations compile and the
+            loops are aggressively optimized, giving C-like speeds natively without a C extension layer.
+        </div>
+
+        <!-- ──── CHAPTER 5 ──── -->
+        <h2 id="ch5">5. Regularization</h2>
+        <p class="lede">A perfect fit on the data you have is often a lie about the data you don't — so we ask the coefficients to be modest, and the model to think twice.</p>
+        <p>
+            To prevent overfitting, we add a penalty on the magnitude of the coefficients to the loss.
+            Ridge (L2) shrinks coefficients smoothly toward zero but never quite lets go; Lasso (L1)
+            is more decisive, driving some coefficients to exactly zero and quietly dropping the
+            features that earn their keep least.
+        </p>
+
+        <h4>Ridge (L2) &amp; Lasso (L1)</h4>
+        <div class="code-pair">
+            <div class="code-block active">
+                <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x</span></div>
+                <pre><span class="keyword">from</span> std.python <span class="keyword">import</span> Python
+
+<span class="keyword">def</span> <span class="func">main</span>():
+    <span class="keyword">var</span> np = Python.import_module(<span class="string">"numpy"</span>)
+
+    <span class="comment"># synthetic 50×5 data</span>
+    <span class="keyword">var</span> X = np.random.randn(<span class="number">50</span>, <span class="number">5</span>)
+    <span class="keyword">var</span> y = <span class="number">2.0</span> * X[:, <span class="number">0</span>] - <span class="number">1.5</span> * X[:, <span class="number">1</span>] + <span class="number">0.5</span> * np.random.randn(<span class="number">50</span>)
+
+    <span class="comment"># Ridge closed form: β = (XᵀX + αI)⁻¹ Xᵀ y</span>
+    <span class="keyword">var</span> alpha = <span class="number">1.0</span>
+    <span class="keyword">var</span> XtX = X.T @ X
+    <span class="keyword">var</span> XtX_reg = XtX + alpha * np.eye(X.shape[<span class="number">1</span>])
+    <span class="keyword">var</span> beta = np.linalg.inv(XtX_reg) @ X.T @ y
+    <span class="keyword">print</span>(<span class="string">"Ridge coeff:"</span>, beta)</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>💡 Mojo note:</strong> The Ridge closed form needs a genuine matrix inverse and
+            identity, which Mojo 1.x has no built-in tensor API for — so, as in Chapter 3, the Mojo
+            example delegates the linear algebra to NumPy via <code>Python.import_module("numpy")</code>.
+        </div>
+
+        <div class="note">
+            <strong>📐 Note:</strong> Lasso has no convenient closed form — it needs coordinate
+            descent or subgradient methods. Ridge has a convenient closed form as shown.
+        </div>
+
+        <!-- ──── CHAPTER 6 ──── -->
+        <h2 id="ch6">6. Metrics &amp; Diagnostics</h2>
+        <p class="lede">A number that describes every mistake at once is a fine summary — but the residuals, looked at directly, will always tell the truer story.</p>
+        <p>
+            A model is only as trustworthy as the questions we ask of it. Numbers give us a
+            summary — how large are the errors on average, and how much of the variation did we
+            actually explain? — while the residuals show us <em>where</em> the model went wrong.
+            Both matter, but they answer different questions.
+        </p>
+        <p>Key metrics to evaluate regression performance:</p>
+        <table>
+            <thead>
+                <tr><th>Metric</th><th>Formula</th><th>Interpretation</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>SSE</strong></td><td>Σ (y − ŷ)²</td><td>Sum of squared residuals</td></tr>
+                <tr><td><strong>MSE</strong></td><td>(1/n) Σ (y − ŷ)²</td><td>Average squared error</td></tr>
+                <tr><td><strong>RMSE</strong></td><td>√MSE</td><td>Same units as y</td></tr>
+                <tr><td><strong>MAE</strong></td><td>(1/n) Σ |y − ŷ|</td><td>Robust to outliers</td></tr>
+                <tr><td><strong>R²</strong></td><td>1 − Σ(y−ŷ)² / Σ(y−ȳ)²</td><td>Proportion of variance explained</td></tr>
+            </tbody>
+        </table>
+
+        <div class="code-pair">
+            <div class="code-block active">
+                <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x</span></div>
+                <pre><span class="keyword">from</span> std.math <span class="keyword">import</span> sqrt, abs
+
+<span class="keyword">def</span> <span class="func">metrics</span>(y_true: List[Float64], y_pred: List[Float64]) -&gt; Dict[String, Float64]:
+    <span class="keyword">var</span> n = len(y_true)
+    <span class="keyword">var</span> sse: Float64 = <span class="number">0.0</span>
+    <span class="keyword">var</span> mae: Float64 = <span class="number">0.0</span>
+    <span class="keyword">var</span> sst: Float64 = <span class="number">0.0</span>
+    <span class="keyword">var</span> mean_y: Float64 = <span class="number">0.0</span>
+    <span class="keyword">for</span> y <span class="keyword">in</span> y_true:
+        mean_y += y
+    mean_y /= Float64(n)
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+        <span class="keyword">var</span> e = y_true[i] - y_pred[i]
+        sse += e * e
+        mae += abs(e)
+        sst += (y_true[i] - mean_y) ** <span class="number">2</span>
+
+    <span class="keyword">var</span> mse = sse / Float64(n)
+    <span class="keyword">var</span> r2 = <span class="number">1.0</span> - sse / sst
+    <span class="keyword">return</span> {<span class="string">"MSE"</span>: mse, <span class="string">"RMSE"</span>: sqrt(mse), <span class="string">"MAE"</span>: mae / Float64(n), <span class="string">"R²"</span>: r2}</pre>
+            </div>
+        </div>
+
+        <h4>Residual diagnostics</h4>
+        <p>
+            Inspecting residuals (e = y − ŷ) reveals model problems. Plot residuals vs predicted
+            values and look for random scatter around zero:
+        </p>
+        <div class="code-block active">
+            <div class="header">
+                <span class="lang"><span class="dot mojo"></span> Mojo 1.x</span>
+                <span>matplotlib via interop</span>
+            </div>
+            <pre><span class="keyword">from</span> std.python <span class="keyword">import</span> Python
+
+<span class="keyword">def</span> <span class="func">main</span>() <span class="keyword">raises</span>:
+    <span class="keyword">var</span> plt = Python.import_module(<span class="string">"matplotlib.pyplot"</span>)
+
+    <span class="comment"># y_hat and residuals come straight out of the metrics step above</span>
+    <span class="comment"># residuals vs predicted</span>
+    plt.scatter(y_hat, residuals)
+    plt.axhline(<span class="number">0</span>)
+    plt.xlabel(<span class="string">"Predicted"</span>)
+    plt.ylabel(<span class="string">"Residual"</span>)
+    plt.title(<span class="string">"Residuals vs predicted"</span>)
+    plt.show()</pre>
+        </div>
+        <div class="note">
+            <strong>💡 Mojo note:</strong> Matplotlib never left the Python world, so the
+            scatter plot is drawn through the interop bridge
+            (<code>Python.import_module("matplotlib.pyplot")</code>) while the residuals being
+            plotted are computed by the Mojo code above.
+        </div>
+        <ul>
+            <li><strong>Curves</strong> → non-linearity.</li>
+            <li><strong>Funnel shape</strong> → non-constant variance (heteroscedasticity).</li>
+            <li><strong>Isolated extremes</strong> → outliers or influential points.</li>
+        </ul>
+
+        <!-- ──── CHAPTER 7 ──── -->
+        <h2 id="ch7">7. Model Assumptions</h2>
+        <p class="lede">The formula is algebra; the assumptions are the fine print. Ignore the fine print and the algebra happily signs its name to a lie.</p>
+        <p>
+            A least-squares line is always computable, but it is only <em>meaningful</em> when the
+            data roughly respect a few pacts. The statistical validity of linear regression rests on
+            several assumptions:
+        </p>
+        <ul>
+            <li><strong>Linearity:</strong> the conditional mean is approximately linear in the predictors.</li>
+            <li><strong>Independence:</strong> observations/errors are not improperly dependent.</li>
+            <li><strong>Constant variance (homoscedasticity):</strong> residual spread is reasonably stable.</li>
+            <li><strong>Normal residuals:</strong> mainly important for small-sample classical inference; not required for useful prediction.</li>
+            <li><strong>No severe multicollinearity:</strong> highly redundant predictors make individual coefficients unstable.</li>
+        </ul>
+        <div class="note">
+            <strong>🧠 Note:</strong> For prediction-focused ML, the normality assumption matters less
+            than linearity, independence, and constant variance.
+        </div>
+
+        <!-- ──── CHAPTER 8 ──── -->
+        <h2 id="ch8">8. Worked Example: Farm Yield Prediction</h2>
+        <p class="lede">Five fields, five harvests, one question worth asking: how much water should a farmer pay for — and what will the crop answer back?</p>
+        <p>
+            Suppose farm yield depends approximately on irrigation water: five fields were measured,
+            each with its own water dose and its own harvest. Real decisions hide behind this simple
+            table. We fit the best-fit line that minimizes squared errors, then use it to predict a
+            yield at a water level nobody irrigated — 225 mm.
+        </p>
+        <table>
+            <thead><tr><th>Water x (mm)</th><th>Yield y (t/ha)</th></tr></thead>
+            <tbody>
+                <tr><td>100</td><td>2.0</td></tr>
+                <tr><td>150</td><td>2.8</td></tr>
+                <tr><td>200</td><td>3.4</td></tr>
+                <tr><td>250</td><td>4.2</td></tr>
+                <tr><td>300</td><td>4.9</td></tr>
+            </tbody>
+        </table>
+        <div class="code-pair">
+            <div class="code-block active">
+                <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x — from first principles</span></div>
+                <pre><span class="keyword">from</span> std.math <span class="keyword">import</span> sqrt
+
+<span class="keyword">def</span> <span class="func">main</span>():
+    <span class="keyword">var</span> x: List[Float64] = [<span class="number">100.0</span>, <span class="number">150.0</span>, <span class="number">200.0</span>, <span class="number">250.0</span>, <span class="number">300.0</span>]
+    <span class="keyword">var</span> y: List[Float64] = [<span class="number">2.0</span>, <span class="number">2.8</span>, <span class="number">3.4</span>, <span class="number">4.2</span>, <span class="number">4.9</span>]
+
+    <span class="keyword">var</span> x_bar = <span class="number">0.0</span>
+    <span class="keyword">var</span> y_bar = <span class="number">0.0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(x)):
+        x_bar += x[i]; y_bar += y[i]
+    x_bar /= Float64(len(x)); y_bar /= Float64(len(y))
+
+    <span class="keyword">var</span> num = <span class="number">0.0</span>
+    <span class="keyword">var</span> den = <span class="number">0.0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(x)):
+        num += (x[i] - x_bar) * (y[i] - y_bar)
+        den += (x[i] - x_bar) ** <span class="number">2</span>
+
+    <span class="keyword">var</span> beta1 = num / den
+    <span class="keyword">var</span> beta0 = y_bar - beta1 * x_bar
+    <span class="keyword">var</span> pred = beta0 + beta1 * <span class="number">225.0</span>
+
+    <span class="keyword">var</span> sse = <span class="number">0.0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(x)):
+        <span class="keyword">var</span> e = y[i] - (beta0 + beta1 * x[i])
+        sse += e * e
+    <span class="keyword">var</span> rmse = sqrt(sse / Float64(len(x)))
+
+    <span class="keyword">print</span>(<span class="string">"slope:"</span>, beta1, <span class="string">"prediction at 225 mm:"</span>, pred, <span class="string">"RMSE:"</span>, rmse)</pre>
+            </div>
+        </div>
+        <p>
+            <strong>Expected result:</strong> the fitted slope is ≈ 0.0146 t/ha per mm, so 225 mm
+            gives a prediction of roughly 3.8 t/ha.
+        </p>
+
+        <!-- ──── CHAPTER 9 ──── -->
+        <h2 id="ch9">9. Worked Example: Housing Price Prediction</h2>
+        <p class="lede">Twenty thousand homes each guessed at a price their owners would accept — and one straight line tries to make sense of them all.</p>
+        <p>
+            Using the <strong>California housing</strong> dataset (8 features, ~20,000 samples) we
+            build, train, and evaluate a linear regression model with a full ML pipeline: split,
+            scale, fit, and judge the model only on homes it has never seen. This is the discipline
+            that separates honest forecasting from curve-fitting nostalgia.
+        </p>
+        <div class="code-block active">
+            <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x — full pipeline</span></div>
+            <pre><span class="keyword">from</span> std.python <span class="keyword">import</span> Python
+
+<span class="keyword">def</span> <span class="func">main</span>() <span class="keyword">raises</span>:
+    <span class="keyword">var</span> np = Python.import_module(<span class="string">"numpy"</span>)
+    <span class="keyword">var</span> datasets = Python.import_module(<span class="string">"sklearn.datasets"</span>)
+
+    <span class="comment"># load — the dataset ships inside scikit-learn, so it arrives over the bridge</span>
+    <span class="keyword">var</span> data = datasets.fetch_california_housing()
+    <span class="keyword">var</span> X = np.array(data.data)
+    <span class="keyword">var</span> y = np.array(data.target)
+
+    <span class="comment"># split — every 5th home is held out: test_size = 0.2, and no seed to forget</span>
+    <span class="keyword">var</span> hold = np.arange(<span class="number">0</span>, len(y), <span class="number">5</span>)
+    <span class="keyword">var</span> X_test = X[hold]
+    <span class="keyword">var</span> y_test = y[hold]
+    <span class="keyword">var</span> X_train = np.delete(X, hold, axis=<span class="number">0</span>)
+    <span class="keyword">var</span> y_train = np.delete(y, hold)
+
+    <span class="comment"># scale — z-scored with TRAIN statistics only, never the test set's</span>
+    <span class="keyword">var</span> mu = X_train.mean(axis=<span class="number">0</span>)
+    <span class="keyword">var</span> sigma = X_train.std(axis=<span class="number">0</span>)
+    <span class="keyword">var</span> X_train_s = (X_train - mu) / sigma
+    <span class="keyword">var</span> X_test_s = (X_test - mu) / sigma
+
+    <span class="comment"># train — the 8×8 normal equations go through NumPy, as in Chapter 3</span>
+    <span class="keyword">var</span> beta = np.linalg.solve(X_train_s.T @ X_train_s, X_train_s.T @ y_train)
+
+    <span class="comment"># predict &amp; evaluate — only on homes the model has never seen</span>
+    <span class="keyword">var</span> y_pred = X_test_s @ beta
+    <span class="keyword">var</span> mse = np.mean((y_test - y_pred) ** <span class="number">2</span>)
+    <span class="keyword">var</span> r2 = <span class="number">1.0</span> - np.sum((y_test - y_pred) ** <span class="number">2</span>) / np.sum((y_test - y_test.mean()) ** <span class="number">2</span>)
+
+    <span class="keyword">print</span>(<span class="string">"Test MSE:"</span>, mse)
+    <span class="keyword">print</span>(<span class="string">"Test R²: "</span>, r2)
+    <span class="keyword">print</span>(<span class="string">"Top 3 coefficients:"</span>, beta[:<span class="number">3</span>])</pre>
+        </div>
+        <div class="note">
+            <strong>💡 Mojo note:</strong> Two stages cross the bridge: the dataset itself
+            (it ships inside scikit-learn) and the 8×8 solve, because Mojo 1.x still ships no
+            built-in matrix API — the same trade-off as Chapter 3. The split, the scaling, and
+            the scoring are the pipeline you just read.
+        </div>
+        <div class="note">
+            <strong>📊 Output:</strong> For California housing, expect <code>MSE ≈ 0.55</code> and
+            <code>R² ≈ 0.58</code>. Feature scaling matters when predictors have very different units.
+        </div>
+
+        <!-- ──── CHAPTER 10 ──── -->
+        <h2 id="ch10">10. Worked Example: Sales Forecasting</h2>
+        <p class="lede">Every dollar of advertising makes a promise to the sales figure; the model's job is to read those promises honestly.</p>
+        <p>
+            Predict monthly sales using advertising spend on TV, radio, and newspaper across 200
+            synthetic observations. The data were made with a known truth — spend <em>does</em>
+            drive sales, but each channel drives it differently — and then noise was added to make the
+            truth harder to see. That is always the deal: a model that recovers the signal beneath
+            the noise has actually learned something.
+        </p>
+        <div class="code-pair">
+            <div class="code-block active">
+                <div class="header"><span class="lang"><span class="dot mojo"></span> Mojo 1.x</span></div>
+                <pre><span class="keyword">from</span> std.python <span class="keyword">import</span> Python
+
+<span class="keyword">def</span> <span class="func">main</span>():
+    <span class="keyword">var</span> np = Python.import_module(<span class="string">"numpy"</span>)
+    np.random.seed(<span class="number">42</span>)
+    <span class="keyword">var</span> n = <span class="number">200</span>
+
+    <span class="keyword">var</span> TV = np.random.uniform(<span class="number">0</span>, <span class="number">300</span>, n)
+    <span class="keyword">var</span> radio = np.random.uniform(<span class="number">0</span>, <span class="number">80</span>, n)
+    <span class="keyword">var</span> newspaper = np.random.uniform(<span class="number">0</span>, <span class="number">60</span>, n)
+    <span class="keyword">var</span> sales = <span class="number">5.0</span> + <span class="number">0.045</span> * TV + <span class="number">0.18</span> * radio + <span class="number">0.01</span> * newspaper + <span class="number">2.0</span> * np.random.randn(n)
+
+    <span class="keyword">var</span> X = np.column_stack([TV, radio, newspaper])
+    <span class="keyword">var</span> y = sales
+
+    <span class="comment"># closed form: β = (XᵀX)⁻¹ Xᵀ y</span>
+    <span class="keyword">var</span> beta = np.linalg.inv(X.T @ X) @ X.T @ y
+    <span class="keyword">var</span> y_pred = X @ beta
+    <span class="keyword">var</span> mae = np.mean(np.abs(y - y_pred))
+
+    <span class="keyword">print</span>(<span class="string">"Coeffs:"</span>, beta)
+    <span class="keyword">print</span>(<span class="string">"MAE:"</span>, mae)</pre>
+            </div>
+        </div>
+        <div class="note">
+            <strong>💡 Mojo note:</strong> The fit here uses the closed form <code>β = (XᵀX)⁻¹Xᵀy</code>
+            through NumPy via Python interop, matching the Chapter 3 pattern — pure-Mojo loops for
+            this would require implementing the matrix solve by hand.
+        </div>
+        <div class="note">
+            <strong>📈 Interpretation:</strong> Radio has the highest coefficient (~0.18), suggesting
+            it is the most effective channel per unit spend in this synthetic dataset.
+        </div>
+
+        <!-- ──── CHAPTER 11 ──── -->
+        <h2 id="ch11">11. Why Mojo 1.x? Python vs Mojo</h2>
+        <p class="lede">Python writes the thought, and C pays the bill for it. Mojo is an attempt to have both the thought and the speed in one language.</p>
+        <p>
+            Python is the undisputed king of AI prototyping, but it suffers from the
+            <strong>"two-world problem"</strong> — easy to write yet slow to execute, requiring
+            C/C++ extensions (like NumPy) for performance. The prototype is born in one world and
+            must be rebuilt in another before it can run fast. <strong>Mojo 1.x</strong> bridges this gap.
+        </p>
+        <ul>
+            <li><strong>Familiar Syntax:</strong> It reads like Python, accessible to data scientists.</li>
+            <li><strong>Systems-Level Performance:</strong> Even though functions are written with
+                <code>def</code>, Mojo's type annotations and strict static typing compile to
+                optimized machine code via LLVM.</li>
+            <li><strong>Memory Safety:</strong> <code>var</code>/<code>ref</code> bindings and
+                argument conventions (<code>mut self</code>, <code>out self</code>) catch data
+                races and memory leaks at compile time.</li>
+            <li><strong>Hardware Utilization:</strong> Scales from CPUs to GPUs and custom AI
+                accelerators without changing the core algorithmic code.</li>
+        </ul>
+        <p>
+            In Python, linear regression relies on NumPy (written in C) for speed. In Mojo, you write
+            the raw loops yourself and achieve C-like speeds natively while keeping Python's expressiveness.
+        </p>
+        <div class="note">
+            <strong>💡 Strategy:</strong> Learn the mathematics first, then implement the kernels
+            yourself — the left column of the Chapter 12 table is what you would write in Python, the
+            right column is what compiles. Use Python's mature ecosystem (scikit-learn, pandas) for
+            production ML, and Mojo where you need compiled high-performance kernels.
+        </div>
+
+        <!-- ──── CHAPTER 12 ──── -->
+        <h2 id="ch12">12. Quick Reference: Python ↔ Mojo</h2>
+        <table>
+            <thead>
+                <tr><th>Concept</th><th>Python (NumPy)</th><th>Mojo 1.x</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Array creation</td><td><code>np.array([1,2,3])</code></td><td><code>var a: List[Int] = [1, 2, 3]</code></td></tr>
+                <tr><td>Ones</td><td><code>np.ones((n,m))</code></td><td><code>[1.0 for _ in range(n)]</code></td></tr>
+                <tr><td>Matrix multiply</td><td><code>A @ B</code></td><td><code>np.matmul(A, B)</code> (Python)</td></tr>
+                <tr><td>Transpose</td><td><code>A.T</code></td><td><code>A.T</code> (Python)</td></tr>
+                <tr><td>Inverse</td><td><code>np.linalg.inv(A)</code></td><td><code>np.linalg.inv(A)</code> (Python)</td></tr>
+                <tr><td>Least squares</td><td><code>np.linalg.lstsq(A, y)</code></td><td><code>np.linalg.lstsq(A, y)</code> (Python)</td></tr>
+                <tr><td>Mean</td><td><code>np.mean(A)</code></td><td>loop, or <code>np.mean(A)</code> (Python)</td></tr>
+                <tr><td>Sum</td><td><code>np.sum(A)</code></td><td>loop, or <code>np.sum(A)</code> (Python)</td></tr>
+                <tr><td>Random normal</td><td><code>np.random.randn(n)</code></td><td><code>np.random.randn(n)</code> (Python)</td></tr>
+                <tr><td>Immutable value</td><td>— (plain assignment)</td><td><code>ref</code> bound reference</td></tr>
+                <tr><td>Mutable value</td><td>— (plain assignment)</td><td><code>var</code></td></tr>
+            </tbody>
+        </table>
+
+        <!-- ──── CHAPTER 13 ──── -->
+        <h2 id="ch13">13. Cheat Sheet</h2>
+        <table>
+            <thead><tr><th>Concept</th><th>Formula / idea</th></tr></thead>
+            <tbody>
+                <tr><td>Prediction</td><td>ŷ = Xβ</td></tr>
+                <tr><td>Simple slope</td><td>β₁ = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)²</td></tr>
+                <tr><td>Intercept</td><td>β₀ = ȳ − β₁x̄</td></tr>
+                <tr><td>Residual</td><td>e = y − ŷ</td></tr>
+                <tr><td>SSE</td><td>Σe²</td></tr>
+                <tr><td>MSE</td><td>SSE/n</td></tr>
+                <tr><td>RMSE</td><td>√MSE</td></tr>
+                <tr><td>MAE</td><td>(1/n)Σ|e|</td></tr>
+                <tr><td>R²</td><td>1 − SSE/SST</td></tr>
+                <tr><td>Normal equation</td><td>β = (XᵀX)⁻¹Xᵀy</td></tr>
+                <tr><td>Ridge (L2)</td><td>β = (XᵀX + αI)⁻¹Xᵀy</td></tr>
+                <tr><td>Gradient descent</td><td>β ← β − α∇J(β)</td></tr>
+            </tbody>
+        </table>
+
+        <!-- ──── CHAPTER 14 ──── -->
+        <h2 id="ch14">14. Exercises</h2>
+        <ol>
+            <li>Change the irrigation dataset and calculate the new slope and intercept.</li>
+            <li>Calculate MAE, MSE and RMSE by hand and in Mojo 1.x.</li>
+            <li>Add temperature as a second predictor to the farm-yield example.</li>
+            <li>Implement multiple regression using a matrix representation (<code>β = (XᵀX)⁻¹Xᵀy</code>).</li>
+            <li>Implement gradient descent with feature standardization.</li>
+            <li>Generate a residual plot and identify heteroscedasticity.</li>
+            <li>Compare ordinary least squares with Ridge regression on a correlated dataset.</li>
+            <li>Build a small predictor and report confidence/prediction uncertainty using an appropriate statistical library.</li>
+        </ol>
+
+        <div style="margin-top:2.5rem; padding-top:1.5rem; border-top:2px solid var(--border); text-align:center; font-size:0.8rem; color:var(--text-secondary);">
+            📖 Linear Regression — Python &amp; Mojo 1.x &nbsp;·&nbsp; Complete study book · Standalone HTML
+        </div>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- scroll-spy for sidebar highlights                 -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <script>
+        (function() {
+            const shell = document.getElementById('shellSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sideToggle');
+            const backdrop = document.getElementById('sideBackdrop');
+            const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+
+            function updateMobile() {
+                if (isMobile()) {
+                    const open = sidebar.classList.contains('open');
+                    backdrop.classList.toggle('show', open);
+                    document.body.style.overflow = open ? 'hidden' : '';
+                } else {
+                    backdrop.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            toggle.addEventListener('click', function() {
+                if (isMobile()) {
+                    sidebar.classList.toggle('open');
+                    updateMobile();
+                } else {
+                    shell.classList.toggle('collapsed');
+                }
+            });
+
+            backdrop.addEventListener('click', function() {
+                sidebar.classList.remove('open');
+                updateMobile();
+            });
+
+            const links = document.querySelectorAll('.sidebar .toc a');
+            const sections = Array.from(links).map(a => document.querySelector(a.getAttribute('href')));
+
+            // close the drawer after choosing a chapter on small screens
+            links.forEach(a => a.addEventListener('click', () => {
+                if (isMobile()) {
+                    sidebar.classList.remove('open');
+                    updateMobile();
+                }
+            }));
+
+            function updateActive() {
+                let currentId = '';
+                const scrollY = window.scrollY + 80;
+                for (let i = 0; i < sections.length; i++) {
+                    const sec = sections[i];
+                    if (sec && sec.offsetTop <= scrollY) {
+                        currentId = sec.id;
+                    }
+                }
+                links.forEach(a => {
+                    a.classList.toggle('active', a.getAttribute('href') === '#' + currentId);
+                });
+            }
+
+            window.addEventListener('scroll', updateActive);
+            window.addEventListener('load', updateActive);
+            window.addEventListener('resize', updateMobile);
+        })();
+    </script>
+
+    <script>
+        /* dark mode: saved choice wins, otherwise dark by default */
+        (function() {
+            const btn = document.getElementById('theme-toggle');
+            let saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) {}
+            const prefersDark = true; // dark is the default unless the reader chose otherwise
+
+            const apply = (dark) => {
+                document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+                btn.textContent = dark ? '☀️' : '🌙';
+                btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+            };
+            apply(saved ? saved === 'dark' : prefersDark);
+            btn.addEventListener('click', () => {
+                const dark = document.documentElement.dataset.theme !== 'dark';
+                apply(dark);
+                try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+            });
+        })();
+    </script>
+
+
+
+</body></html>

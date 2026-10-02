@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geomatics Computations with Mojo 1.x — Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f9; --surface:#ffffff; --ink:#0f1c33; --muted:#51607a;
+  --brand:#0d63e0; --brand2:#12b5a6; --navy:#0b1a33; --deep:#060f23;
+  --amber:#d97706; --amber-bg:#fff7e0; --amber-line:#ecce7e;
+  --red:#dc2626; --red-bg:#fdeaea; --red-line:#eeb3b3;
+  --good-bg:#e9fbf3; --good-line:#9fdfbe;
+  --line:#dde5f0; --soft:#e9effb;
+  --code-bg:#0e1524; --code-ink:#dbe6f7;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.7;font-size:16px}
+h1,h2,h3,.hero-title{font-family:"Space Grotesk",Inter,sans-serif}
+code,pre{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+
+/* --- progress bar ------------------------------------------------- */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+  background:linear-gradient(90deg,var(--brand2),var(--brand));}
+
+/* --- hero --------------------------------------------------------- */
+header{position:relative;color:#eaf1ff;overflow:hidden;
+  background:
+    radial-gradient(900px 420px at 85% -10%,rgba(18,181,166,.35),transparent 60%),
+    radial-gradient(700px 400px at -10% 110%,rgba(13,99,224,.5),transparent 60%),
+    linear-gradient(135deg,var(--deep) 0%,#0b2347 55%,#0d3a86 130%);
+  padding:72px max(7vw,24px) 56px}
+header::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:34px 34px}
+.kicker{position:relative;color:#7ce7d4;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;font-size:.78rem;margin-bottom:14px}
+header h1{position:relative;font-size:clamp(2.1rem,5vw,3.9rem);line-height:1.06;
+  margin:0 0 18px;letter-spacing:-.015em}
+header h1 .grad{background:linear-gradient(90deg,#fff, #9ec5ff 55%, #6ef0dd);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+header .lede{position:relative;max-width:820px;font-size:1.13rem;opacity:.94;color:#d7e4ff}
+.badges{position:relative;margin-top:26px;display:flex;flex-wrap:wrap;gap:10px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.08);backdrop-filter:blur(4px);color:#eaf1ff;
+  border-radius:999px;padding:7px 15px;font-size:.86rem;font-weight:600}
+.chip b{color:#7ce7d4;font-weight:700}
+.hero-links{position:relative;display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hero-links a{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);
+  color:#eaf1ff;text-decoration:none;font-size:.86rem;font-weight:600;transition:.15s}
+.hero-links a:hover{background:rgba(255,255,255,.2);border-color:#7ce7d4;transform:translateY(-1px)}
+.term{position:relative;margin-top:30px;max-width:680px;border-radius:12px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.22);background:rgba(6,15,35,.72);box-shadow:0 18px 45px rgba(0,0,0,.35)}
+.term .tbar{display:flex;gap:6px;padding:9px 14px;background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.14)}
+.term .tbar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.term .tbar i:nth-child(1){background:#ff5f57}.term .tbar i:nth-child(2){background:#febc2e}
+.term .tbar i:nth-child(3){background:#28c840}
+.term pre{margin:0;padding:14px 16px;color:#69f0dd;font-size:.9rem}
+
+/* --- application navigation ---------------------------------------- */
+.app-nav{position:relative;z-index:51;background:#071a33;color:#dbeafe;
+  border-bottom:1px solid #16385a}
+.app-nav-inner{max-width:1180px;margin:0 auto;padding:10px 22px;display:flex;
+  align-items:center;justify-content:space-between;gap:18px}
+.app-nav-brand{display:inline-flex;align-items:center;gap:8px;color:#fff;
+  text-decoration:none;font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;white-space:nowrap}
+.app-nav-brand span{font-size:1.1rem}
+.app-nav-brand small{color:#ffe4a3;font-family:Inter,sans-serif;font-size:.72rem;font-weight:500}
+.app-nav-links{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:4px}
+.app-nav-links a{padding:6px 11px;border-radius:999px;color:#a9c4e2;
+  text-decoration:none;font-size:.78rem;font-weight:600;transition:.15s}
+.app-nav-links a:hover{color:#fff;background:rgba(255,255,255,.1)}
+.app-nav-links a[aria-current="page"]{color:#071a33;background:#7ce7d4}
+
+/* --- tutorial navigation ------------------------------------------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  padding:9px clamp(22px,7vw,60px);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{display:inline-block;margin-right:6px;padding:7px 14px;border-radius:999px;
+  color:var(--muted);text-decoration:none;font-weight:600;font-size:.88rem;transition:.15s}
+nav a:hover{color:var(--brand);background:var(--soft)}
+nav a.active{color:#fff;background:var(--brand)}
+
+/* --- layout ------------------------------------------------------- */
+main{max-width:1180px;margin:auto;padding:40px 22px 90px}
+section{margin:60px 0;scroll-margin-top:74px}
+.secnum{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;
+  border-radius:11px;background:linear-gradient(135deg,var(--brand),#3b82f6);color:#fff;
+  font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.02rem;margin-right:12px;
+  box-shadow:0 6px 16px rgba(13,99,224,.35)}
+h2{font-size:clamp(1.5rem,3vw,2.1rem);display:flex;align-items:center;margin:0 0 6px;letter-spacing:-.01em}
+.secsub{color:var(--muted);max-width:900px;margin:0 0 22px}
+h3{font-size:1.28rem;margin:34px 0 10px;color:#16305e}
+h3 .hash{color:var(--brand2);font-family:"JetBrains Mono",monospace;font-size:.95rem;margin-right:6px}
+p{margin:12px 0}
+strong{color:#0f1c33}
+
+/* --- cards & grid -------------------------------------------------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:18px;margin:20px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;
+  box-shadow:0 6px 20px rgba(19,41,90,.05);transition:transform .15s, box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(19,41,90,.12)}
+.card h4{margin:2px 0 8px;font-family:"Space Grotesk",sans-serif;font-size:1.06rem;color:#16305e}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.tag{display:inline-block;background:var(--soft);color:var(--brand);border-radius:999px;
+  padding:3px 10px;font-size:.74rem;font-weight:700;letter-spacing:.05em;margin-bottom:10px}
+
+/* --- formulas ------------------------------------------------------ */
+.formula{background:var(--soft);border-left:5px solid var(--brand);padding:16px 20px;border-radius:10px;
+  font-family:Cambria,Georgia,serif;font-size:1.12rem;margin:16px 0;color:#10315f}
+.formula .lbl{display:block;font-family:Inter,sans-serif;font-size:.74rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--brand);margin-bottom:6px}
+
+/* --- code blocks --------------------------------------------------- */
+.codeblock{border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:0 12px 34px rgba(10,20,45,.14);
+  border:1px solid #1c2b47}
+.codebar{display:flex;align-items:center;gap:10px;background:#0a1220;padding:10px 16px;
+  border-bottom:1px solid #1c2b47}
+.codebar .dots{display:flex;gap:6px}
+.codebar .dots i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.codebar .dots i:nth-child(1){background:#ff5f57}.codebar .dots i:nth-child(2){background:#febc2e}
+.codebar .dots i:nth-child(3){background:#28c840}
+.slide{display:flex;gap:8px;flex:1;min-width:0;overflow:hidden}
+.slide .fileName{flex:1;overflow:hidden}
+.codeblock pre{margin:0;padding:18px 20px;background:var(--code-bg);color:var(--code-ink);
+  overflow:auto;font-size:.86rem;line-height:1.55}
+.codeblock code{white-space:pre}
+.codeblock pre .kw{color:#c792ea}
+.codeblock pre .fn{color:#70b6ff}
+.codeblock pre .str{color:#7ee2a8}
+.codeblock pre .num{color:#ffcb6b}
+.codeblock pre .op{color:#ff8fbd}
+.codeblock pre .tp{color:#5ad4a8}
+.codeblock pre .cmt{color:#8fa3be;font-style:italic}
+.copyBtn{margin-left:auto;background:transparent;color:#9db4dd;border:1px solid #2b3d63;
+  border-radius:8px;padding:5px 12px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;
+  font-family:Inter,sans-serif}
+.copyBtn:hover{color:#fff;background:#12315f;border-color:#30598f}
+.copyBtn.copied{background:#0f5c46;border-color:#12b5a6;color:#d6fff4}
+
+/* --- output boxes -------------------------------------------------- */
+.out{border:1px solid var(--good-line);background:var(--good-bg);border-radius:12px;
+  padding:12px 16px 12px;margin:10px 0 26px;font-size:.86rem;color:#0b3d2c}
+.out .outlabel{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:.74rem;
+  letter-spacing:.1em;text-transform:uppercase;color:#0a7c55;margin-bottom:4px}
+.out .outlabel::before{content:"";width:9px;height:9px;border-radius:50%;background:#12b5a6}
+.out pre{margin:4px 0 0;font-family:"JetBrains Mono",monospace;line-height:1.6}
+
+/* --- callouts ------------------------------------------------------ */
+.note,.tip,.warn{border-radius:12px;padding:16px 18px;margin:16px 0;border:1px solid}
+.note{background:var(--amber-bg);border-color:var(--amber-line)}
+.tip{background:var(--good-bg);border-color:var(--good-line)}
+.warn{background:var(--red-bg);border-color:var(--red-line)}
+.note .t,.warn .t,.tip .t{font-weight:700;display:block;margin-bottom:5px;font-size:.9rem}
+.note .t{color:var(--amber)} .warn .t{color:var(--red)} .tip .t{color:#0a7c55}
+
+/* --- tables -------------------------------------------------------- */
+.tablewrap{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;background:var(--surface)}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);font-size:.94rem}
+th{background:#f1f5fc;color:#16305e;font-weight:700;font-size:.85rem;letter-spacing:.02em}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:#f8fafd}
+td b{color:#0d63e0}
+
+/* --- misc ---------------------------------------------------------- */
+.mono{font-family:"JetBrains Mono",monospace;font-size:.88em}
+ol.steps>li{margin:9px 0}
+.toTop{position:fixed;right:22px;bottom:22px;width:44px;height:44px;border-radius:12px;border:none;
+  background:var(--brand);color:#fff;font-size:1.15rem;cursor:pointer;box-shadow:0 10px 26px rgba(13,99,224,.45);
+  opacity:0;pointer-events:none;transition:.25s;z-index:55}
+.toTop.show{opacity:1;pointer-events:auto}
+footer{background:var(--deep);color:#b9c8e8;padding:38px clamp(22px,7vw,60px)}
+footer strong{color:#fff;font-family:"Space Grotesk",sans-serif;font-size:1.05rem}
+footer p{margin:6px 0 0;font-size:.9rem;color:#ffe4a3}
+.footer-inner{max-width:1180px;margin:0 auto;display:flex;align-items:flex-end;
+  justify-content:space-between;gap:28px;flex-wrap:wrap}
+.footer-links{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px 16px;max-width:540px}
+.footer-links a{color:#a9c4e2;font-size:.86rem;text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:#7ce7d4}
+@media (max-width:700px){ .footer-links{justify-content:flex-start} }
+
+/* --- cross-navigation --------------------------------------------- */
+.next-steps{margin:60px 0 0;padding:26px;border:1px solid var(--line);border-radius:16px;
+  background:linear-gradient(135deg,#fff,#f4f8ff)}
+.next-steps h3{font-size:1.25rem;margin:0 0 6px;color:#16305e}
+.next-steps > p{color:var(--muted);margin:0 0 18px}
+.next-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.next-link{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:16px;
+  border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);
+  text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s}
+.next-link:hover{transform:translateY(-2px);border-color:#9cc5ff;box-shadow:0 10px 24px rgba(13,99,224,.1)}
+.next-link .tag{margin:0 0 4px}
+.next-link strong{color:#16305e;font-size:.95rem}
+.next-link small{color:var(--muted);font-size:.8rem;line-height:1.45}
+
+.divider{border:none;border-top:1px dashed #c4d2e8;margin:34px 0}
+@media (max-width:700px){ main{padding-top:24px}.secnum{min-width:32px;height:32px;font-size:.9rem}
+  .app-nav-inner{align-items:flex-start;flex-direction:column;gap:8px}
+  .app-nav-links{justify-content:flex-start}
+  .next-steps{padding:20px 16px}
+}
+@media print{
+  nav,#progress,.toTop,.copyBtn,.dots{display:none!important}
+  .codeblock{box-shadow:none;border:1px solid #bbb;page-break-inside:avoid}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<div class="app-nav" role="navigation" aria-label="TutMe application navigation">
+  <div class="app-nav-inner">
+    <a class="app-nav-brand" href="../index.html"><span>🔥</span> TutMe <small>Learning Hub</small></a>
+    <div class="app-nav-links">
+      <a href="../index.html">Home</a>
+      <a href="../single_source_of_truth%20mojo/index.html">Fundamentals</a>
+      <a href="../index.html">Data Science</a>
+      <a href="../index.html">Applications</a>
+      <a href="index.html" aria-current="page">Finance</a>
+      Praxis
+    </div>
+  </div>
+</div>
+
+<div id="progress"></div>
+
+<header>
+  <div class="kicker">Geomatics Mathematics &bull; Mojo 1.x &bull; Survey Computations</div>
+  <h1>Geomatics Computations &amp;<br><span class="grad">Adjustment Mathematics</span></h1>
+  <p class="lede">A stepping-stone tutorial for land surveyors, geomatics students and GIS
+  professionals. Every topic connects the mathematical model to a worked surveying example and a
+  <strong style="color:#fff">Mojo 1.x</strong> implementation &mdash; a Python-superset language compiled
+  to machine code by an MLIR-based compiler, combining Python familiarity with C-like performance.</p>
+  <div class="badges">
+    <span class="chip">Engine <b>Mojo 1.x</b></span>
+    <span class="chip">Paradigm <b>Fused / strongly typed</b></span>
+    <span class="chip">v 0.7 syntax &bull; t-strings</span>
+    <span class="chip">Target <b>land surveyors &amp; geodesists</b></span>
+  </div>
+  <div class="term">
+    <div class="tbar"><i></i><i></i><i></i><span style="margin-left:10px;color:#ffe4a3;font-size:.78rem">geomatics.mojo &mdash; run or compile</span></div>
+    <pre>$ mojo run geomatics.mojo        # JIT: compile &amp; run in one step
+$ mojo build geomatics.mojo      # native, optimised binary (release)</pre>
+  </div>
+  <div class="hero-links" aria-label="Related application resources">
+    <a href="index.html">Browse the Finance shelf →</a>
+    <a href="gnss_surveying.html">GNSS Surveying</a>
+    <a href="karney_krueger_equations.html">Karney–Krueger Equations</a>
+    Practice in Praxis
+  </div>
+</header>
+
+<nav id="toc">
+  <a href="#why-mojo" class="active">Why Mojo</a>
+  <a href="#primer">Mojo Primer</a>
+  <a href="#coordinates">Coordinates</a>
+  <a href="#traverse">Traverse</a>
+  <a href="#intersections">Intersections</a>
+  <a href="#resection">Resection</a>
+  <a href="#areas">Areas</a>
+  <a href="#transformations">Transformations</a>
+  <a href="#adjustment">Adjustment</a>
+  <a href="#least-squares">Least Squares</a>
+  <a href="#levelling">Levelling</a>
+  <a href="#gnss">GNSS</a>
+  <a href="#workflow">Workflow</a>
+  <a href="#toolkit">Toolkit</a>
+  <a href="#practice">Practice</a>
+</nav>
+
+<main>
+
+<!-- ================================================================ -->
+<section id="why-mojo">
+  <h2><span class="secnum">1</span> Why Mojo for Geomatics?</h2>
+  <p class="secsub">Most surveying computations are loops over observations &mdash; computing
+  transports, closing loops, building normal matrices, and joining millions of GNSS epochs. Python is
+  readable but slow; C&#43;&#43; is fast but tedious. <strong>Mojo</strong> sits in the sweet spot:
+  Python-style source that the compiler turns into near-C performance, with static typing that catches
+  blunders before they reach the field report.</p>
+
+  <div class="grid">
+    <div class="card">
+      <span class="tag">SPEED</span>
+      <h4>Compiled, not interpreted</h4>
+      <p>Mojo lowers to MLIR and LLVM. Compute-intensive loops (adjustments, GNSS filtering) run
+      tens to hundreds of times faster than CPython &mdash; without leaving Python &ldquo;feel&rdquo;.</p>
+    </div>
+    <div class="card">
+      <span class="tag">SAFETY</span>
+      <h4>Type-checked at compile time</h4>
+      <p><code>def f(x: Float64) -&gt; Float64</code> lets the compiler verify every number is actually a
+      number. No more surprise string-instead-of-azimuth bugs buried in a 10,000 line survey pipeline.</p>
+    </div>
+    <div class="card">
+      <span class="tag">READABILITY</span>
+      <h4>Python you already know</h4>
+      <p>Indentation, lists, ranges, modules &mdash; unchanged. Learning curve for a Python-literate
+      surveyor is hours, not weeks.</p>
+    </div>
+    <div class="card">
+      <span class="tag">INTEROP</span>
+      <h4>Python interop when you need it</h4>
+      <p>Love <code>pandas</code>/<code>numpy</code>? Mojo can call Python directly, so you can keep the
+      rich ecosystem for I/O and plotting while hot loops stay in Mojo.</p>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="t">What this tutorial assumes</span>
+    You are comfortable with basic surveying maths and at least skimmed Python or another C-like
+    language. We focus on the <em>surveying</em> ideas here; the tab <a href="#primer"
+    style="color:inherit">Mojo Primer</a> is a 2-minute syntax refresher you can jump back to any time.
+  </div>
+
+  <div class="formula"><span class="lbl">Core formulas</span>
+    Distance&nbsp; d = &#8730;(&#916;E&#178; + &#916;N&#178;)<br>
+    Azimuth&nbsp; &#945; = atan2(&#916;E, &#916;N), normalised to the surveying range 0&ndash;360&deg;
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="primer">
+  <h2><span class="secnum">2</span> The Mojo 1.x Primer</h2>
+  <p class="secsub">Mojo keeps Python&rsquo;s readability but adds explicit namespaces, t-strings for
+  interpolation, and typed <code>var</code> declarations. The differences that matter most for surveying
+  code are collected below.</p>
+
+  <div class="tablewrap">
+  <table>
+    <tr><th>Concept</th><th>Python</th><th>Mojo 1.x</th></tr>
+    <tr><td>Binding</td><td><code>a = 54.25</code></td><td><code>var a = 54.25</code> &nbsp;<span class="mono">mutable by default</span></td></tr>
+    <tr><td>Function</td><td><code>def f(x): ...</code></td><td><code>def f(x: Float64) -&gt; Float64</code> &nbsp;<span class="mono">typed</span></td></tr>
+    <tr><td>Interpolation</td><td><code>f"x = {r:.3f}"</code></td><td>t-strings: <code>t"x = {round(r, 3)}"</code> (no f-strings, no <code>.2f</code>)</td></tr>
+    <tr><td>Collection</td><td><code>[1, 2, 3]</code></td><td><code>var xs: List[Float64] = [1.0, 2.0, 3.0]</code></td></tr>
+    <tr><td>Math</td><td><code>import math; math.sin</code></td><td><code>from std.math import sin, cos, pi</code></td></tr>
+    <tr><td>Loop</td><td><code>for i in range(n)</code></td><td>identical, but use <code>len(list)</code> for sizes</td></tr>
+    <tr><td>Rounding</td><td><code>round(x, 3)</code></td><td>prelude <code>round(x, 3)</code> &mdash; already available</td></tr>
+    <tr><td>Print</td><td><code>print(x, end=" ")</code></td><td>identical, incl. <code>end=</code></td></tr>
+  </table>
+  </div>
+
+  <h3><span class="hash">2.1</span> A first honest hello</h3>
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">hello.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>def main():
+    var station: String = "Camp 07 / RN21"    # UTF-8 text is fine
+    var E: Float64 = 526487.125
+    var N: Float64 = 7400152.760
+
+    print(t"Station: {station}")
+    print(t"E = {round(E, 2)} m   N = {round(N, 2)} m")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Station: Camp 07 / RN21
+E = 526487.12 m   N = 7400152.76 m</pre></div>
+
+  <div class="note">
+    <span class="t">Interpolation instead of f-strings</span>
+    Mojo dropped Python&rsquo;s <code>f"..."</code>. Use <strong>t-strings</strong>: <code>t"az = {round(a, 2)}&deg;"</code>.
+    They interpolate purely as text (lazy, safe), and formatting is done with <code>round()</code>,
+    so precision is explicit. This is the one habit that takes a minute to build.
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="coordinates">
+  <h2><span class="secnum">3</span> Coordinate &amp; Direction Computations</h2>
+  <p class="secsub">The inverse problem &mdash; from two coordinates to distance and azimuth &mdash; is
+  the building block of nearly every survey computation that follows.</p>
+
+  <h3><span class="hash">3.1</span> Distance and azimuth between two points</h3>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Point</th><th>Easting</th><th>Northing</th></tr>
+    <tr><td>A</td><td>500000.000</td><td>7400000.000</td></tr>
+    <tr><td>B</td><td>500125.000</td><td>7400090.000</td></tr>
+  </table>
+  </div>
+  <p>Coordinate differences are &#916;E = 125&nbsp;m, &#916;N = 90&nbsp;m. The horizontal distance
+  follows from Pythagoras and the azimuth from the two-argument arctangent, chosen so the quadrant is
+  correct without any case analysis. In Mojo, <code>atan2</code> ships in the <code>std.math</code> module,
+  angles are handled in radians internally, and conversion uses the <code>pi</code> constant at the
+  boundary.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">direct.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import atan2, hypot, pi
+
+def main():
+    var E1: Float64 = 500000.0
+    var N1: Float64 = 7400000.0
+    var E2: Float64 = 500125.0
+    var N2: Float64 = 7400090.0
+
+    var dE = E2 - E1
+    var dN = N2 - N1
+
+    var distance = hypot(dE, dN)
+    var azimuth = atan2(dE, dN) * (180.0 / pi)
+    if azimuth &lt; 0.0:
+        azimuth += 360.0        # normalise to the surveying range
+
+    print(t"dE       = {round(dE, 3)} m")
+    print(t"dN       = {round(dN, 3)} m")
+    print(t"Distance = {round(distance, 3)} m")
+    print(t"Azimuth  = {round(azimuth, 4)} degrees")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>dE       = 125.0 m
+dN       = 90.0 m
+Distance = 154.029 m
+Azimuth  = 54.2461 degrees</pre></div>
+
+  <p><strong>The reverse azimuth</strong> (the direction from B back to A) is simply
+  (&#945; + 180&deg;) mod 360&deg;. Add <code>var reverse = (azimuth + 180.0) % 360.0</code> to check the line.</p>
+
+  <h3><span class="hash">3.2</span> Degrees, minutes and seconds</h3>
+  <p>Field books still record angles as D&deg;M&prime;S&Prime;. The two small converters below show a
+  clean pattern for helper functions in Mojo: explicit argument types, an explicit return tuple, and
+  one-line bodies that are easy to test.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">dms.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import abs
+
+def dms_to_decimal(d: Float64, m: Float64, s: Float64) -&gt; Float64:
+    var sign = -1.0 if d &lt; 0.0 else 1.0
+    return sign * (abs(d) + m / 60.0 + s / 3600.0)
+
+def decimal_to_dms(angle: Float64) -&gt; Tuple[Int, Int, Float64]:
+    var a = angle % 360.0
+    var d = Int(a)
+    a = (a - Float64(d)) * 60.0
+    var m = Int(a)
+    var sec = (a - Float64(m)) * 60.0
+    return d, m, sec
+
+def main():
+    var az = dms_to_decimal(54.0, 15.0, 0.0)
+    print(t"54 15 00  -&gt;  {round(az, 4)} degrees")
+
+    var (deg, minutes, seconds) = decimal_to_dms(az)
+    print(t"and back   -&gt;  {deg} deg {minutes} min {round(seconds, 1)} sec")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>54 15 00  -&gt;  54.25 degrees
+and back   -&gt;  54 deg 15 min 0.0 sec</pre></div>
+</section>
+
+<!-- ================================================================ -->
+<section id="traverse">
+  <h2><span class="secnum">4</span> Traverse Computations</h2>
+  <p class="secsub">A <strong>traverse</strong> is a sequence of connected survey lines. For every leg
+  of length L and azimuth &#945;, the coordinate increments are &#916;E = L&nbsp;sin&#945; and
+  &#916;N = L&nbsp;cos&#945;. Because the survey&rsquo;s z-axis points down, azimuth is measured
+  clockwise from <em>north</em>, which is exactly what <code>atan2</code>/<code>sin</code>/<code>cos</code>
+  sign conventions support.</p>
+
+  <div class="formula">
+    &#916;E = L sin&#945; &nbsp;&nbsp;&nbsp; &#916;N = L cos&#945;
+  </div>
+
+  <h3><span class="hash">4.1</span> Coordinate computation from a traverse</h3>
+  <p>We accumulate coordinates leg by leg. Note the loop reads a list of <code>(length,
+  azimuth)</code> tuples &mdash; Mojo&rsquo;s <code>List</code> can hold tuples just like Python lists
+  hold arrays.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">traverse.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import cos, pi, sin
+
+def main():
+    var E = 1000.0                    # easting  (m)
+    var N = 2000.0                    # northing (m)
+    var lines: List[Tuple[Float64, Float64]] = [  # (length, azimuth in degrees)
+        (100.0, 0.0),
+        (80.0, 90.0),
+        (100.0, 180.0),
+        (80.0, 270.0),
+    ]
+
+    print(t"0  E = {E}  N = {N}")
+    for i in range(len(lines)):
+        var (length, azDeg) = lines[i]
+        var a = azDeg * (pi / 180.0)
+        E += length * sin(a)          # dE = L sin(azimuth)
+        N += length * cos(a)          # dN = L cos(azimuth)
+        print(t"{i + 1}  E = {round(E, 3)}  N = {round(N, 3)}")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>0  E = 1000.0  N = 2000.0
+1  E = 1000.0  N = 2100.0
+2  E = 1080.0  N = 2100.0
+3  E = 1080.0  N = 2000.0
+4  E = 1000.0  N = 2000.0</pre></div>
+
+  <h3><span class="hash">4.2</span> Traverse misclosure</h3>
+  <p>For a closed traverse the expected sums are &#931;&#916;E = 0 and &#931;&#916;N = 0. The actual
+  residuals define the <strong>linear misclosure</strong>
+  f = &#8730;(f&#178;<sub>E</sub> + f&#178;<sub>N</sub>), and its ratio to the perimeter is the
+  relative precision &mdash; a quick quality gate in the field.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">misclosure.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import hypot
+
+def main():
+    var dE: List[Float64] = [100.02, -0.15, -99.94, 0.08]
+    var dN: List[Float64] = [0.05, 79.91, -0.04, -80.12]
+
+    var closureE: Float64 = 0.0
+    var closureN: Float64 = 0.0
+    var perimeter: Float64 = 0.0
+    for i in range(len(dE)):
+        closureE += dE[i]
+        closureN += dN[i]
+        perimeter += hypot(dE[i], dN[i])
+
+    var linear = hypot(closureE, closureN)
+
+    print(t"E misclosure       = {round(closureE, 4)} m")
+    print(t"N misclosure       = {round(closureN, 4)} m")
+    print(t"Linear misclosure  = {round(linear, 4)} m")
+    print(t"Relative precision = 1 : {Int(round(perimeter / linear, 0))}")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>E misclosure       = 0.01 m
+N misclosure       = -0.2 m
+Linear misclosure  = 0.2002 m
+Relative precision = 1 : 1798</pre></div>
+
+  <h3><span class="hash">4.3</span> Bowditch (compass) rule</h3>
+  <p>The compass rule distributes the misclosure over the legs in proportion to leg length:
+  every leg receives c = &minus;f &middot; (L&#8332;/&#931;L). It is a conventional rule whose merit is
+  simplicity; a formal network adjustment (Section 10) uses an observation-error model instead.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">bowditch.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import abs
+
+def main():
+    var dE: List[Float64] = [100.02, -0.15, -99.94, 0.08]
+    var dN: List[Float64] = [0.05, 79.91, -0.04, -80.12]
+    var lengths: List[Float64] = [100.02, 79.91, 99.94, 80.12]
+
+    var total: Float64 = 0.0
+    for i in range(len(lengths)):
+        total += lengths[i]
+
+    # closing errors from the misclosure run
+    var fE: Float64 = 0.01
+    var fN: Float64 = -0.20
+
+    var adjE: List[Float64] = []
+    var adjN: List[Float64] = []
+    for i in range(len(lengths)):
+        var weight = lengths[i] / total
+        adjE.append(dE[i] - fE * weight)   # distribute -fE over the legs
+        adjN.append(dN[i] - fN * weight)
+        print(t"leg {i}:  dE = {round(adjE[i], 4)}   dN = {round(adjN[i], 4)}")
+
+    var checkE: Float64 = 0.0
+    var checkN: Float64 = 0.0
+    for i in range(len(adjE)):
+        checkE += adjE[i]
+        checkN += adjN[i]
+    print(t"closure check  sum(dE) = {abs(round(checkE, 8))}  sum(dN) = {abs(round(checkN, 8))}")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>leg 0:  dE = 100.0172   dN = 0.1056
+leg 1:  dE = -0.1522   dN = 79.9544
+leg 2:  dE = -99.9428   dN = 0.0155
+leg 3:  dE = 0.0778   dN = -80.0755
+closure check  sum(dE) = 0.0  sum(dN) = 0.0</pre></div>
+
+  <div class="note"><span class="t">Important</span>
+  Bowditch is a conventional distribution and has no stochastic model. Use it as a quick field tool;
+  prefer a least-squares network adjustment when precision estimates and residual diagnostics matter
+  for the deliverable.</div>
+</section>
+
+<!-- ================================================================ -->
+<section id="intersections">
+  <h2><span class="secnum">5</span> Survey Intersections</h2>
+  <p class="secsub">Two known stations and two measured azimuths to a new point give two rays whose
+  intersection is the unknown point &mdash; the <strong>forward intersection</strong> problem.</p>
+
+  <h3><span class="hash">5.1</span> Forward intersection from two stations</h3>
+  <p>Writing the two observation equations as A + t&middot;u<sub>A</sub> = B + s&middot;u<sub>B</sub>
+  (with u the direction cosines of each ray) yields a 2&times;2 linear system whose solution is the
+  intersection. We solve it in closed form with Cramer&rsquo;s rule &mdash; no arrays, no packages
+  needed.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">intersect.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import cos, pi, sin
+
+def main():
+    var AE: Float64 = 1000.0    # known station A
+    var AN: Float64 = 2000.0
+    var BE: Float64 = 1300.0    # known station B
+    var BN: Float64 = 2050.0
+
+    var azA = 45.0 * (pi / 180.0)     # measured azimuth A -&gt; P
+    var azB = 315.0 * (pi / 180.0)    # measured azimuth B -&gt; P
+
+    var uAE = sin(azA)          # unit vector along ray A -&gt; P
+    var uAN = cos(azA)
+    var uBE = sin(azB)          # unit vector along ray B -&gt; P
+    var uBN = cos(azB)
+
+    # A + t*uA = B + s*uB   ==&gt;   M * [t, s]^T = [dE, dN]
+    var dE = BE - AE
+    var dN = BN - AN
+
+    var det = uAE * (-uBN) - (-uBE) * uAN
+    var t = (dE * (-uBN) - (-uBE) * dN) / det
+    var s = (uAE * dN - dE * uAN) / det
+
+    var PE = AE + t * uAE
+    var PN = AN + t * uAN
+
+    print(t"Intersection   P = ({round(PE, 3)}, {round(PN, 3)})")
+    print(t"Distance from A  = {round(t, 3)} m")
+    print(t"Distance from B  = {round(s, 3)} m")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Intersection   P = (1175.0, 2175.0)
+Distance from A  = 247.487 m
+Distance from B  = 176.777 m</pre></div>
+
+  <div class="tip"><span class="t">Geometry warning</span>
+  When the two rays are nearly parallel, <code>det</code> collapses and the solution explodes.
+  Always check |det| &gt; 0.001 in production code and flag weak intersections.</div>
+</section>
+
+<!-- ================================================================ -->
+<section id="resection">
+  <h2><span class="secnum">6</span> Resection</h2>
+  <p>In <strong>resection</strong> the instrument occupies the <em>unknown</em> station P and observes
+  angles, directions or distances to <em>known</em> control points &mdash; the mirror image of the
+  intersection problem, and the basis of &ldquo;free stationing&rdquo; with a total station.</p>
+
+  <div class="grid">
+    <div class="card"><span class="tag">ANGLES</span><h4>Three-point (Tienstra)</h4>
+      <p>Two measured angles at P to three known points give a unique closed-form solution &mdash;
+      ideal when only a few targets are visible.</p></div>
+    <div class="card"><span class="tag">DIRECTIONS</span><h4>Least-squares free station</h4>
+      <p>Four or more targets add redundancy. Unknowns: E, N and the orientation of the circle &mdash;
+      with proper sigma notation.</p></div>
+    <div class="card"><span class="tag">DISTANCES</span><h4>Distance resection</h4>
+      <p>Distances to two known points give two candidates; a third distance selects the correct one.</p></div>
+  </div>
+
+  <h3><span class="hash">6.1</span> Geometry and minimum data</h3>
+  <p>Unknown coordinates (E, N) need at least two independent observations. With three known points
+  A, B, C, the angles measured at P are &#945; = &#8736;BPC, &#946; = &#8736;CPA and
+  &#947; = &#8736;APB; because they must satisfy &#945; + &#946; + &#947; = 360&deg;, only two are
+  independent and the third closes the loop as a check.</p>
+
+  <h3><span class="hash">6.2</span> Tienstra&rsquo;s formula</h3>
+  <p>Let A, B, C also denote the <em>interior angles</em> of triangle ABC, and let &#945;, &#946;, &#947;
+  be the observed angles at P opposite them. The weights
+  K<sub>i</sub> = 1 / (cot(&middot;) &minus; cot(&middot;)) combine the <em>known</em> triangulated
+  angles with the <em>observed</em> circle angles, and P is their weighted centroid of the control
+  coordinates:</p>
+  <div class="formula">
+    E<sub>P</sub> = (K&#8321;E<sub>A</sub> + K&#8322;E<sub>B</sub> + K&#8323;E<sub>C</sub>) / (K&#8321; + K&#8322; + K&#8323;)<br>
+    N<sub>P</sub> = (K&#8321;N<sub>A</sub> + K&#8322;N<sub>B</sub> + K&#8323;N<sub>C</sub>) / (K&#8321; + K&#8322; + K&#8323;)
+  </div>
+
+  <div class="tablewrap">
+  <table>
+    <tr><th>Point</th><th>Easting</th><th>Northing</th><th>Interior (known)</th><th>Observed at P</th></tr>
+    <tr><td>A</td><td>1000.000</td><td>2000.000</td><td>A = 53.973&deg;</td><td>&#945; = &#8736;BPC = 110.450&deg;</td></tr>
+    <tr><td>B</td><td>1300.000</td><td>2050.000</td><td>B = 68.499&deg;</td><td>&#946; = &#8736;CPA = 133.781&deg;</td></tr>
+    <tr><td>C</td><td>1150.000</td><td>2300.000</td><td>C = 57.529&deg;</td><td>&#947; = &#8736;APB = 115.769&deg;</td></tr>
+  </table>
+  </div>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">tienstra.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import acos, pi, sqrt, tan
+
+def norm(ex: Float64, ny: Float64) -&gt; Float64:
+    return sqrt(ex * ex + ny * ny)
+
+def interior_angle(
+    px: Float64, py: Float64,
+    qx: Float64, qy: Float64,
+    rx: Float64, ry: Float64,
+) -&gt; Float64:
+    # interior angle at P between the rays P-&gt;Q and P-&gt;R
+    var ux = qx - px
+    var uy = qy - py
+    var vx = rx - px
+    var vy = ry - py
+    var cosv = (ux * vx + uy * vy) / (norm(ux, uy) * norm(vx, vy))
+    return acos(cosv)
+
+def cot(x: Float64) -&gt; Float64:
+    return 1.0 / tan(x)
+
+def main():
+    # known control points
+    var AE: Float64 = 1000.0
+    var AN: Float64 = 2000.0
+    var BE: Float64 = 1300.0
+    var BN: Float64 = 2050.0
+    var CE: Float64 = 1150.0
+    var CN: Float64 = 2300.0
+
+    # observed angles at P (degrees)
+    var alpha = 110.449548 * (pi / 180.0)    # angle BPC
+    var beta = 133.781125 * (pi / 180.0)     # angle CPA
+    var gamma = 115.769328 * (pi / 180.0)    # angle APB
+
+    # interior angles of triangle ABC
+    var angA = interior_angle(AE, AN, BE, BN, CE, CN)
+    var angB = interior_angle(BE, BN, CE, CN, AE, AN)
+    var angC = interior_angle(CE, CN, AE, AN, BE, BN)
+
+    # Tienstra weights K = 1 / (cot(interior) - cot(observed))
+    var K1 = 1.0 / (cot(angA) - cot(alpha))
+    var K2 = 1.0 / (cot(angB) - cot(beta))
+    var K3 = 1.0 / (cot(angC) - cot(gamma))
+
+    var PE = (K1 * AE + K2 * BE + K3 * CE) / (K1 + K2 + K3)
+    var PN = (K1 * AN + K2 * BN + K3 * CN) / (K1 + K2 + K3)
+
+    print(t"P = ({round(PE, 3)}, {round(PN, 3)})")
+    print(t"Weights  K1 = {round(K1, 4)}  K2 = {round(K2, 4)}  K3 = {round(K3, 4)}")
+
+    # angle closure: alpha + beta + gamma should be 360 degrees
+    var closureArc = (alpha + beta + gamma) * (180.0 / pi) * 3600.0 - 360.0 * 3600.0
+    print(t"Angle closure error = {round(closureArc, 2)} arc-seconds")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>P = (1140.0, 2120.0)
+Weights  K1 = 0.909  K2 = 0.7395  K3 = 0.8936
+Angle closure error = 0.0 arc-seconds</pre></div>
+
+  <div class="note"><span class="t">Signed angles</span>
+  The code above uses unsigned angles, so it covers the standard configuration with P inside triangle
+  ABC. When P lies outside the triangle, the signs of the K-weights change &mdash; use the
+  least-squares method in 6.4, which handles any geometry.</div>
+
+  <h3><span class="hash">6.3</span> The danger circle</h3>
+  <p>Resection is singular when P sits on, or near, the circle through A, B, C (the
+  <em>circumcircle</em>): every point on that circle sees the three chords under the same angles, so
+  the observations cannot locate P. The Tienstra denominators vanish and the error grows without bound.
+  The margin below is the radial distance from P to the circumcircle.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">danger_circle.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import abs, sqrt
+
+def circumcircle(
+    ax: Float64, ay: Float64,
+    bx: Float64, by: Float64,
+    cx: Float64, cy: Float64,
+) -&gt; Tuple[Float64, Float64, Float64]:
+    # centre (ux, uy) and radius r of the circle through the three points
+    var d = 2.0 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
+    var ux = ((ax * ax + ay * ay) * (by - cy)
+            + (bx * bx + by * by) * (cy - ay)
+            + (cx * cx + cy * cy) * (ay - by)) / d
+    var uy = ((ax * ax + ay * ay) * (cx - bx)
+            + (bx * bx + by * by) * (ax - cx)
+            + (cx * cx + cy * cy) * (bx - ax)) / d
+    var r = sqrt((ax - ux) * (ax - ux) + (ay - uy) * (ay - uy))
+    return ux, uy, r
+
+def main():
+    # control points and the Tienstra result from the previous example
+    var AE: Float64 = 1000.0
+    var AN: Float64 = 2000.0
+    var BE: Float64 = 1300.0
+    var BN: Float64 = 2050.0
+    var CE: Float64 = 1150.0
+    var CN: Float64 = 2300.0
+    var PE: Float64 = 1140.0
+    var PN: Float64 = 2120.0
+
+    var (ox, oy, cr) = circumcircle(AE, AN, BE, BN, CE, CN)
+    var margin = abs(sqrt((PE - ox) * (PE - ox) + (PN - oy) * (PN - oy)) - cr)
+
+    print(t"Circumcircle centre   O = ({round(ox, 3)}, {round(oy, 3)})")
+    print(t"Circumcircle radius   R = {round(cr, 3)} m")
+    print(t"Distance from danger circle = {round(margin, 3)} m")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Circumcircle centre   O = (1134.091, 2120.455)
+Circumcircle radius   R = 180.249 m
+Distance from danger circle = 174.322 m</pre></div>
+
+  <div class="warn"><span class="t">Field rule</span>
+  Avoid setting up on or near the circumcircle. Keep P inside triangle ABC with all three angles at P
+  roughly between 60&deg; and 150&deg;. Prefer four or more targets so weak geometry (and control
+  blunders) reveal themselves in the residuals.</div>
+
+  <h3><span class="hash">6.4</span> Least-squares free station</h3>
+  <p>A total station measures <em>directions</em> to n known targets against an unknown zero-circle
+  orientation z. The unknowns are (E, N, z) and each observation contributes one equation:</p>
+  <div class="formula">
+    r&#7522; + v&#7522; = &#945;&#7522;(E, N) &minus; z, &nbsp;&nbsp;
+    &#945;&#7522; = atan2(E&#7522; &minus; E, N&#7522; &minus; N)
+  </div>
+  <p>The equations are non-linear, so around approximate values (E&#8320;, N&#8320;, z&#8320;) we
+  linearise with partial derivatives (&#8706;&#945;/&#8706;E = &#8722;&#916;N/d&#178;,
+  &#8706;&#945;/&#8706;N = +&#916;E/d&#178;, &#8706;&#945;/&#8706;z = &#8722;1) and iterate. The
+  result is the familiar normal-equations estimate <b>x&#770; = (A&#7512;A)&#8315;&#185;A&#7512;b</b>,
+  plus a posteriori variance and covariance for E, N, z. This single block shows Mojo&rsquo;s strengths:
+  a local 3&times;3 solver, typed functions, and <code>range()</code> loops &mdash; all fully native.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">free_station.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import abs, atan2, pi, sqrt
+
+# ---------------------------------------------------------------
+# Least-squares free station (resection) in Mojo 1.x
+# Unknowns: easting E, northing N, circle orientation z.
+# Model: direction_i + v_i = azimuth_i(E, N) - z
+# ---------------------------------------------------------------
+
+def solve33(a: List[Float64], b: List[Float64]) -&gt; List[Float64]:
+    """Solve the 3x3 system a*x = b by Gaussian elimination."""
+    var m: List[Float64] = []
+    for i in range(9):
+        m.append(a[i])
+    var rhs: List[Float64] = [b[0], b[1], b[2]]
+
+    for col in range(3):
+        var pivot = col
+        for r in range(col + 1, 3):
+            if abs(m[r * 3 + col]) &gt; abs(m[pivot * 3 + col]):
+                pivot = r
+        if pivot != col:                     # partial pivot
+            for c in range(col, 3):
+                var tmp = m[col * 3 + c]
+                m[col * 3 + c] = m[pivot * 3 + c]
+                m[pivot * 3 + c] = tmp
+            var tmpb = rhs[col]
+            rhs[col] = rhs[pivot]
+            rhs[pivot] = tmpb
+        for r in range(col + 1, 3):          # eliminate column below pivot
+            var factor = m[r * 3 + col] / m[col * 3 + col]
+            for c in range(col, 3):
+                m[r * 3 + c] -= factor * m[col * 3 + c]
+            rhs[r] -= factor * rhs[col]
+
+    var x: List[Float64] = [0.0, 0.0, 0.0]  # back-substitution
+    for i in range(2, -1, -1):
+        var s = rhs[i]
+        for c in range(i + 1, 3):
+            s -= m[i * 3 + c] * x[c]
+        x[i] = s / m[i * 3 + i]
+    return x^
+
+def inverse33(a: List[Float64]) -&gt; List[Float64]:
+    """Invert a 3x3 matrix by solving for the three unit columns."""
+    var inv: List[Float64] = []
+    var e0: List[Float64] = [1.0, 0.0, 0.0]
+    var e1: List[Float64] = [0.0, 1.0, 0.0]
+    var e2: List[Float64] = [0.0, 0.0, 1.0]
+    var c0 = solve33(a, e0)
+    var c1 = solve33(a, e1)
+    var c2 = solve33(a, e2)
+    inv.append(c0[0])
+    inv.append(c1[0])
+    inv.append(c2[0])
+    inv.append(c0[1])
+    inv.append(c1[1])
+    inv.append(c2[1])
+    inv.append(c0[2])
+    inv.append(c1[2])
+    inv.append(c2[2])
+    return inv^
+
+def azimuth(tE: Float64, tN: Float64, sE: Float64, sN: Float64) -&gt; Float64:
+    # surveying azimuth (0..2pi) from station to target
+    return (atan2(tE - sE, tN - sN) + 2.0 * pi) % (2.0 * pi)
+
+def main():
+    # four known targets as a flat list of (E, N) pairs
+    var targets: List[Float64] = [
+        1000.0, 2000.0,
+        1300.0, 2050.0,
+        1150.0, 2300.0,
+        1250.0, 2250.0,
+    ]
+    var n: Int = 4
+
+    # observed directions (radians), simulated from P = (1140, 2120),
+    # z = 10 degrees, with about 1 arc-second noise
+    var obs: List[Float64] = [
+        3.829235601,
+        1.808669965,
+        6.164152826,
+        0.527716734,
+    ]
+
+    # iterative least squares (approximate E and N from a Tienstra result)
+    var E = 1100.0
+    var N = 2100.0
+    var z = 0.0
+    var ata: List[Float64] = []
+    var atb: List[Float64] = []
+
+    for _ in range(15):
+        ata = [
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+        ]
+        atb = [0.0, 0.0, 0.0]
+
+        for i in range(n):
+            var dEi = targets[2 * i] - E
+            var dNi = targets[2 * i + 1] - N
+            var d2 = dEi * dEi + dNi * dNi
+            var alpha = azimuth(targets[2 * i], targets[2 * i + 1], E, N)
+            # misclosure wrapped to (-pi, pi]
+            var b = (obs[i] - (alpha - z) + pi) % (2.0 * pi) - pi
+
+            # design row: [-dN/d2, dE/d2, -1]
+            var a1 = -dNi / d2
+            var a2 = dEi / d2
+            var a3 = -1.0
+
+            # accumulate A^T A (symmetric) and A^T b
+            ata[0] += a1 * a1
+            ata[1] += a1 * a2
+            ata[2] += a1 * a3
+            ata[4] += a2 * a2
+            ata[5] += a2 * a3
+            ata[8] += a3 * a3
+            atb[0] += a1 * b
+            atb[1] += a2 * b
+            atb[2] += a3 * b
+
+        ata[3] = ata[1]      # mirror the symmetric entries
+        ata[6] = ata[2]
+        ata[7] = ata[5]
+
+        var dx = solve33(ata, atb)
+        E += dx[0]
+        N += dx[1]
+        z += dx[2]
+
+        if abs(dx[0]) + abs(dx[1]) + abs(dx[2]) &lt; 1e-9:
+            break
+
+    # quality statistics
+    var vv = 0.0
+    for i in range(n):
+        var dEi = targets[2 * i] - E
+        var dNi = targets[2 * i + 1] - N
+        var alpha = azimuth(targets[2 * i], targets[2 * i + 1], E, N)
+        var b = (obs[i] - (alpha - z) + pi) % (2.0 * pi) - pi
+        vv += b * b
+
+    var sigma0 = sqrt(vv / Float64(n - 3))  # unit-weight std. dev.
+    var cov = inverse33(ata)                 # Cx = sigma0^2 * (A^T A)^-1
+    var sE = sqrt(sigma0 * sigma0 * cov[0])
+    var sN = sqrt(sigma0 * sigma0 * cov[4])
+    var sz = sqrt(sigma0 * sigma0 * cov[8])
+
+    print(t"E = {round(E, 4)}   N = {round(N, 4)}")
+    print(t"orientation z = {round(z * (180.0 / pi), 4)} degrees")
+    print(t"sigma0 = {round(sigma0 * (180.0 / pi) * 3600.0, 3)} arc-seconds")
+    print(t"std(E) = {round(sE * 1000.0, 2)} mm   std(N) = {round(sN * 1000.0, 2)} mm")
+    print(t"std(z) = {round(sz * (180.0 / pi) * 3600.0, 3)} arc-seconds")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>E = 1140.0002   N = 2119.9988
+orientation z = 9.9999 degrees
+sigma0 = 0.807 arc-seconds
+std(E) = 0.51 mm   std(N) = 0.56 mm
+std(z) = 0.434 arc-seconds</pre></div>
+
+  <div class="check tip">
+    <span class="t">Read the answer like a surveyor</span>
+    The solved E and N agree with the simulated truth (1140, 2120) to about half a millimetre, and the
+    a posteriori sigma0 (&asymp;0.8&Prime;) matches the simulated observation noise. The covariance
+    tells you how far the precision drops as the station drifts towards the danger circle &mdash;
+    make 6.4 the pivot of your lab work.
+  </div>
+
+  <h3><span class="hash">6.5</span> Distance resection (trilateration from P)</h3>
+  <p>Given distances d<sub>A</sub>, d<sub>B</sub> from P to known A, B, the unknown lies at one of the
+  two intersections of two radius circles. A third measured distance to C selects the correct
+  candidate.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">dist_resection.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import abs, max, sqrt
+
+def circle_i(
+    ax: Float64, ay: Float64,
+    bx: Float64, by: Float64,
+    da: Float64, db: Float64,
+) -&gt; Tuple[Tuple[Float64, Float64], Tuple[Float64, Float64]]:
+    var base = sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay))
+    var a = (da * da - db * db + base * base) / (2.0 * base)
+    var h = sqrt(max(da * da - a * a, 0.0))
+    var ex = (bx - ax) / base       # unit vector A -&gt; B
+    var ey = (by - ay) / base
+    var nx = -ey                    # left-perpendicular unit vector
+    var ny = ex
+    return (
+        (ax + a * ex + h * nx, ay + a * ey + h * ny),
+        (ax + a * ex - h * nx, ay + a * ey - h * ny),
+    )
+
+def choose(
+    ax: Float64, ay: Float64,
+    bx: Float64, by: Float64,
+    cx: Float64, cy: Float64,
+    da: Float64, db: Float64, dc: Float64,
+) -&gt; Tuple[Float64, Float64]:
+    var (p1, p2) = circle_i(ax, ay, bx, by, da, db)
+    var (p1x, p1y) = p1
+    var (p2x, p2y) = p2
+    var e1 = abs(sqrt((p1x - cx) * (p1x - cx) + (p1y - cy) * (p1y - cy)) - dc)
+    var e2 = abs(sqrt((p2x - cx) * (p2x - cx) + (p2y - cy) * (p2y - cy)) - dc)
+    return p1 if e1 &lt; e2 else p2
+
+def main():
+    var AE: Float64 = 1000.0
+    var AN: Float64 = 2000.0
+    var BE: Float64 = 1300.0
+    var BN: Float64 = 2050.0
+    var CE: Float64 = 1150.0
+    var CN: Float64 = 2300.0
+    var PE: Float64 = 1140.0
+    var PN: Float64 = 2120.0
+
+    var dA = sqrt((PE - AE) * (PE - AE) + (PN - AN) * (PN - AN))
+    var dB = sqrt((PE - BE) * (PE - BE) + (PN - BN) * (PN - BN))
+    var dC = sqrt((PE - CE) * (PE - CE) + (PN - CN) * (PN - CN))
+
+    var (rx, ry) = choose(AE, AN, BE, BN, CE, CN, dA, dB, dC)
+    print(t"Distance resection  P = ({round(rx, 3)}, {round(ry, 3)})")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Distance resection  P = (1140.0, 2120.0)</pre></div>
+
+  <h3><span class="hash">6.6</span> Quality checks for resection</h3>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Check</th><th>What to look for</th></tr>
+    <tr><td>Angle closure at P</td><td>&#945; + &#946; + &#947; = 360&deg; within instrument tolerance for a three-point solution.</td></tr>
+    <tr><td>Geometry</td><td>P well away from the danger circle; angles at P not close to 0&deg; or 180&deg;.</td></tr>
+    <tr><td>Redundancy</td><td>Prefer 4+ targets; a three-point resection has no internal check on the control itself.</td></tr>
+    <tr><td>Residuals</td><td>A large residual on one target usually indicates a control blunder or a mis-point.</td></tr>
+    <tr><td>Independent check</td><td>Observe a further known point not used in the solution and compare computed vs known coordinates.</td></tr>
+    <tr><td>Coordinate system</td><td>All coordinates in the same datum/projection; scale factors consistent with distances.</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="areas">
+  <h2><span class="secnum">7</span> Area Computations</h2>
+  <p class="secsub">Cadastral parcels are almost always specified by coordinates, which makes the
+  <strong>shoelace formula</strong> the workhorse of area computation. It also yields the polygon
+  centroid for free.</p>
+
+  <div class="formula">
+    A = &#189; |&#931; (x&#7522; y&#7522;&#8314;&#185; &minus; y&#7522; x&#7522;&#8314;&#185;)|
+  </div>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">parcel.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import abs
+
+def polygon_area(pts: List[Tuple[Float64, Float64]]) -&gt; Float64:
+    var twice = 0.0
+    var n = len(pts)
+    for i in range(n):
+        var (x1, y1) = pts[i]
+        var (x2, y2) = pts[(i + 1) % n]
+        twice += x1 * y2 - y1 * x2
+    return abs(twice) / 2.0
+
+def polygon_centroid(
+    pts: List[Tuple[Float64, Float64]],
+) -&gt; Tuple[Float64, Float64]:
+    var twice = 0.0
+    var cx = 0.0
+    var cy = 0.0
+    var n = len(pts)
+    for i in range(n):
+        var (x1, y1) = pts[i]
+        var (x2, y2) = pts[(i + 1) % n]
+        var cross = x1 * y2 - y1 * x2
+        twice += cross
+        cx += (x1 + x2) * cross
+        cy += (y1 + y2) * cross
+    var area = twice / 2.0
+    return cx / (6.0 * area), cy / (6.0 * area)
+
+def main():
+    var parcel: List[Tuple[Float64, Float64]] = [
+        (100.0, 100.0),
+        (160.0, 100.0),
+        (170.0, 150.0),
+        (110.0, 170.0),
+    ]
+
+    print(t"Area = {round(polygon_area(parcel), 2)} m^2")
+    var (gx, gy) = polygon_centroid(parcel)
+    print(t"Centroid = ({round(gx, 3)}, {round(gy, 3)})")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Area = 3700.0 m^2
+Centroid = (133.423, 130.541)</pre></div>
+</section>
+
+<!-- ================================================================ -->
+<section id="transformations">
+  <h2><span class="secnum">8</span> Coordinate Transformations</h2>
+  <p class="secsub">Transformations relate local survey systems to map/grid coordinates. The most
+  important in practise is the <strong>2D similarity</strong> (Helmert) transformation: translation
+  (Tx, Ty), a common rotation &#952; and a uniform scale s.</p>
+
+  <div class="formula">
+    X = Tx + s (x cos&#952; &minus; y sin&#952;)<br>
+    Y = Ty + s (x sin&#952; + y cos&#952;)
+  </div>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">similarity.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import cos, pi, sin
+
+def similarity(
+    pts: List[Tuple[Float64, Float64]],
+    tx: Float64, ty: Float64,
+    scale: Float64, thetaDeg: Float64,
+) -&gt; List[Tuple[Float64, Float64]]:
+    var t = thetaDeg * (pi / 180.0)
+    var c = cos(t)
+    var s = sin(t)
+    var out: List[Tuple[Float64, Float64]] = []
+    for i in range(len(pts)):
+        var (x, y) = pts[i]
+        out.append(
+            (tx + scale * (x * c - y * s),
+             ty + scale * (x * s + y * c)),
+        )
+    return out^
+
+def main():
+    var local: List[Tuple[Float64, Float64]] = [
+        (0.0, 0.0), (100.0, 0.0), (100.0, 50.0), (0.0, 50.0),
+    ]
+
+    var grid = similarity(
+        local,
+        tx = 500000.0,
+        ty = 7400000.0,
+        scale = 1.0002,
+        thetaDeg = 0.35,
+    )
+
+    for i in range(len(grid)):
+        var (x, y) = grid[i]
+        print(t"({round(x, 3)}, {round(y, 3)})")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>(500000.0, 7400000.0)
+(500100.018, 7400000.611)
+(500099.713, 7400050.62)
+(499999.695, 7400050.009)</pre></div>
+
+  <div class="tip"><span class="t">A natural next step</span>
+  With several control points, the four parameters (Tx, Ty, s, &#952;) should be estimated by least
+  squares rather than fixed by two points. The pattern is exactly the one in Section 10: build a
+  design matrix from the partial derivatives and solve the normal equations.</div>
+</section>
+
+<!-- ================================================================ -->
+<section id="adjustment">
+  <h2><span class="secnum">9</span> Adjustment Computations</h2>
+  <p class="secsub">Survey observations are never exact. <strong>Adjustment</strong> estimates the
+  unknown quantities subject to the observation equations and their precision, turning redundancy
+  into estimates of uncertainty.</p>
+
+  <div class="grid">
+    <div class="card"><span class="tag">CONDITION</span><h4>Condition adjustment</h4>
+      <p>Adjust observations so that geometric closure conditions (angles, loops, height differences)
+      are exactly satisfied.</p></div>
+    <div class="card"><span class="tag">PARAMETRIC</span><h4>Least squares</h4>
+      <p>Estimate unknown parameters from redundant observations, minimising the weighted square sum
+      of residuals.</p></div>
+    <div class="card"><span class="tag">NETWORK</span><h4>Geodetic network</h4>
+      <p>Adjust distances, directions, GNSS vectors or mixed observation types in one coherent model.</p></div>
+    <div class="card"><span class="tag">QUALITY</span><h4>Statistical testing</h4>
+      <p>Inspect residuals, variance factors and covariance estimates for blunders and outliers.</p></div>
+  </div>
+
+  <div class="formula"><span class="lbl">Observation model</span>
+    l + v = f(x) &nbsp;&nbsp;&nbsp;&#8658;&nbsp;&nbsp;&nbsp; linear: &nbsp; A x = l + v
+  </div>
+  <p>A is the design matrix, x the unknown corrections/parameters, l the observations, v the residuals.</p>
+</section>
+
+<!-- ================================================================ -->
+<section id="least-squares">
+  <h2><span class="secnum">10</span> Least-Squares Adjustment</h2>
+  <p class="secsub">The heart of modern survey adjustment. For an overdetermined linear system the
+  best estimate (in the &ldquo;minimise v&#7512;Pv&rdquo; sense) is:</p>
+
+  <div class="formula">
+    x&#770; = (A&#7512;P A)&#8315;&#185; A&#7512;P l &nbsp;&nbsp;&nbsp;
+    with weights P&#7522; = 1/&#963;&#7522;&#178;
+  </div>
+
+  <h3><span class="hash">10.1</span> Example: fitting a straight line</h3>
+  <p>Five benchmarks appear to follow y = a + b&middot;x. We assemble the (tiny) normal equations with
+  plain loops &mdash; the same loops that would scale to thousands of observations in a network
+  adjustment &mdash; then extract the intercept, slope, residuals and their precisions.</p>
+
+  <div class="tablewrap">
+  <table>
+    <tr><th>x (m)</th><td>0</td><td>10</td><td>20</td><td>30</td><td>40</td></tr>
+    <tr><th>y (m)</th><td>2.1</td><td>7.0</td><td>12.2</td><td>16.9</td><td>22.1</td></tr>
+  </table>
+  </div>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">linefit.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import sqrt
+
+def main():
+    var x: List[Float64] = [0.0, 10.0, 20.0, 30.0, 40.0]
+    var y: List[Float64] = [2.1, 7.0, 12.2, 16.9, 22.1]
+    var n = Float64(len(x))
+
+    var sx = 0.0
+    var sy = 0.0
+    var sxx = 0.0
+    var sxy = 0.0
+    for i in range(len(x)):
+        sx += x[i]
+        sy += y[i]
+        sxx += x[i] * x[i]
+        sxy += x[i] * y[i]
+
+    var det = n * sxx - sx * sx
+    var a = (sxx * sy - sx * sxy) / det       # intercept
+    var b = (n * sxy - sx * sy) / det        # slope
+
+    var vv = 0.0
+    var residual: List[Float64] = []
+    for i in range(len(x)):
+        var r = a + b * x[i] - y[i]
+        residual.append(r)
+        vv += r * r
+
+    var dof = Float64(len(x) - 2)            # n - u
+    var sigma0 = sqrt(vv / dof)              # variance factor; sqrt = s.d.
+    var stdA = sqrt(sigma0 * sigma0 * sxx / det)
+    var stdB = sqrt(sigma0 * sigma0 * n / det)
+
+    print(t"a = {round(a, 4)}   b = {round(b, 4)}")
+    print("residuals =", end=" ")
+    for i in range(len(residual)):
+        if i > 0:
+            print("  ", end="")
+        print(round(residual[i], 4), end="")
+    print()
+    print(t"sigma0 = {round(sigma0, 4)}")
+    print(t"std(a) = {round(stdA, 4)}   std(b) = {round(stdB, 4)}")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>a = 2.08   b = 0.499
+residuals = -0.02  0.07  -0.14  0.15  -0.06
+sigma0 = 0.1304
+std(a) = 0.101   std(b) = 0.0041</pre></div>
+
+  <h3><span class="hash">10.2</span> Weighted least squares</h3>
+  <p>When instruments have known precisions, weight each observation by P&#7522; = 1/&#963;&#7522;&#178;
+  so noisy measurements influence the estimate less.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">weighted.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>def main():
+    var x: List[Float64] = [0.0, 10.0, 20.0, 30.0, 40.0]
+    var y: List[Float64] = [2.1, 7.0, 12.2, 16.9, 22.1]
+    var sigma: List[Float64] = [0.02, 0.05, 0.03, 0.10, 0.04]
+
+    # weighted sums: replace each contribution with w = 1 / sigma^2
+    var wa = 0.0
+    var wb = 0.0
+    var wc = 0.0
+    var wy = 0.0
+    var wf = 0.0
+    for i in range(len(x)):
+        var wi = 1.0 / (sigma[i] * sigma[i])
+        wa += wi
+        wb += wi * x[i]
+        wc += wi * x[i] * x[i]
+        wy += wi * y[i]
+        wf += wi * x[i] * y[i]
+
+    var wdet = wa * wc - wb * wb
+    var aw = (wc * wy - wb * wf) / wdet
+    var bw = (wa * wf - wb * wy) / wdet
+
+    print(t"Weighted  a = {round(aw, 4)}   b = {round(bw, 4)}")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Weighted  a = 2.1031   b = 0.5007</pre></div>
+
+  <div class="tip"><span class="t">Surveyor&rsquo;s interpretation</span>
+  Least squares does not make observations exact. It returns estimates <em>and</em> the statistics
+  that describe their uncertainty &mdash; the free-station resection in 6.4 is a direct application of
+  this exact framework, only larger.</div>
+</section>
+
+<!-- ================================================================ -->
+<section id="levelling">
+  <h2><span class="secnum">11</span> Levelling Adjustment</h2>
+  <p class="secsub">Spirit levelling relates heights across a run of instrument setups using
+  back-sights (BS) and fore-sights (FS).</p>
+
+  <div class="formula">
+    &#916;H = BS &minus; FS &nbsp;&nbsp;&nbsp;&#8658;&nbsp;&nbsp;&nbsp;
+    H<sub>end</sub> = H<sub>start</sub> + &#931;BS &minus; &#931;FS
+  </div>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">levelling.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>def main():
+    var rlStart = 100.0
+    var bs: List[Float64] = [1.245, 1.876, 0.955]
+    var fs: List[Float64] = [0.875, 1.425, 1.812]
+
+    var sumBS: Float64 = 0.0
+    var sumFS: Float64 = 0.0
+    for i in range(len(bs)):
+        sumBS += bs[i]
+        sumFS += fs[i]
+
+    var rlEnd = rlStart + sumBS - sumFS
+    print(t"Computed final RL = {round(rlEnd, 3)} m")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Computed final RL = 99.964 m</pre></div>
+
+  <h3><span class="hash">11.1</span> Distributing a levelling misclosure</h3>
+  <p>If a loop closes with a small misclosure, distribute &minus;misclosure over the sections in
+  proportion to their observed lengths &mdash; the same philosophy as the Bowditch rule.</p>
+
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">loop.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>def main():
+    var misclosure = 0.012                           # metres
+    var distances: List[Float64] = [1.2, 2.0, 1.5, 1.3]  # km per section
+
+    var total: Float64 = 0.0
+    for i in range(len(distances)):
+        total += distances[i]
+
+    var corrections: List[Float64] = []
+    var check: Float64 = 0.0
+    for i in range(len(distances)):
+        var c = -misclosure * distances[i] / total
+        corrections.append(c)
+        check += c
+
+    print("Corrections (m) =", end=" ")
+    for i in range(len(corrections)):
+        if i > 0:
+            print("  ", end="")
+        print(round(corrections[i], 4), end="")
+    print()
+    print(t"Check sum = {round(check, 6)} m")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>Corrections (m) = -0.0024  -0.004  -0.003  -0.0026
+Check sum = -0.012 m</pre></div>
+</section>
+
+<!-- ================================================================ -->
+<section id="gnss">
+  <h2><span class="secnum">12</span> GNSS &amp; 3D Survey Computations</h2>
+  <p class="secsub">GNSS delivers Cartesian or geodetic coordinates directly; the geometry is 3D, and
+  uncertainty flows through every downstream computation.</p>
+
+  <h3><span class="hash">12.1</span> 3D Cartesian distance</h3>
+  <div class="formula">
+    d = &#8730;(&#916;X&#178; + &#916;Y&#178; + &#916;Z&#178;)
+  </div>
+  <div class="codeblock">
+    <div class="codebar"><span class="dots"><i></i><i></i><i></i></span>
+      <span class="slide"><span class="fileName" style="color:#ffe4a3;font-size:.8rem">gnss3d.mojo</span></span>
+      <button class="copyBtn" type="button">Copy</button></div>
+  <pre><code>from std.math import sqrt
+
+def main():
+    var dX = 120.0     # metres
+    var dY = 80.0
+    var dZ = 7.0
+
+    var d3 = sqrt(dX * dX + dY * dY + dZ * dZ)
+    print(t"3D distance = {round(d3, 3)} m")
+
+    # First-order error propagation: C_y = J * C_x * J^T.
+    # For a scalar function this is a weighted sum of squared partial
+    # derivatives times the input variances.
+    var sX = 0.010     # standard deviations (m)
+    var sY = 0.015
+    var sZ = 0.003
+
+    var jX = dX / d3   # partial derivative of distance with respect to X
+    var jY = dY / d3
+    var jZ = dZ / d3
+
+    var sd = sqrt(jX * jX * sX * sX + jY * jY * sY * sY + jZ * jZ * sZ * sZ)
+    print(t"sigma(distance) = {round(sd * 1000.0, 2)} mm")</code></pre>
+  </div>
+  <div class="out"><span class="outlabel">Expected output</span>
+  <pre>3D distance = 144.392 m
+sigma(distance) = 11.75 mm</pre></div>
+
+  <div class="note"><span class="t">Why the J-C-J&#7512; rule matters</span>
+  A slopey vector (small jX) hardly carries the X-uncertainty into the distance; a long vector
+  <em>does</em> carry its endpoints&rsquo; precision. The same rule &mdash; linearised uncertainty
+  propagation &mdash; is what turns GNSS baseline vectors into valid points, and what the least-squares
+  framework of Section 10 formalises into a covariance matrix.</div>
+</section>
+
+<!-- ================================================================ -->
+<section id="workflow">
+  <h2><span class="secnum">13</span> A Practical Survey Computation Workflow</h2>
+  <p class="secsub">Automation never replaces professional judgement &mdash; it amplifies it. This is the
+  order in which professionals (and good programs) do things.</p>
+  <div class="card">
+  <ol class="steps">
+    <li><strong>Define the datum and coordinate system.</strong> Record CRS, units, axis order and vertical datum before anything else.</li>
+    <li><strong>Validate raw observations.</strong> Check units, signs, instrument metadata and the field book.</li>
+    <li><strong>Compute independent quantities.</strong> Distances, directions, height differences, coordinate increments.</li>
+    <li><strong>Perform closure checks.</strong> Find angular, linear or height misclosures (Sections 4 and 11).</li>
+    <li><strong>Select an adjustment model.</strong> A conventional rule, or a least-squares model when precision matters.</li>
+    <li><strong>Estimate residuals and uncertainty.</strong> Inspect residuals and the covariance information (Sections 6 and 10).</li>
+    <li><strong>Run quality-control tests.</strong> Hunt blunders, outliers and inconsistent observations.</li>
+    <li><strong>Export final coordinates with metadata</strong> and a reproducible computation report.</li>
+  </ol>
+  </div>
+
+  <div class="warn"><span class="t">Professional practice</span>
+  A numerically correct program can still deliver a wrong survey if the datum, axis order, observation
+  model or field assumptions are wrong. Always verify the mathematical model before automated results
+  feed cadastral, engineering or construction decisions.</div>
+</section>
+
+<!-- ================================================================ -->
+<section id="toolkit">
+  <h2><span class="secnum">14</span> The Mojo 1.x Toolkit</h2>
+  <p class="secsub">What a geomatics developer reaches for, in Mojo 1.x.</p>
+  <div class="grid">
+    <div class="card"><span class="tag">STDLIB</span><h4>from std.math import ...</h4>
+      <p><code>sqrt, sin, cos, tan, atan2, hypot, pi</code> &mdash; everything the
+      tutorials above use, imported explicitly.</p></div>
+    <div class="card"><span class="tag">PRELUDE</span><h4>List / Tuple</h4>
+      <p><code>List</code> provides growable homogeneous sequences, while <code>Tuple</code> stores
+      fixed-size heterogeneous values; use <code>len()</code> for list sizes.</p></div>
+    <div class="card"><span class="tag">STDLIB</span><h4>linear_algebra</h4>
+      <p>Native matrix kernels (<code>matmul</code>, <code>norm</code>, ...) for larger normal-equation
+      systems without leaving Mojo.</p></div>
+    <div class="card"><span class="tag">SYSTEM</span><h4>mojo run / build</h4>
+      <p>One-command JIT and release builds. Test files use <code>std.testing.TestSuite</code> and run
+      with <code>mojo run</code>, which is ideal for regression-testing adjustment code.</p></div>
+    <div class="card"><span class="tag">INTEROP</span><h4>Python interop</h4>
+      <p>Call <code>pandas</code>/<code>numpy</code>/<code>pyproj</code> for I/O, plotting and CRS work
+      while the hot computation loops stay compiled in Mojo.</p></div>
+    <div class="card"><span class="tag">OPEN SOURCE</span><h4>Mojo 1.x compiler</h4>
+      <p>The compiler is now open source with faster t-strings, better type inference (e.g.
+      <code>.float32</code> abbreviations) and active community contributions.</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="practice">
+  <h2><span class="secnum">15</span> Practice Problems</h2>
+  <p class="secsub">Work these in Mojo &mdash; each is a natural <code>def</code> plus a <code>main()</code>
+  block, and each builds on the sections above.</p>
+  <div class="card">
+  <ol class="steps">
+    <li>Given two coordinates, compute distance, azimuth and the reverse azimuth.</li>
+    <li>Compute the coordinates of a five-leg traverse and print each station.</li>
+    <li>Compute angular and linear traverse misclosure for a closed loop.</li>
+    <li>Adjust a closed traverse with the Bowditch rule and verify the closures.</li>
+    <li>Solve a three-point resection with Tienstra&rsquo;s formula and verify the angle-sum check.</li>
+    <li>Repeat the resection with five targets using the least-squares free station and compare the standard deviations of E and N with the three-point solution.</li>
+    <li>Move P towards the circumcircle of A, B, C and watch the coordinate precision degrade.</li>
+    <li>Calculate the area and centroid of a cadastral parcel.</li>
+    <li>Fit a 2D similarity transformation from four control points by least squares.</li>
+    <li>Perform a weighted least-squares line adjustment and report sigma0.</li>
+    <li>Distribute a levelling misclosure by section length and check the sum.</li>
+    <li>Propagate coordinate noise through a coordinate difference using J C J&#7512;.</li>
+    <li>Extend the least-squares example to a small 2D survey network with mixed distances and directions.</li>
+  </ol>
+  </div>
+</section>
+
+<div class="next-steps" aria-labelledby="next-steps-title">
+  <h3 id="next-steps-title">Continue through the TutMe path</h3>
+  <p>Use this tutorial as the computation layer, then move into the field workflow, projection theory, or guided practice in
+    DMS arithmetic,
+    distance and bearings, and
+    geodetic–ECEF conversion.</p>
+  <div class="next-links">
+    <a class="next-link" href="gnss_surveying.html"><span class="tag">PART 1</span><strong>GNSS Surveying</strong><small>Frames, calibration, georeferencing, and field-to-grid workflow.</small></a>
+    <a class="next-link" href="karney_krueger_equations.html"><span class="tag">PART 2</span><strong>Karney–Krueger Equations</strong><small>Transverse Mercator, UTM, and Southern African grid practice.</small></a>
+    
+    
+  </div>
+</div>
+
+</main>
+
+<button class="toTop" id="toTop" aria-label="Back to top">&#8593;</button>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <strong>Geomatics Computations Tutorial &mdash; Mojo 1.x Edition</strong>
+      <p>Land surveying mathematics &bull; coordinate geometry &bull; traverse computation &bull; intersection and
+      resection &bull; similarity transformations &bull; least squares &bull; levelling &bull; GNSS error propagation.</p>
+    </div>
+    <div class="footer-links" aria-label="Page navigation">
+      <a href="../index.html">TutMe Home</a>
+      <a href="../index.html">Applications</a>
+      <a href="index.html">Finance shelf</a>
+      <a href="gnss_surveying.html">GNSS Surveying</a>
+      <a href="karney_krueger_equations.html">Karney–Krueger</a>
+      Praxis
+    </div>
+  </div>
+</footer>
+
+<script>
+// --- syntax highlighting (self-contained Mojo tokenizer) ------------
+function escH(h){
+  return h.replace(/&/g,"&amp;").replace(/\x3C/g,"&lt;").replace(/\x3E/g,"&gt;");
+}
+var MOJO_RE = /(#[^\n]*)|("""[\s\S]*?""")|(t?"(?:[^"\\]|\\.)*")|(\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b)|(\b(?:and|as|assert|break|comptime|continue|def|defer|elif|else|except|for|from|if|import|in|mut|not|or|out|pass|raise|ref|return|struct|try|var|while|with|yield)\b)|(\b(?:Bool|DType|Float16|Float32|Float64|FloatLiteral|Int|Int16|Int32|Int64|Int8|IntLiteral|List|NoneType|SIMD|StaticString|String|Tuple|UInt|UInt16|UInt32|UInt64|UInt8)\b)|([A-Za-z_][A-Za-z0-9_]*)(?=\s*\()|(-\x3E|=\x3E|==|!=|\x3C=|\x3E=|[\x3C\x3E=+\-*/%!?^&|]+)/g;
+function paintCode(el){
+  if (el.dataset.hl) return;
+  el.innerHTML = el.textContent.replace(MOJO_RE, function(m){
+    var cls = "";
+    if (arguments[1] !== undefined) { cls = "cmt"; }
+    else if (arguments[2] !== undefined) { cls = "str"; }
+    else if (arguments[3] !== undefined) { cls = "str"; }
+    else if (arguments[4] !== undefined) { cls = "num"; }
+    else if (arguments[5] !== undefined) { cls = "kw"; }
+    else if (arguments[6] !== undefined) { cls = "tp"; }
+    else if (arguments[7] !== undefined) { cls = "fn"; }
+    else if (arguments[8] !== undefined) { cls = "op"; }
+    if (cls) { return '\x3Cspan class="' + cls + '"\x3E' + escH(m) + '\x3C/span\x3E'; }
+    return escH(m);
+  });
+  el.dataset.hl = "1";
+}
+document.querySelectorAll(".codeblock pre code").forEach(paintCode);
+
+// copy buttons
+document.querySelectorAll(".copyBtn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var pre = btn.closest(".codeblock").querySelector("pre code");
+    var text = pre.innerText || pre.textContent;
+    function done(){ btn.textContent = "Copied"; btn.classList.add("copied"); setTimeout(function(){ btn.textContent="Copy"; btn.classList.remove("copied"); }, 1600); }
+    if (navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else { fallback(); }
+    function fallback(){
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); done(); } catch(e) { btn.textContent = "Error"; }
+      document.body.removeChild(ta);
+    }
+  });
+});
+
+// scroll progress
+var bar = document.getElementById("progress");
+addEventListener("scroll", function(){
+  var h = document.documentElement;
+  var p = h.scrollTop / (h.scrollHeight - h.clientHeight);
+  bar.style.width = (p * 100) + "%";
+  var topBtn = document.getElementById("toTop");
+  topBtn.classList.toggle("show", h.scrollTop > 500);
+}, {passive:true});
+
+// back to top
+document.getElementById("toTop").addEventListener("click", function(){
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+// active nav link
+var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+var map = {};
+links.forEach(function(a){ map[a.getAttribute("href").slice(1)] = a; });
+var obs = new IntersectionObserver(function(entries){
+  entries.forEach(function(en){
+    if (en.isIntersecting){
+      links.forEach(function(a){ a.classList.remove("active"); });
+      var a = map[en.target.id];
+      if (a) a.classList.add("active");
+    }
+  });
+}, {rootMargin:"-45% 0px -50% 0px"});
+document.querySelectorAll("main section[id]").forEach(function(s){ obs.observe(s); });
+</script>
+</body>
+</html>

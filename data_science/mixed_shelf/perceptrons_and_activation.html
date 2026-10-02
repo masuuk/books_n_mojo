@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perceptrons & Activation Functions: A Complete Tutorial</title>
+
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --heading-color: #1a2332;
+            --accent-color: #2563eb;
+            --accent-light: #3b82f6;
+            --accent-dark: #1d4ed8;
+            --code-bg: #1e293b;
+            --table-border: #e2e8f0;
+            --table-header-bg: #f8fafc;
+            --note-bg: #eff6ff;
+            --formula-bg: #f1f5f9;
+            --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.7;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            background: var(--hero-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #93c5fd;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #ffe4a3;
+            max-width: 650px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Floating equation decorations */
+        .floating-eq {
+            position: absolute;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.05);
+            font-family: 'Fira Code', monospace;
+            pointer-events: none;
+        }
+
+        .floating-eq.eq1 { top: 15%; left: 5%; transform: rotate(-15deg); }
+        .floating-eq.eq2 { top: 25%; right: 8%; transform: rotate(10deg); }
+        .floating-eq.eq3 { bottom: 25%; left: 10%; transform: rotate(5deg); }
+        .floating-eq.eq4 { bottom: 15%; right: 5%; transform: rotate(-10deg); }
+
+        /* ===== NAVIGATION ===== */
+        .nav-bar {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--table-border);
+            z-index: 100;
+            padding: 0 40px;
+        }
+
+        .nav-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .nav-inner::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            color: var(--heading-color);
+            font-size: 1rem;
+            white-space: nowrap;
+            padding: 16px 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            display: block;
+            padding: 16px 12px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        /* Chapter Headers */
+        .chapter {
+            margin-bottom: 80px;
+        }
+
+        .chapter-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--table-border);
+        }
+
+        .chapter-number {
+            flex-shrink: 0;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .chapter-title {
+            font-size: 2rem;
+            color: var(--heading-color);
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .chapter-desc {
+            color: #64748b;
+            font-size: 1.05rem;
+        }
+
+        /* Section Headers */
+        h3 {
+            color: var(--heading-color);
+            font-size: 1.3rem;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h3::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        p, li {
+            font-size: 1.05rem;
+            color: #475569;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul, ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Code Styling */
+        code {
+            background-color: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+            color: #be185d;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            box-shadow: var(--card-shadow-lg);
+            margin: 24px 0;
+            border: 1px solid #334155;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: #e2e8f0;
+            padding: 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+            font-size: 0.95rem;
+            box-shadow: var(--card-shadow);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--table-border);
+        }
+
+        th, td {
+            padding: 14px 18px;
+            text-align: left;
+        }
+
+        th {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            border-top: 1px solid var(--table-border);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Math Blocks */
+        .math-block {
+            text-align: center;
+            margin: 16px 0;
+            font-size: 1.15rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 16px 24px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Inline math (self-contained, no MathJax) */
+        .math {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            color: var(--accent-dark);
+            white-space: nowrap;
+            background: rgba(37, 99, 235, 0.06);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        /* Syntax highlighting (self-contained, no highlight.js) */
+        .tok-k { color: #ff7b72; }
+        .tok-s { color: #a5d6ff; }
+        .tok-c { color: #8b949e; font-style: italic; }
+        .tok-n { color: #79c0ff; }
+        .tok-f { color: #d2a8ff; }
+        .tok-num { color: #f2cc60; }
+        .tok-m { color: #79c0ff; }
+
+        /* Note Boxes */
+        .note {
+            background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-left: 4px solid #0ea5e9;
+            padding: 16px 20px;
+            margin: 24px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .note strong {
+            color: #0369a1;
+        }
+
+        .output {
+            background: #0f172a;
+            color: #22d3ee;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            margin-top: 12px;
+        }
+
+        /* Feature Cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            border: 1px solid var(--table-border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--card-shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h4 {
+            color: var(--heading-color);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Code Tabs */
+        .code-tabs {
+            margin: 24px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow-lg);
+            border: 1px solid #334155;
+        }
+
+        .code-tab-header {
+            display: flex;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+        }
+
+        .code-tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .code-tab-btn:hover {
+            color: #ffe4a3;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .code-tab-btn.active {
+            color: #ffffff;
+            background: var(--code-bg);
+        }
+
+        .code-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+
+        .code-tab-btn .lang-icon {
+            margin-right: 8px;
+        }
+
+        .code-tab-content {
+            display: none;
+        }
+
+        .code-tab-content.active {
+            display: block;
+        }
+
+        .code-tab-content pre {
+            margin: 0;
+            border-radius: 0;
+            border: none;
+        }
+
+        .code-label {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .mojo-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7c948 100%);
+            color: #1a1a1a;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-left: 8px;
+        }
+
+        /* Footer */
+        footer {
+            background: #0f172a;
+            color: #ffd98f;
+            padding: 40px;
+            text-align: center;
+        }
+
+        footer p {
+            color: #ffe4a3;
+            margin: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 20px;
+                min-height: auto;
+            }
+
+            .nav-bar {
+                padding: 0 16px;
+            }
+
+            .main-content {
+                padding: 40px 20px;
+            }
+
+            .chapter-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav style="position:sticky;top:0;z-index:999;display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#16324f;padding:10px 20px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:0.88rem;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+  <a href="../index.html" style="color:#fff;font-weight:700;text-decoration:none;">📚 TutMe</a>
+  <a href="../single_source_of_truth%20mojo/index.html" style="color:#9fd3ff;text-decoration:none;">📊 Data Science lessons</a>
+  <a href="data_science.html" style="color:#9fd3ff;text-decoration:none;">📖 Data Science Textbook</a>
+  <a href="fine_tuning_llms.html" style="color:#9fd3ff;text-decoration:none;">🤖 Fine-Tuning LLMs</a>
+  <a href="time_series_analytics.html" style="color:#9fd3ff;text-decoration:none;">📈 Time Series Analytics</a>
+  <a href="linear_regression.html" style="color:#9fd3ff;text-decoration:none;">📉 Linear Regression</a>
+  <a href="decision_aware_ml.html" style="color:#9fd3ff;text-decoration:none;">🧩 Decision-Aware ML</a>
+  <a href="ai_agents_python_vs_mojo.html" style="color:#9fd3ff;text-decoration:none;">💬 AI Agents · Python vs Mojo</a>
+  <a href="neural_network.html" style="color:#9fd3ff;text-decoration:none;">🔬 NN from Scratch</a>
+  <a href="mlp_xor.html" style="color:#9fd3ff;text-decoration:none;">🤖 MLP XOR Lab</a>
+  <a href="nn_mojo.html" style="color:#9fd3ff;text-decoration:none;">🧮 3-4-1 NN in Mojo &amp; NumPy</a>
+  <a href="../index.html" style="color:#9fd3ff;text-decoration:none;">🏠 Home</a>
+</nav>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero">
+        <span class="floating-eq eq1">f(x)</span>
+        <span class="floating-eq eq2">w·x + b</span>
+        <span class="floating-eq eq3">σ(z)</span>
+        <span class="floating-eq eq4">ReLU(z)</span>
+        
+        <div class="hero-content">
+            <span class="hero-badge">Deep Learning Fundamentals</span>
+            <h1>Perceptrons &<br><span>Activation Functions</span></h1>
+            <p class="hero-subtitle">
+                A code-first guide to the building blocks of neural networks.
+                From the original perceptron to modern activation functions — every equation,
+                every derivative, implemented in Mojo 1.x.
+            </p>
+            <div class="hero-cta">
+                <a href="#chapter-1" class="btn btn-primary">
+                    Start Learning
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="#summary" class="btn btn-secondary">
+                    Quick Reference
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== NAVIGATION BAR ===== -->
+    <nav class="nav-bar">
+        <div class="nav-inner">
+            <span class="nav-logo">Neural Nets 101</span>
+            <div class="nav-links">
+                <a href="#chapter-1">Perceptron</a>
+                <a href="#chapter-2">Activations</a>
+                <a href="#chapter-3">Numeric Tour</a>
+                <a href="#chapter-4">Limitations</a>
+                <a href="#summary">Reference</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- ===== CHAPTER 1: THE PERCEPTRON ===== -->
+        <article class="chapter" id="chapter-1">
+            <div class="chapter-header">
+                <div class="chapter-number">1</div>
+                <div>
+                    <h2 class="chapter-title">The Perceptron</h2>
+                    <p class="chapter-desc">The simplest neural network and the foundation of deep learning.</p>
+                </div>
+            </div>
+
+            <h3>1.1 Overview</h3>
+            <p>The Perceptron, invented by Frank Rosenblatt in 1958, is the simplest type of artificial neural network. It is a <strong>linear binary classifier</strong>.</p>
+            
+            <p>A perceptron takes multiple inputs, multiplies them by corresponding weights, adds a bias, and passes the result through an activation function.</p>
+
+            <p><strong>Step 1: Compute the weighted sum (linear combination)</strong></p>
+            <div class="math-block">
+                <span class="math">z = <b>w</b> &middot; <b>x</b> + b</span>
+            </div>
+
+            <p>This expands to:</p>
+            <div class="math-block">
+                <span class="math">z = &Sigma;<sub>i=1</sub><sup>n</sup> (w<sub>i</sub> &middot; x<sub>i</sub>) + b</span>
+            </div>
+
+            <p><strong>Step 2: Apply the activation function</strong></p>
+            <div class="math-block">
+                <span class="math">y&#770; = f(z)</span>
+            </div>
+
+            <p><strong>Variable meanings:</strong></p>
+            <ul>
+                <li><span class="math">x<sub>1</sub>, x<sub>2</sub>, &hellip;, x<sub>n</sub></span> are the input features</li>
+                <li><span class="math">w<sub>1</sub>, w<sub>2</sub>, &hellip;, w<sub>n</sub></span> are the weights (importance of each input)</li>
+                <li><span class="math">b</span> is the bias (an offset value)</li>
+                <li><span class="math">z</span> is the weighted sum (linear combination)</li>
+                <li><span class="math">f</span> is the activation function</li>
+            </ul>
+
+            <h3>1.2 The Step Function</h3>
+            <p>The traditional perceptron uses a "Step Function" to make a binary decision (0 or 1):</p>
+            <div class="math-block">
+                <span class="math">f(z) = <b>{</b> 1 &nbsp;if&nbsp; z &ge; 0 &nbsp;&nbsp;;&nbsp;&nbsp; 0 &nbsp;otherwise <b>}</b></span>
+            </div>
+
+            <h3>1.3 The Perceptron Learning Algorithm</h3>
+            <p>The perceptron learns by adjusting its weights and bias when it makes a mistake. For each training sample <span class="math">(x<sub>i</sub>, y<sub>i</sub>)</span>:</p>
+
+            <p><strong>Step 1: Compute the output</strong></p>
+            <div class="math-block">
+                <span class="math">y&#770;<sub>i</sub> = f(<b>w</b> &middot; <b>x</b><sub>i</sub> + b)</span>
+            </div>
+
+            <p><strong>Step 2: Check for misclassification</strong></p>
+            <p>If <span class="math">y&#770;<sub>i</sub> = y<sub>i</sub></span>, do nothing. If <span class="math">y&#770;<sub>i</sub> &ne; y<sub>i</sub></span>, update the weights:</p>
+
+            <p>Update the weights:</p>
+            <div class="math-block">
+                <span class="math"><b>w</b> &larr; <b>w</b> + &eta; (y<sub>i</sub> - y&#770;<sub>i</sub>) <b>x</b><sub>i</sub></span>
+            </div>
+
+            <p>Update the bias:</p>
+            <div class="math-block">
+                <span class="math">b &larr; b + &eta; (y<sub>i</sub> - y&#770;<sub>i</sub>)</span>
+            </div>
+
+            <p>Here, <span class="math">&eta;</span> (eta) is the <strong>learning rate</strong> — a small positive number that controls how much we adjust the weights.</p>
+
+            <p><strong>Repeat</strong> until convergence (no errors) or a maximum number of epochs.</p>
+
+            <p><strong>Convergence guarantee (Novikoff, 1963):</strong> if the data are linearly separable with margin <span class="math">&gamma;</span> (the distance from the separating hyperplane to the nearest point) and all inputs satisfy <span class="math">&#8214;x&#8214; &le; R</span>, then the number of mistakes is bounded before convergence:</p>
+            <div class="math-block">
+                <span class="math">#mistakes &le; ( R / &gamma; )<sup>2</sup></span>
+            </div>
+            <p>Note what the bound does <em>not</em> depend on: the learning rate (it rescales the weights, not the decisions), the number of features, or the number of samples. And if the data are <em>not</em> separable, no bound exists — the weights cycle forever, which is why the implementation caps <code>epochs</code>.</p>
+
+            <h3>1.4 Implementation</h3>
+            <p>Let's build a perceptron from scratch and train it to learn the logical <strong>AND</strong> gate:</p>
+
+            <div class="code-tabs" data-tab-group="perceptron">
+                <div class="code-tab-header">
+                    <button class="code-tab-btn active" data-tab="mojo-perceptron">
+                        <span class="lang-icon">🔥</span> Mojo 1.x
+                        </button>
+                </div>
+                <div class="code-tab-content active" id="mojo-perceptron" data-tab-content="mojo">
+                    <pre><code><span class="tok-k">from</span> std.math <span class="tok-k">import</span> sqrt, exp, min, max
+<span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+
+<span class="tok-k">struct</span> <span class="tok-n">Perceptron</span>:
+    <span class="tok-k">var</span> lr: Float64
+    <span class="tok-k">var</span> epochs: Int
+    <span class="tok-k">var</span> weights: List[Float64]
+    <span class="tok-k">var</span> bias: Float64
+
+    <span class="tok-k">def</span> <span class="tok-f">__init__</span>(<span class="tok-k">out</span> <span class="tok-k">self</span>, learning_rate: Float64 = <span class="tok-num">0.1</span>, epochs: Int = <span class="tok-num">100</span>):
+        <span class="tok-k">self</span>.lr = learning_rate
+        <span class="tok-k">self</span>.epochs = epochs
+        <span class="tok-k">self</span>.weights = List[Float64]()
+        <span class="tok-k">self</span>.bias = <span class="tok-num">0.0</span>
+
+    <span class="tok-k">def</span> <span class="tok-f">step_function</span>(<span class="tok-k">self</span>, z: Float64) -&gt; Int:
+        <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;The activation function for a standard perceptron.&quot;</span><span class="tok-s">&quot;&quot;</span>
+        <span class="tok-k">if</span> z &gt;= <span class="tok-num">0.0</span>:
+            <span class="tok-k">return</span> <span class="tok-num">1</span>
+        <span class="tok-k">return</span> <span class="tok-num">0</span>
+
+    <span class="tok-k">def</span> <span class="tok-f">fit</span>(<span class="tok-k">mut</span> <span class="tok-k">self</span>, X: List[List[Float64]], y: List[Int]):
+        <span class="tok-k">var</span> n_features = X[<span class="tok-num">0</span>].size
+        
+        <span class="tok-c"># Initialize weights to zeros</span>
+        <span class="tok-k">self</span>.weights = List[Float64]()
+        <span class="tok-k">for</span> i <span class="tok-k">in</span> <span class="tok-k">range</span>(n_features):
+            <span class="tok-k">self</span>.weights.append(<span class="tok-num">0.0</span>)
+        <span class="tok-k">self</span>.bias = <span class="tok-num">0.0</span>
+
+        <span class="tok-k">for</span> _ <span class="tok-k">in</span> <span class="tok-k">range</span>(<span class="tok-k">self</span>.epochs):
+            <span class="tok-k">var</span> errors = <span class="tok-num">0</span>
+            <span class="tok-k">for</span> idx <span class="tok-k">in</span> <span class="tok-k">range</span>(len(X)):
+                <span class="tok-k">var</span> x_i = X[idx]
+                
+                <span class="tok-c"># Linear combination</span>
+                <span class="tok-k">var</span> z = <span class="tok-k">self</span>.bias
+                <span class="tok-k">for</span> j <span class="tok-k">in</span> <span class="tok-k">range</span>(n_features):
+                    z += <span class="tok-k">self</span>.weights[j] * x_i[j]
+                
+                <span class="tok-k">var</span> y_predicted = <span class="tok-k">self</span>.step_function(z)
+                
+                <span class="tok-c"># Update if misclassified</span>
+                <span class="tok-k">var</span> update = <span class="tok-k">self</span>.lr * Float64(y[idx] - y_predicted)
+                <span class="tok-k">if</span> update != <span class="tok-num">0.0</span>:
+                    <span class="tok-k">for</span> j <span class="tok-k">in</span> <span class="tok-k">range</span>(n_features):
+                        <span class="tok-k">self</span>.weights[j] += update * x_i[j]
+                    <span class="tok-k">self</span>.bias += update
+                    errors += <span class="tok-num">1</span>
+            
+            <span class="tok-k">if</span> errors == <span class="tok-num">0</span>:
+                <span class="tok-k">break</span>
+
+    <span class="tok-k">def</span> <span class="tok-f">predict</span>(<span class="tok-k">self</span>, X: List[List[Float64]]) -&gt; List[Int]:
+        <span class="tok-k">var</span> results = List[Int]()
+        <span class="tok-k">for</span> idx <span class="tok-k">in</span> <span class="tok-k">range</span>(len(X)):
+            <span class="tok-k">var</span> z = <span class="tok-k">self</span>.bias
+            <span class="tok-k">for</span> j <span class="tok-k">in</span> <span class="tok-k">range</span>(<span class="tok-k">self</span>.weights.size):
+                z += <span class="tok-k">self</span>.weights[j] * X[idx][j]
+            results.append(<span class="tok-k">self</span>.step_function(z))
+        <span class="tok-k">return</span> results
+
+<span class="tok-c"># --- Test the Perceptron (Logical AND Gate) ---</span>
+<span class="tok-k">def</span> <span class="tok-f">main</span>():
+    <span class="tok-k">var</span> X = List[List[Float64]]()
+    X.append([<span class="tok-num">0.0</span>, <span class="tok-num">0.0</span>])
+    X.append([<span class="tok-num">0.0</span>, <span class="tok-num">1.0</span>])
+    X.append([<span class="tok-num">1.0</span>, <span class="tok-num">0.0</span>])
+    X.append([<span class="tok-num">1.0</span>, <span class="tok-num">1.0</span>])
+    
+    <span class="tok-k">var</span> y = List[Int]()
+    y.append(<span class="tok-num">0</span>)
+    y.append(<span class="tok-num">0</span>)
+    y.append(<span class="tok-num">0</span>)
+    y.append(<span class="tok-num">1</span>)
+
+    <span class="tok-k">var</span> p = Perceptron(learning_rate=<span class="tok-num">0.1</span>, epochs=<span class="tok-num">10</span>)
+    p.fit(X, y)
+
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;Perceptron Predictions for AND gate:&quot;</span>)
+    <span class="tok-k">var</span> predictions = p.predict(X)
+    <span class="tok-k">for</span> idx <span class="tok-k">in</span> <span class="tok-k">range</span>(len(X)):
+        <span class="tok-k">print</span>(X[idx], <span class="tok-s">&quot;-&gt;&quot;</span>, predictions[idx])</code></pre>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>Expected output (Mojo 1.x):</strong>
+                <div class="output">
+                    Perceptron Predictions for AND gate:<br>
+                    [0.0, 0.0] -> 0<br>
+                    [0.0, 1.0] -> 0<br>
+                    [1.0, 0.0] -> 0<br>
+                    [1.0, 1.0] -> 1
+                </div>
+            </div>
+
+            <h3>1.5 Visualizing the Decision Boundary</h3>
+            <p>We can plot the decision boundary for the 2-input case:</p>
+
+            <div class="code-tabs" data-tab-group="decision-boundary">
+                <div class="code-tab-header">
+                    <button class="code-tab-btn active" data-tab="mojo-decision-boundary">
+                        <span class="lang-icon">🔥</span> Mojo 1.x
+                        </button>
+                </div>
+                <div class="code-tab-content active" id="mojo-decision-boundary" data-tab-content="mojo">
+                    <pre><code><span class="tok-c"># Mojo uses Python interop for matplotlib</span>
+<span class="tok-k">from</span> std.python <span class="tok-k">import</span> Python
+<span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+
+<span class="tok-k">def</span> <span class="tok-f">plot_decision_boundary</span>(
+    X: List[List[Float64]], 
+    y: List[Int], 
+    weights: List[Float64], 
+    bias: Float64
+) <span class="tok-k">raises</span>:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Plot the decision boundary using matplotlib via Python interop.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">var</span> plt = Python.import_module(<span class="tok-s">&quot;matplotlib.pyplot&quot;</span>)
+    <span class="tok-k">var</span> np = Python.import_module(<span class="tok-s">&quot;numpy&quot;</span>)
+    
+    <span class="tok-c"># Convert Mojo lists to numpy arrays</span>
+    <span class="tok-k">var</span> X_np = np.array(X)
+    <span class="tok-k">var</span> y_np = np.array(y)
+    
+    <span class="tok-c"># Plot data points</span>
+    plt.scatter(X_np[:, <span class="tok-num">0</span>], X_np[:, <span class="tok-num">1</span>], c=y_np, cmap=<span class="tok-s">&quot;viridis&quot;</span>, edgecolors=<span class="tok-s">&quot;k&quot;</span>, s=<span class="tok-num">100</span>)
+    plt.xlabel(<span class="tok-s">&quot;x1&quot;</span>)
+    plt.ylabel(<span class="tok-s">&quot;x2&quot;</span>)
+    
+    <span class="tok-c"># Compute decision boundary: w1*x1 + w2*x2 + b = 0</span>
+    <span class="tok-k">var</span> w1 = weights[<span class="tok-num">0</span>]
+    <span class="tok-k">var</span> w2 = weights[<span class="tok-num">1</span>]
+    <span class="tok-k">var</span> x1_vals = np.linspace(-<span class="tok-num">0.5</span>, <span class="tok-num">1.5</span>, <span class="tok-num">100</span>)
+    <span class="tok-k">var</span> x2_vals = -(w1 * x1_vals + bias) / w2
+    
+    plt.plot(x1_vals, x2_vals, <span class="tok-s">&quot;r--&quot;</span>, label=<span class="tok-s">&quot;Decision boundary&quot;</span>)
+    plt.xlim(-<span class="tok-num">0.5</span>, <span class="tok-num">1.5</span>)
+    plt.ylim(-<span class="tok-num">0.5</span>, <span class="tok-num">1.5</span>)
+    plt.legend()
+    plt.title(<span class="tok-s">&quot;Perceptron Decision Boundary (AND Gate)&quot;</span>)
+    plt.show()
+
+<span class="tok-c"># Usage in main:</span>
+<span class="tok-c"># plot_decision_boundary(X, y, p.weights, p.bias)</span></code></pre>
+                </div>
+            </div>
+        </article>
+
+        <!-- ===== CHAPTER 2: ACTIVATION FUNCTIONS ===== -->
+        <article class="chapter" id="chapter-2">
+            <div class="chapter-header">
+                <div class="chapter-number">2</div>
+                <div>
+                    <h2 class="chapter-title">Activation Functions</h2>
+                    <p class="chapter-desc">The non-linear functions that enable neural networks to learn complex patterns.</p>
+                </div>
+            </div>
+
+            <p>While the step function is great for simple binary classification, it cannot be used in <strong>Deep Learning</strong> because its derivative is either 0 or undefined, meaning gradients cannot flow backward to update weights (the vanishing gradient problem).</p>
+            <p>Modern networks use <strong>differentiable, non-linear activation functions</strong>.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h4>Sigmoid</h4>
+                    <p>Outputs between 0 and 1. Great for binary classification output layers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📐</div>
+                    <h4>Tanh</h4>
+                    <p>Zero-centered, outputs between -1 and 1. Often better than sigmoid for hidden layers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h4>ReLU</h4>
+                    <p>The most popular choice. Fast, efficient, and solves vanishing gradients.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h4>Softmax</h4>
+                    <p>Converts logits to probabilities. Essential for multi-class classification.</p>
+                </div>
+            </div>
+
+            <h3>2.1 Sigmoid (Logistic) Function</h3>
+            <p>Squashes values between 0 and 1. Historically used in hidden layers of early neural networks and the output layer for binary classification.</p>
+
+            <p><strong>Equation:</strong></p>
+            <div class="math-block">
+                <span class="math">&sigma;(z) = 1 / (1 + e<sup>&minus;z</sup>)</span>
+            </div>
+
+            <p><strong>Derivative (needed for backpropagation):</strong></p>
+            <div class="math-block">
+                <span class="math">&sigma;&prime;(z) = &sigma;(z) &middot; (1 &minus; &sigma;(z))</span>
+            </div>
+
+            <p><strong>Vanishing gradient, quantified.</strong> The derivative peaks at &frac14; for z = 0 and decays exponentially:</p>
+            <div class="math-block">
+                <span class="math">&sigma;&prime;(0) = 0.25, &nbsp; &sigma;&prime;(&plusmn;5) &asymp; 6.6&times;10<sup>&minus;3</sup>, &nbsp; &sigma;&prime;(&plusmn;10) &asymp; 4.5&times;10<sup>&minus;5</sup></span>
+            </div>
+            <p>Stack L sigmoid layers and the gradient reaching the first layer scales as <span class="math">0.25<sup>L</sup></span> — at L = 10 that is already below 10<sup>&minus;6</sup>. This single product is why deep networks abandoned sigmoid hidden layers for ReLU (derivative exactly 1 for z &gt; 0, no decay).</p>
+
+            <h3>2.2 Tanh (Hyperbolic Tangent)</h3>
+            <p>Squashes values between -1 and 1. It is zero-centered, which often makes optimization easier than Sigmoid.</p>
+
+            <p><strong>Equation:</strong></p>
+            <div class="math-block">
+                <span class="math">tanh(z) = (e<sup>z</sup> &minus; e<sup>&minus;z</sup>) / (e<sup>z</sup> + e<sup>&minus;z</sup>)</span>
+            </div>
+
+            <p><strong>Derivative:</strong></p>
+            <div class="math-block">
+                <span class="math">tanh&prime;(z) = 1 &minus; tanh<sup>2</sup>(z)</span>
+            </div>
+
+            <h3>2.3 ReLU (Rectified Linear Unit)</h3>
+            <p>The most popular activation function for hidden layers in modern deep learning. It is computationally efficient and helps mitigate the vanishing gradient problem.</p>
+
+            <p><strong>Equation:</strong></p>
+            <div class="math-block">
+                <span class="math">f(z) = max(0, z)</span>
+            </div>
+
+            <p><strong>Derivative:</strong></p>
+            <div class="math-block">
+                <span class="math">f&prime;(z) = <b>{</b> 1 &nbsp;if&nbsp; z &gt; 0 &nbsp;&nbsp;;&nbsp;&nbsp; 0 &nbsp;if&nbsp; z &le; 0 <b>}</b></span>
+            </div>
+
+            <h3>2.4 Leaky ReLU</h3>
+            <p>A variant of ReLU that allows a small, non-zero gradient when the unit is not active, solving the "dying ReLU" problem.</p>
+
+            <p><strong>Equation:</strong></p>
+            <div class="math-block">
+                <span class="math">f(z) = max(0.01z, z)</span>
+            </div>
+
+            <p><strong>Derivative:</strong></p>
+            <div class="math-block">
+                <span class="math">f&prime;(z) = <b>{</b> 1 &nbsp;if&nbsp; z &gt; 0 &nbsp;&nbsp;;&nbsp;&nbsp; 0.01 &nbsp;if&nbsp; z &le; 0 <b>}</b></span>
+            </div>
+
+            <h3>2.5 Softmax</h3>
+            <p>Used exclusively in the <strong>output layer</strong> for multi-class classification. It converts a vector of raw scores (logits) into a probability distribution where all probabilities sum to 1.</p>
+
+            <p><strong>Equation:</strong></p>
+            <div class="math-block">
+                <span class="math">&sigma;(z<sub>i</sub>) = e<sup>z<sub>i</sub></sup> / &Sigma;<sub>k=1</sub><sup>K</sup> e<sup>z<sub>k</sub></sup></span>
+            </div>
+
+            <p><strong>Key property:</strong> The output probabilities always sum to 1: <span class="math">&Sigma;<sub>i=1</sub><sup>K</sup> &sigma;(z<sub>i</sub>) = 1</span></p>
+
+            <p><strong>The gradient you actually use:</strong> paired with cross-entropy loss <span class="math">L = &minus;&Sigma;<sub>k</sub> y<sub>k</sub> log p<sub>k</sub></span>, the softmax Jacobian collapses to one line:</p>
+            <div class="math-block">
+                <span class="math">&part;L / &part;z<sub>i</sub> = p<sub>i</sub> &minus; y<sub>i</sub></span>
+            </div>
+            <p>This is why every framework pairs softmax with cross-entropy — the ugly full Jacobian <span class="math">&part;p<sub>i</sub>/&part;z<sub>j</sub> = p<sub>i</sub>(&delta;<sub>ij</sub> &minus; p<sub>j</sub>)</span> never needs to be formed explicitly.</p>
+
+            <p><strong>Numerical stability rule:</strong> always subtract the max logit first (the implementation below does): <span class="math">softmax(z) = softmax(z &minus; max(z))</span> — mathematically identical, but <span class="math">e<sup>z</sup></span> no longer overflows.</p>
+
+            <h3>2.6 Implementation</h3>
+
+            <div class="code-tabs" data-tab-group="activations">
+                <div class="code-tab-header">
+                    <button class="code-tab-btn active" data-tab="mojo-activations">
+                        <span class="lang-icon">🔥</span> Mojo 1.x
+                        </button>
+                </div>
+                <div class="code-tab-content active" id="mojo-activations" data-tab-content="mojo">
+                    <pre><code><span class="tok-k">from</span> std.math <span class="tok-k">import</span> exp, min, max
+<span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+
+<span class="tok-c"># --- 1. Sigmoid ---</span>
+<span class="tok-k">def</span> <span class="tok-f">sigmoid</span>(z: Float64) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Sigmoid activation function.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">var</span> clamped = min(max(z, -<span class="tok-num">500.0</span>), <span class="tok-num">500.0</span>)  <span class="tok-c"># Prevent overflow</span>
+    <span class="tok-k">return</span> <span class="tok-num">1.0</span> / (<span class="tok-num">1.0</span> + exp(-clamped))
+
+<span class="tok-k">def</span> <span class="tok-f">sigmoid_derivative</span>(z: Float64) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Derivative of sigmoid: s * (1 - s).&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">var</span> s = sigmoid(z)
+    <span class="tok-k">return</span> s * (<span class="tok-num">1.0</span> - s)
+
+<span class="tok-c"># --- 2. Tanh ---</span>
+<span class="tok-k">def</span> <span class="tok-f">tanh_act</span>(z: Float64) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Hyperbolic tangent activation.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">return</span> (exp(z) - exp(-z)) / (exp(z) + exp(-z))
+
+<span class="tok-k">def</span> <span class="tok-f">tanh_derivative</span>(z: Float64) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Derivative of tanh: 1 - tanh^2(z).&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">var</span> t = tanh_act(z)
+    <span class="tok-k">return</span> <span class="tok-num">1.0</span> - t * t
+
+<span class="tok-c"># --- 3. ReLU ---</span>
+<span class="tok-k">def</span> <span class="tok-f">relu</span>(z: Float64) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Rectified Linear Unit.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">return</span> max(<span class="tok-num">0.0</span>, z)
+
+<span class="tok-k">def</span> <span class="tok-f">relu_derivative</span>(z: Float64) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Derivative of ReLU.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">if</span> z &gt; <span class="tok-num">0.0</span>:
+        <span class="tok-k">return</span> <span class="tok-num">1.0</span>
+    <span class="tok-k">return</span> <span class="tok-num">0.0</span>
+
+<span class="tok-c"># --- 4. Leaky ReLU ---</span>
+<span class="tok-k">def</span> <span class="tok-f">leaky_relu</span>(z: Float64, alpha: Float64 = <span class="tok-num">0.01</span>) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Leaky ReLU activation.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">if</span> z &gt; <span class="tok-num">0.0</span>:
+        <span class="tok-k">return</span> z
+    <span class="tok-k">return</span> alpha * z
+
+<span class="tok-k">def</span> <span class="tok-f">leaky_relu_derivative</span>(z: Float64, alpha: Float64 = <span class="tok-num">0.01</span>) -&gt; Float64:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Derivative of Leaky ReLU.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">if</span> z &gt; <span class="tok-num">0.0</span>:
+        <span class="tok-k">return</span> <span class="tok-num">1.0</span>
+    <span class="tok-k">return</span> alpha
+
+<span class="tok-c"># --- 5. Softmax ---</span>
+<span class="tok-k">def</span> <span class="tok-f">softmax</span>(z: List[Float64]) -&gt; List[Float64]:
+    <span class="tok-s">&quot;&quot;</span><span class="tok-s">&quot;Softmax function - converts logits to probabilities.&quot;</span><span class="tok-s">&quot;&quot;</span>
+    <span class="tok-k">var</span> result = List[Float64]()
+    
+    <span class="tok-c"># Find max for numerical stability</span>
+    <span class="tok-k">var</span> max_val = z[<span class="tok-num">0</span>]
+    <span class="tok-k">for</span> val <span class="tok-k">in</span> z:
+        <span class="tok-k">if</span> val &gt; max_val:
+            max_val = val
+    
+    <span class="tok-c"># Compute exp(z - max) and sum</span>
+    <span class="tok-k">var</span> exp_sum = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> val <span class="tok-k">in</span> z:
+        <span class="tok-k">var</span> exp_val = exp(val - max_val)
+        result.append(exp_val)
+        exp_sum += exp_val
+    
+    <span class="tok-c"># Normalize</span>
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> <span class="tok-k">range</span>(result.size):
+        result[i] = result[i] / exp_sum
+    
+    <span class="tok-k">return</span> result
+
+<span class="tok-c"># --- Testing the Functions ---</span>
+<span class="tok-k">def</span> <span class="tok-f">main</span>():
+    <span class="tok-k">var</span> test_input = List[Float64]()
+    test_input.append(-<span class="tok-num">2.0</span>)
+    test_input.append(-<span class="tok-num">1.0</span>)
+    test_input.append(<span class="tok-num">0.0</span>)
+    test_input.append(<span class="tok-num">1.0</span>)
+    test_input.append(<span class="tok-num">2.0</span>)
+
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;Input:       &quot;</span>, test_input)
+    
+    <span class="tok-c"># Test each function</span>
+    <span class="tok-k">var</span> sig_results = List[Float64]()
+    <span class="tok-k">var</span> tanh_results = List[Float64]()
+    <span class="tok-k">var</span> relu_results = List[Float64]()
+    <span class="tok-k">var</span> leaky_results = List[Float64]()
+    
+    <span class="tok-k">for</span> val <span class="tok-k">in</span> test_input:
+        sig_results.append(sigmoid(val))
+        tanh_results.append(tanh_act(val))
+        relu_results.append(relu(val))
+        leaky_results.append(leaky_relu(val))
+    
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;Sigmoid:     &quot;</span>, sig_results)
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;Tanh:        &quot;</span>, tanh_results)
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;ReLU:        &quot;</span>, relu_results)
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;Leaky ReLU:  &quot;</span>, leaky_results)
+    <span class="tok-k">print</span>(<span class="tok-s">&quot;Softmax:     &quot;</span>, softmax(test_input))</code></pre>
+                </div>
+            </div>
+        </article>
+
+        <!-- ===== CHAPTER 3: NUMERIC TOUR ===== -->
+        <article class="chapter" id="chapter-3">
+            <div class="chapter-header">
+                <div class="chapter-number">3</div>
+                <div>
+                    <h2 class="chapter-title">Numeric Tour</h2>
+                    <p class="chapter-desc">Every function and its derivative at the same sample points — the numbers behind the curves.</p>
+                </div>
+            </div>
+
+            <p>Run every activation and its derivative over the same grid and read the table: this is the numeric content of all the plots, and it exposes the behaviors that matter — saturation, zero-centering, gradient decay:</p>
+
+            <div class="code-tabs" data-tab-group="numeric-tour">
+                <div class="code-tab-header">
+                    <button class="code-tab-btn active" data-tab="mojo-numeric-tour">
+                        <span class="lang-icon">🔥</span> Mojo 1.x
+                        </button>
+                </div>
+                <div class="code-tab-content active" id="mojo-numeric-tour" data-tab-content="mojo">
+                    <pre>from std.math import exp, tanh, max
+from std.collections import List
+
+def main():
+    var z = List[Float64]([-6.0, -2.0, -0.5, 0.0, 0.5, 2.0, 6.0])
+    print("    z  |  sigmoid     σ′   |   tanh      t′   |  relu  r′  |  leaky")
+    for i in range(len(z)):
+        var v = z[i]
+        var s = 1.0 / (1.0 + exp(-v))          # sigmoid
+        var t = tanh(v)
+        var leaky = max(0.01 * v, v)
+        print(v, " |", s, s * (1.0 - s),
+              "|", t, 1.0 - t * t,
+              "|", max(0.0, v), "|", leaky)
+    # σ′(±6) ≈ 0.0025: saturated.  t′(0) = 1 vs σ′(0) = 0.25.
+    # ReLU: gradient exactly 1 for z &gt; 0 — never decays.</pre>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>Gradient decay through depth:</strong> with L layers, the backprop product is
+                &Pi; f&prime;(z&#743;) — sigmoid: bounded by 0.25<sup>L</sup>; tanh: 1<sup>L</sup> at best but decays off-center;
+                ReLU: exactly 1 while active. That product is the whole vanishing-gradient story in one line.
+            </div>
+        </article>
+
+        <!-- ===== CHAPTER 4: LIMITATIONS ===== -->
+        <article class="chapter" id="chapter-4">
+            <div class="chapter-header">
+                <div class="chapter-number">4</div>
+                <div>
+                    <h2 class="chapter-title">Limitations</h2>
+                    <p class="chapter-desc">Why we need more than a single perceptron.</p>
+                </div>
+            </div>
+
+            <p>The perceptron is a linear classifier—it can only solve problems that are <strong>linearly separable</strong>. The classic XOR problem cannot be solved with a single perceptron:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Input (x1, x2)</th>
+                        <th>AND</th>
+                        <th>OR</th>
+                        <th>XOR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>(0, 0)</td><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>(0, 1)</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>(1, 0)</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>(1, 1)</td><td>1</td><td>1</td><td>0</td></tr>
+                </tbody>
+            </table>
+
+            <p>For non-linear problems, we need <strong>multi-layer perceptrons</strong> (neural networks) with non-linear activation functions (like sigmoid, ReLU) and techniques like backpropagation.</p>
+
+            <p><strong>Why XOR is provably impossible (the convex-hull argument):</strong> a perceptron separates the classes with a hyperplane <span class="math">w&middot;x + b = 0</span>. Two classes are separable by a hyperplane <em>if and only if their convex hulls do not intersect</em>. For XOR:</p>
+            <div class="math-block">
+                <span class="math">conv{(0,0), (1,1)} &cap; conv{(0,1), (1,0)} = {(&frac12;, &frac12;)} &ne; &empty;</span>
+            </div>
+            <p>The hulls are the two diagonals of the unit square — they cross at the center. No hyperplane exists, so by the Novikoff bound (Chapter 1) the learning rule never converges; it cycles forever.</p>
+
+            <p><strong>What breaks the linearity:</strong> stacking layers with a non-linear activation gives the universal approximation form:</p>
+            <div class="math-block">
+                <span class="math">f(x) = W<sub>2</sub> &middot; &sigma;( W<sub>1</sub>x + b<sub>1</sub> ) + b<sub>2</sub></span>
+            </div>
+            <p>Without <span class="math">&sigma;</span> (or any non-linearity) the composition <span class="math">W<sub>2</sub>W<sub>1</sub>x</span> collapses to a single linear map — a multi-layer <em>linear</em> network is still just one perceptron. The activation function is the only thing that adds expressive power; the layers just arrange it. XOR needs exactly one hidden layer with two units.</p>
+        </article>
+
+        <!-- ===== SUMMARY ===== -->
+        <article class="chapter" id="summary">
+            <div class="chapter-header">
+                <div class="chapter-number">★</div>
+                <div>
+                    <h2 class="chapter-title">Quick Reference</h2>
+                    <p class="chapter-desc">Every function, its derivative, and where it belongs — in equation form.</p>
+                </div>
+            </div>
+
+            <h3>All Functions &amp; Derivatives</h3>
+            <div class="math-block">
+                <span class="math">
+                    step:&nbsp; f(z) = [z &ge; 0], &nbsp; f&prime; = undefined &nbsp;&rarr;&nbsp; perceptrons only<br><br>
+                    sigmoid:&nbsp; &sigma;(z) = 1/(1+e<sup>&minus;z</sup>), &nbsp; &sigma;&prime; = &sigma;(1&minus;&sigma;) &le; 0.25 &nbsp;&rarr;&nbsp; binary output layer<br><br>
+                    tanh:&nbsp; tanh(z), &nbsp; tanh&prime; = 1 &minus; tanh<sup>2</sup> &le; 1 &nbsp;&rarr;&nbsp; RNN/LSTM hidden layers<br><br>
+                    ReLU:&nbsp; max(0, z), &nbsp; f&prime; = [z &gt; 0] &isin; {0, 1} &nbsp;&rarr;&nbsp; default hidden layer<br><br>
+                    Leaky ReLU:&nbsp; max(&alpha;z, z), &nbsp; f&prime; &isin; {&alpha;, 1} &nbsp;&rarr;&nbsp; when ReLU units die<br><br>
+                    softmax:&nbsp; p<sub>i</sub> = e<sup>z<sub>i</sub></sup>/&Sigma;e<sup>z<sub>k</sub></sup>, &nbsp; &part;L/&part;z<sub>i</sub> = p<sub>i</sub> &minus; y<sub>i</sub> (with cross-entropy) &nbsp;&rarr;&nbsp; multi-class output layer
+                </span>
+            </div>
+
+            <div class="note">
+                <strong>Gradient products through depth:</strong> backprop multiplies derivatives:
+                &Pi; f&prime;(z&#743;) — bounded by 0.25<sup>L</sup> (sigmoid), decaying off-center (tanh), exactly 1 while active (ReLU).
+                This one product decides which activations survive depth.
+            </div>
+
+            <h3>Self-Check</h3>
+            <ol>
+                <li>Derive the perceptron update rule from the mistake condition, and state the Novikoff bound. Which quantities does it not depend on?</li>
+                <li>Show &sigma;&prime;(z) = &sigma;(z)(1 &minus; &sigma;(z)) in two lines, and compute the gradient product through 10 sigmoid layers at saturation.</li>
+                <li>Prove XOR is not linearly separable via the convex-hull argument; why does AND have margin exactly 1/&radic;2 after scaling?</li>
+                <li>Why must softmax subtract the max logit? Give an input where the naive form overflows and the shifted form does not.</li>
+                <li>Run the numeric tour (Chapter 3) and extend it with GELU: f(z) = z&middot;&Phi;(z), where &Phi; is the standard normal CDF.</li>
+                <li>Train the Mojo perceptron on OR, then on XOR, and count epochs — verify XOR never converges.</li>
+            </ol>
+        </article>
+
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <p>Perceptrons & Activation Functions Tutorial | Built for educational purposes</p>
+    </footer>
+
+    <!-- Smooth scroll for navigation -->
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const navHeight = document.querySelector('.nav-bar').offsetHeight;
+                    const targetPosition = target.offsetTop - navHeight - 20;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+
+    <!-- Code Tab Switching -->
+    <script>
+        document.querySelectorAll('.code-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabGroup = this.closest('.code-tabs');
+                const tabName = this.dataset.tab;
+                
+                // Update buttons
+                tabGroup.querySelectorAll('.code-tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update content
+                tabGroup.querySelectorAll('.code-tab-content').forEach(c => c.classList.remove('active'));
+                tabGroup.querySelector(`[data-tab-content="${tabName}"]`).classList.add('active');
+            });
+        });
+    </script>
+    
+
+<!-- tutme-hl:runtime -->
+<style>
+/* Mojo runtime syntax highlighting (tutme) - dark default, light variant auto-applied */
+pre .hkw{color:#c792ea}
+pre .hty{color:#ffcb6b}
+pre .hfn{color:#82aaff}
+pre .hstr{color:#c3e88d}
+pre .hnum{color:#f78c6c}
+pre .hcm{color:#676e95;font-style:italic}
+pre .hop{color:#89ddff}
+pre.tutme-light .hkw{color:#6d28d9}
+pre.tutme-light .hty{color:#b45309}
+pre.tutme-light .hfn{color:#1d4ed8}
+pre.tutme-light .hstr{color:#15803d}
+pre.tutme-light .hnum{color:#c2410c}
+pre.tutme-light .hcm{color:#6b7280;font-style:italic}
+pre.tutme-light .hop{color:#0f766e}
+</style>
+<script>
+(function(){
+  if (window.__tutmeHL) return; window.__tutmeHL = true;
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var KW='def fn struct trait alias var let return if elif else for while in break continue '+
+    'from import as mut out self yield raise raises try except with match case and or not '+
+    'lambda pass global static public private true false none parameterize is';
+  var TY='Float64 Float32 Float16 Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 '+
+    'String StringRef Bool List Dict Tensor TensorShape SIMD DType Pointer Slice '+
+    'Memory Atomic Scalar Tuple NoneType object Int Index';
+  var kwRe = new RegExp('\\b(?:'+KW.split(' ').join('|')+')\\b','ig');
+  var tyRe = new RegExp('\\b(?:'+TY.split(' ').join('|')+')\\b','g');
+  var RULES = [
+    ['cm', /#[^\n]*/g],
+    ['str', /"""[^]*?"""/g],
+    ['str', /'''[^]*?'''/g],
+    ['str', /"(?:\\.|[^"\\\n])*"/g],
+    ['str', /'(?:\\.|[^'\\\n])*'/g],
+    ['num', /(?:\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?[iu]?|\.\d+)/g],
+    ['kw', kwRe],
+    ['ty', tyRe],
+    ['fn', /([A-Za-z_]\w*)(\s*\()/g],
+    ['op', /(?:\+\+|-{2}|->|=>|==|!=|<=|>=|\+=|-=|\*=|\/=|\/\/|\*\*|::|\|\||&&|\.\.\.|[+\-*/%<>=!@&~|])/g]
+  ];
+
+  function highlight(text){
+    var marks = [];
+    for (var r=0; r<RULES.length; r++){
+      var cls = RULES[r][0], rx = RULES[r][1];
+      rx.lastIndex = 0;
+      var m;
+      while ((m = rx.exec(text)) !== null){
+        if (m[0].length){
+          marks.push([m.index, m.index+m[0].length, cls, m]);
+        }
+        rx.lastIndex = m.index + Math.max(1, m[0].length);
+      }
+    }
+    marks.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+    var out = [], i = 0;
+    for (var k=0; k<marks.length; k++){
+      var st = marks[k][0], en = marks[k][1], cls = marks[k][2], mm = marks[k][3];
+      if (st < i) continue;
+      if (st > i) out.push(esc(text.slice(i, st)));
+      if (cls === 'fn'){
+        out.push('<span class="hfn">'+esc(mm[1])+esc(mm[2])+'</span>');
+      } else {
+        out.push('<span class="h'+cls+'">'+esc(text.slice(st, en))+'</span>');
+      }
+      i = en;
+    }
+    out.push(esc(text.slice(i)));
+    return out.join('');
+  }
+
+  function hexLum(h){
+    h = h.slice(1);
+    if (h.length === 3 || h.length === 4) h = h.split('').map(function(x){ return x+x; }).join('');
+    var n = parseInt(h.slice(0,6), 16);
+    return 0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255);
+  }
+
+  function fallbackLum(){
+    try {
+      var s = window.getComputedStyle(document.body);
+      var colors = ((s.backgroundImage || '') + ' ' + (s.backgroundColor || '')).match(/(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))/ig) || [];
+      var i;
+      for (i=0; i<colors.length; i++){
+        var c = colors[i];
+        if (c.charAt(0) === '#'){
+          if (c.length < 7) continue;
+          return hexLum(c);
+        }
+        var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(c);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > 0.3)){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function detectLum(pre){
+    var n = pre;
+    for (var i=0; i<4 && n; i++, n=n.parentElement){
+      var bg;
+      try { bg = window.getComputedStyle(n).backgroundColor; } catch(e){ return null; }
+      var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(bg);
+      if (m){
+        var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+        if (a > 0.3){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    }
+    return fallbackLum();
+  }
+
+  var pres = document.querySelectorAll('pre');
+  for (var p=0; p<pres.length; p++){
+    var pre = pres[p];
+    if (pre.className && /(^|\s)math(\s|$)/.test(pre.className)) continue;
+    var kids = pre.children.length, el = pre;
+    if (kids === 1 && pre.firstElementChild && pre.firstElementChild.tagName === 'CODE'){
+      el = pre.firstElementChild;
+    } else if (kids > 0) {
+      continue;
+    }
+    if (/<[a-z]/i.test(el.innerHTML)) continue;
+    var txt = el.textContent;
+    if (!/(?:def|fn|struct|trait|var|let|import|from|for|while|return|print|Float64|if|class)\b/.test(txt)) continue;
+    var lum = detectLum(pre);
+    if (lum !== null && lum > 170) pre.className = (pre.className ? pre.className + ' ' : '') + 'tutme-light';
+    el.innerHTML = highlight(txt);
+  }
+})();
+</script>
+</body>
+</html>

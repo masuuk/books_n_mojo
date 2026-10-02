@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)tb_07_performance_optimization.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 7 — Performance Optimization · Mojo 1.x Textbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --bg-primary:#0b0d15;--bg-secondary:#12162b;--bg-card:rgba(255,255,255,0.04);
+  --bg-code:rgba(0,0,0,0.4);
+  --text-primary:#ffffff;--text-secondary:#d8def0;--text-muted:#ffd98f;
+  --accent-1:#6c5ce7;--accent-2:#00b4d8;--accent-3:#f77f00;
+  --accent-gradient:linear-gradient(135deg,#6c5ce7,#00b4d8,#f77f00);
+  --border-color:rgba(255,255,255,0.18);--radius:16px;--radius-sm:8px;
+  --transition:0.3s cubic-bezier(0.4,0,0.2,1);--max-width:900px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+::selection{background:rgba(108,92,231,0.4);color:#fff;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg-primary);}
+::-webkit-scrollbar-thumb{background:var(--accent-1);border-radius:10px;}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent-gradient);z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:64px;background:rgba(11,13,21,0.85);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;}
+.logo-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;}
+.logo span{color:var(--text-secondary);font-weight:400;}
+.logo .mojo{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.chnum{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent-2);letter-spacing:0.04em;}
+
+.container{max-width:var(--max-width);margin:0 auto;padding:0 24px;}
+.wrap{padding:5rem 0 8rem;}
+
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,180,216,0.12);padding:4px 16px;border-radius:100px;border:1px solid rgba(0,180,216,0.15);margin-bottom:16px;}
+h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.03em;line-height:1.15;margin-bottom:12px;}
+h1 .highlight{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dek{font-size:1.1rem;color:var(--text-secondary);max-width:600px;margin-bottom:40px;line-height:1.8;}
+
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border-color);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.2rem;font-weight:600;margin:2rem 0 0.8rem;color:var(--text-primary);}
+p{color:var(--text-secondary);margin:0 0 1.1rem;line-height:1.8;}
+p strong{color:var(--text-primary);}
+ul,ol{color:var(--text-secondary);padding-left:24px;line-height:1.8;}
+li{margin-bottom:6px;}
+code.inline{font-family:var(--font-mono);font-size:0.85em;background:rgba(108,92,231,0.12);padding:2px 8px;border-radius:6px;color:#c084fc;border:1px solid rgba(108,92,231,0.2);}
+
+.info-box{padding:20px 24px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:20px 0;}
+.info-box strong{color:var(--text-primary);}
+.info-box p{margin-top:4px;color:var(--text-secondary);}
+.tip-box{background:rgba(0,180,216,0.05);border-color:rgba(0,180,216,0.12);}
+.tip-box strong{color:var(--accent-2);}
+.warning-box{background:rgba(247,127,0,0.06);border-color:rgba(247,127,0,0.12);}
+.warning-box strong{color:var(--accent-3);}
+
+.code-tabs{margin:20px 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-color);background:var(--bg-code);}
+.tabs-header{display:flex;gap:2px;padding:8px 12px 0;background:rgba(0,0,0,0.3);border-bottom:1px solid var(--border-color);}
+.tab-btn{padding:8px 18px;font-family:var(--font-mono);font-size:0.75rem;font-weight:500;background:none;border:none;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:var(--transition);position:relative;}
+.tab-btn:hover{color:var(--text-primary);background:rgba(255,255,255,0.04);}
+.tab-btn.active{color:var(--text-primary);background:rgba(255,255,255,0.18);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent-gradient);border-radius:4px;}
+.tab-content{display:none;padding:16px 20px;overflow-x:auto;background:rgba(0,0,0,0.2);}
+.tab-content.active{display:block;}
+pre{font-family:var(--font-mono);font-size:0.85rem;line-height:1.8;color:#e2e8f0;margin:0;white-space:pre-wrap;}
+pre .kw{color:#c084fc;}pre .fn{color:#60a5fa;}pre .str{color:#4ade80;}pre .num{color:#fbbf24;}pre .cmt{color:#a8b6d4;font-style:italic;}pre .op{color:#f472b6;}pre .type{color:#34d399;}pre .var{color:#fcd34d;}
+
+.quiz{border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);padding:24px;margin:28px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent-2);margin-bottom:12px;}
+.qtext{font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:16px;}
+.opts{display:flex;flex-direction:column;gap:8px;}
+.opt{text-align:left;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-family:var(--font-sans);font-size:0.95rem;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);}
+.opt:hover{border-color:var(--accent-1);color:var(--text-primary);}
+.opt.correct{border-color:#4ade80;background:rgba(74,222,128,0.08);color:#4ade80;}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:12px;font-size:0.9rem;color:var(--text-secondary);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border-color);border-radius:var(--radius);padding:20px 24px;background:var(--bg-card);margin:24px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);gap:16px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.85rem;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-color);padding:10px 16px;border-radius:var(--radius-sm);transition:var(--transition);}
+.navbtn:hover{border-color:var(--accent-1);color:var(--text-primary);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+
+.mini-toc{position:fixed;right:2vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--border-color);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--accent-2);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+
+@media(max-width:600px){
+  h1{font-size:2rem;}
+  .wrap{padding:3rem 0 5rem;}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="logo" href="../single_source_of_truth%20mojo/index.html">
+    <span class="logo-icon">M</span>
+    <span><span class="mojo">Mojo</span> <span>Textbook</span></span>
+  </a>
+  <span class="chnum">Ch 07 — Performance Optimization</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_ml_textbook_07_performance.html#vectorization"></a>
+  <a href="ds_ml_textbook_07_performance.html#simd"></a>
+  <a href="ds_ml_textbook_07_performance.html#parallel"></a>
+  <a href="ds_ml_textbook_07_performance.html#memory"></a>
+  <a href="ds_ml_textbook_07_performance.html#profiling"></a>
+  <a href="ds_ml_textbook_07_performance.html#quiz"></a>
+  <a href="ds_ml_textbook_07_performance.html#exercises"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Chapter 7</span>
+  <h1>⚡ Performance <span class="highlight">Optimization</span></h1>
+  <p class="dek">Vectorization, SIMD, parallelization, and profiling — squeezing every cycle out of your Mojo code.</p>
+
+  <section id="vectorization">
+    <h2>Loop Vectorization</h2>
+    <p>The single most impactful optimization for numerical code is vectorization: replacing scalar operations with wide SIMD (Single Instruction, Multiple Data) operations that process 4, 8, or 16 elements simultaneously. Mojo's compiler can automatically vectorize simple loops, but understanding how to guide it gives you control over performance.</p>
+    <p>In Python, NumPy handles vectorization behind the scenes by dispatching to C. In Mojo, SIMD is a first-class citizen with language-level support, so you can write vectorized code directly.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch7-mojo-vec">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch7-mojo-vec">
+<pre><span class="kw">from</span> math <span class="kw">import</span> sqrt
+
+<span class="kw">def</span> <span class="fn">dot_product_simd</span>(
+    a: Tensor[Float32], b: Tensor[Float32]
+) -&gt; Float32:
+    <span class="kw">var</span> n = a.num_elements()
+    <span class="kw">var</span> total: Float32 = <span class="num">0.0</span>
+    <span class="kw">var</span> i = <span class="num">0</span>
+    <span class="cmt"># Process 8 elements at a time with SIMD</span>
+    <span class="kw">comptime</span> S = simdwidthof[Float32]()  <span class="cmt"># typically 8</span>
+    <span class="kw">var</span> simd_acc = SIMD[Float32, S](<span class="num">0.0</span>)
+    <span class="kw">while</span> i + S &lt;= n:
+        simd_acc += a.load[<span class="num">0</span>](i) * b.load[<span class="num">0</span>](i)
+        i += S
+    <span class="cmt"># Horizontal reduction</span>
+    <span class="kw">for</span> k <span class="kw">in</span> range(S):
+        total += simd_acc[k]
+    <span class="cmt"># Handle remainder</span>
+    <span class="kw">while</span> i &lt; n:
+        total += a[i] * b[i]
+        i += <span class="num">1</span>
+    <span class="kw">return</span> total</pre>
+      </div>
+      </div>
+    </section></div>
+
+    <div class="info-box">
+      <strong>💡 Key Insight:</strong>
+      <p>Mojos <code class="inline">SIMD[Float32, S]</code> type is a compile-time fixed-width vector. The compiler knows exactly how many elements it holds, so it can map directly to AVX2/AVX-512 instructions without any runtime dispatch.</p>
+    <p>Python has two routes to the same hardware, and neither is this one. The cheap route is <code class="inline">np.dot(a, b)</code>, which hands the work to a SIMD-optimized BLAS and returns the answer in one call — fast, but the vector width is the library's decision, not yours. The explicit route is numba: <code class="inline">@njit(parallel=True)</code> over a <code class="inline">prange</code> lets a plain Python loop compile to native code, which gets you SIMD as a side effect of the JIT. The Mojo version is the explicit route without the JIT — the width is <code class="inline">simdwidthof[Float32]()</code>, the loop steps by that width, and the horizontal reduction is written out. Note the remainder loop: an explicit vector kernel always needs one, because the length rarely divides evenly.</p>
+    </div>
+  
+
+  <section id="simd">
+    <h2>Working with SIMD Intrinsics</h2>
+    <p>Mojo provides low-level access to SIMD operations through its <code class="inline">SIMD</code> type. This gives you the same control as C intrinsics but with safe, ergonomic syntax. Common operations include element-wise math, reductions, and shuffles.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch7-mojo-simd">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch7-mojo-simd">
+<pre><span class="kw">from</span> math <span class="kw">import</span> sqrt
+
+<span class="kw">def</span> <span class="fn">softmax_simd</span>(mut logits: Tensor[Float32]):
+    <span class="kw">var</span> n = logits.num_elements()
+    <span class="cmt"># Find max for numerical stability</span>
+    <span class="kw">var</span> max_val: Float32 = logits[<span class="num">0</span>]
+    <span class="kw">for</span> i <span class="kw">in</span> range(<span class="num">1</span>, n):
+        <span class="kw">if</span> logits[i] &gt; max_val:
+            max_val = logits[i]
+
+    <span class="cmt"># Vectorized exp using SIMD</span>
+    <span class="kw">comptime</span> S = simdwidthof[Float32]()
+    <span class="kw">var</span> exp_sum: Float32 = <span class="num">0.0</span>
+    <span class="kw">var</span> max_vec = SIMD[Float32, S](max_val)
+    <span class="kw">var</span> i = <span class="num">0</span>
+    <span class="kw">while</span> i + S &lt;= n:
+        <span class="kw">var</span> v = logits.load[<span class="num">0</span>](i) - max_vec
+        <span class="kw">var</span> ev = exp(v)
+        logits.store(i, ev)
+        exp_sum += ev.reduce_add()
+        i += S
+    <span class="cmt"># Scalar remainder</span>
+    <span class="kw">while</span> i &lt; n:
+        <span class="kw">var</span> e = exp(logits[i] - max_val)
+        logits[i] = e
+        exp_sum += e
+        i += <span class="num">1</span>
+    <span class="cmt"># Normalize</span>
+    <span class="kw">var</span> inv_sum = <span class="num">1.0</span> / exp_sum
+    i = <span class="num">0</span>
+    <span class="kw">while</span> i + S &lt;= n:
+        logits.store(i, logits.load[<span class="num">0</span>](i) * inv_sum)
+        i += S
+    <span class="kw">while</span> i &lt; n:
+        logits[i] *= inv_sum
+        i += <span class="num">1</span></pre>
+      </div>
+      </div>
+    </section></div>
+
+    <div class="info-box tip-box">
+      <strong>🚀 Pro Tip:</strong>
+      <p>Mojos <code class="inline">load</code> and <code class="inline">store</code> methods on Tensor use aligned memory access when possible. Aligned loads are significantly faster on x86 — up to 2x throughput for large arrays.</p>
+    <p>From Python this level of control is out of reach without leaving Python. The honest options are NumPy, which gives you whole-array operations and no width control, or a C extension that reaches for intrinsics like <code class="inline">_mm256_fmadd_ps</code> for an AVX2 fused multiply-add. Anything in between is a scalar list comprehension — the three-line softmax, subtract the max, exponentiate, divide — which is correct, portable, and around an order of magnitude off the vectorized version above. That gap is the argument for having a <code class="inline">SIMD</code> type in the language rather than behind an extension boundary.</p>
+    </div>
+  
+
+  <section id="parallel">
+    <h2>Parallelization with Threads</h2>
+    <p>Once your inner loops are vectorized, the next step is parallelization: splitting work across multiple CPU cores. Mojo provides a <code class="inline">parallelize</code> function that handles thread pool management automatically.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch7-mojo-par">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch7-mojo-par">
+<pre><span class="kw">from</span> algorithm <span class="kw">import</span> parallelize
+
+<span class="kw">def</span> <span class="fn">parallel_matmul</span>(
+    A: Tensor[Float32],
+    B: Tensor[Float32],
+    C: Tensor[Float32],
+):
+    <span class="kw">var</span> M = A.shape()[<span class="num">0</span>]
+    <span class="kw">var</span> N = B.shape()[<span class="num">1</span>]
+    <span class="kw">var</span> K = A.shape()[<span class="num">1</span>]
+
+    <span class="cmt"># Parallelize over rows</span>
+    <span class="kw">def</span> <span class="fn">compute_row</span>(row: Int):
+        <span class="kw">for</span> j <span class="kw">in</span> range(N):
+            <span class="kw">var</span> acc: Float32 = <span class="num">0.0</span>
+            <span class="kw">for</span> k <span class="kw">in</span> range(K):
+                acc += A[row, k] * B[k, j]
+            C[row, j] = acc
+
+    parallelize[compute_row](M, num_cores=logical_cores())</pre>
+      </div>
+      </div>
+    
+
+    <div class="info-box">
+      <strong>💡 Key Insight:</strong>
+      <p>Mojos <code class="inline">parallelize[fn](total_items, num_cores)</code> abstracts thread pool management. Unlike Python's <code class="inline">multiprocessing</code>, it uses lightweight threads that share memory — no pickling overhead, no process startup cost.</p>
+      <p>The reason Python reaches for <code class="inline">multiprocessing</code> here at all is the GIL: <code class="inline">Pool().map</code> is the only way to put a CPU-bound loop on more than one core, and it pays for that with a copy. Every argument tuple crossing the process boundary is pickled, so the <code class="inline">[(i, A, B) for i in range(...)]</code> argument list pickles the whole of <code class="inline">A</code> and <code class="inline">B</code> once per row, and the result comes back the same way. In the Mojo pane <code class="inline">A</code>, <code class="inline">B</code> and <code class="inline">C</code> are already in one address space, so <code class="inline">parallelize[compute_row](M, num_cores=logical_cores())</code> passes nothing but an index — the row function reads and writes the shared tensors directly, and the nested function needs no arguments plumbed to it at all.</p>
+    </div>
+  </section>
+
+  <section id="memory">
+    <h2>Memory Management and Layout</h2>
+    <p>Performance isn't just about speed — it's about memory access patterns. A cache-friendly data layout can be 10x faster than a naive one, even with the same algorithm. Mojo gives you control over allocation strategy, memory layout, and copy semantics.</p>
+
+    <h3>Stack vs Heap Allocation</h3>
+    <p>Mojo's <code class="inline">Tensor</code> with compile-time-known dimensions can be stack-allocated. Small tensors (up to a few KB) should live on the stack to avoid heap allocation overhead.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch7-mojo-mem">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch7-mojo-mem">
+<pre><span class="kw">from</span> memory <span class="kw">import</span> memcpy, stack_allocation
+
+<span class="cmt"># Small fixed-size buffer on the stack</span>
+<span class="kw">def</span> <span class="fn">compute_with_stack_buf</span>(
+    input: Tensor[Float32]
+) -&gt; Float32:
+    <span class="cmt"># 256 floats = 1KB on stack, no malloc</span>
+    <span class="kw">comptime</span> BUF_SIZE = <span class="num">256</span>
+    <span class="kw">var</span> buf = stack_allocation[Float32, BUF_SIZE]()
+
+    <span class="cmt"># Copy input into stack buffer</span>
+    <span class="kw">var</span> n = min(input.num_elements(), BUF_SIZE)
+    memcpy(buf, input.data(), n)
+
+    <span class="cmt"># Process on stack — cache-friendly</span>
+    <span class="kw">var</span> total: Float32 = <span class="num">0.0</span>
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        total += buf[i] * buf[i]
+    <span class="kw">return</span> sqrt(total)</pre>
+      </div>
+      </div>
+    
+
+    <div class="info-box warning-box">
+      <strong>⚠️ Watch Out:</strong>
+      <p>Mojos <code class="inline">stack_allocation</code> is for fixed-size, compile-time-known sizes only. For dynamic sizes, you'll use the heap. Profile before optimizing — premature stack allocation can actually hurt if it causes stack overflow on large inputs.</p>
+      <p>Python has no equivalent switch. Every buffer is a heap object, so the closest equivalent to the Mojo pane is <code class="inline">np.zeros(256, dtype=np.float32)</code> followed by <code class="inline">buf[:len(input_arr)] = input_arr[:256]</code>: a <code class="inline">malloc</code> on every call, a bounds check on every slice, and no way to ask the language for the stack instead. The three-line form works, but note what it costs — the allocation is the expensive part, not the arithmetic, and that is exactly the cost <code class="inline">stack_allocation[Float32, BUF_SIZE]()</code> removes.</p>
+    </div>
+  </section>
+
+  <section id="profiling">
+    <h2>Profiling and Benchmarking</h2>
+    <p>You can't optimize what you can't measure. Mojo integrates with standard profiling tools and provides built-in benchmarking primitives. The key is to profile on realistic data sizes and focus on the hottest code paths.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch7-mojo-prof">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch7-mojo-prof">
+<pre><span class="kw">from</span> time <span class="kw">import</span> now
+
+<span class="kw">def</span> <span class="fn">benchmark</span>():
+    <span class="kw">var</span> N = <span class="num">1000000</span>
+    <span class="kw">var</span> A = Tensor[Float32](N)
+    <span class="kw">var</span> B = Tensor[Float32](N)
+    <span class="cmt"># Initialize with random data</span>
+    <span class="kw">for</span> i <span class="kw">in</span> range(N):
+        A[i] = randn_float32()
+        B[i] = randn_float32()
+
+    <span class="cmt"># Time the dot product</span>
+    <span class="kw">var</span> start = now()
+    <span class="kw">var</span> result = dot_product_simd(A, B)
+    <span class="kw">var</span> elapsed = now() - start
+    <span class="kw">print</span>(<span class="str">"Result:"</span>, result)
+    <span class="kw">print</span>(<span class="str">"Time:"</span>, elapsed / <span class="num">1e6</span>, <span class="str">"ms"</span>)
+
+<span class="cmt"># Use --baseline for statistical benchmarking</span>
+<span class="cmt"># mojo run --baseline bench.mojo</span></pre>
+      </div>
+      </div>
+    
+
+    <div class="info-box tip-box">
+      <strong>🚀 Pro Tip:</strong>
+      <p>Mojos <code class="inline">--baseline</code> flag runs a function multiple times to compute statistically robust timing measurements. It handles warmup, outlier rejection, and reports confidence intervals — essential for micro-benchmarking.</p>
+      <p>The Python equivalent of the timer alone is <code class="inline">time.perf_counter()</code> on both sides of the call, but stopping there is what makes micro-benchmarks lie: one run on a shared machine is noise, and <code class="inline">timeit</code> is the usual answer. Everything past the timer has no equivalent worth copying — <code class="inline">python -m cProfile -s cumulative</code> and <code class="inline">py-spy top</code> profile the interpreter, so their overhead is the interpreter, and neither can report a confidence interval. The Mojo pane just runs <code class="inline">mojo run --baseline bench.mojo</code> and gets the statistics with the measurement.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">Quick Check</div>
+      <div class="qtext">What does <code class="inline">simdwidthof[Float32]()</code> return on a typical x86-64 CPU with AVX2?</div>
+      <div class="opts" id="quiz7a">
+        <button class="opt" data-correct="false">4 — one 128-bit register</button>
+        <button class="opt" data-correct="true">8 — one 256-bit AVX2 register holds 8 Float32</button>
+        <button class="opt" data-correct="false">16 — AVX-512 width</button>
+        <button class="opt" data-correct="false">1 — SIMD is not available</button>
+      </div>
+      <div class="feedback" id="feedback7a"></div>
+    </div>
+    <div class="quiz">
+      <div class="qlbl">Quick Check</div>
+      <div class="qtext">Why is <code class="inline">parallelize</code> more efficient than Python's <code class="inline">multiprocessing</code>?</div>
+      <div class="opts" id="quiz7b">
+        <button class="opt" data-correct="false">It uses more CPU cores</button>
+        <button class="opt" data-correct="true">It uses lightweight threads that share memory, avoiding serialization overhead</button>
+        <button class="opt" data-correct="false">It runs on the GPU instead of CPU</button>
+        <button class="opt" data-correct="false">It compiles to native code while Python does not</button>
+      </div>
+      <div class="feedback" id="feedback7b"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a SIMD-vectorized matrix-vector multiplication function. Benchmark it against a scalar version on a 1000x1000 matrix.</li>
+        <li>Use <code class="inline">parallelize</code> to speed up a naive image blur (3x3 box filter) on a 4000x3000 pixel image. Compare serial vs parallel execution time.</li>
+        <li>Profile a simple neural network forward pass and identify the bottleneck. Apply vectorization to the hottest loop and measure the improvement.</li>
+        <li>Experiment with memory layout: compare row-major vs column-major access patterns in a matrix multiplication. Which is faster and why?</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_ml_textbook_06_building_models.html">← Chapter 6</a>
+    <a class="navbtn" href="ds_ml_textbook_08_advanced.html">Chapter 8 →</a>
+  </div>
+
+
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll',()=>{const h=document.documentElement;progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',function(){const group=this.closest('.code-tabs');group.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));group.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));this.classList.add('active');const target=group.querySelector('#'+this.getAttribute('data-tab'));if(target) target.classList.add('active');});});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));}});},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,feedbackId){{const group=document.getElementById(id);const feedback=document.getElementById(feedbackId);group.querySelectorAll('.opt').forEach(btn=>{{btn.addEventListener('click',()=>{{if(group.querySelector('.correct,.wrong'))return;const correct=btn.dataset.correct==='true';btn.classList.add(correct?'correct':'wrong');if(!correct)group.querySelectorAll('.opt').forEach(o=>{{if(o.dataset.correct==='true')o.classList.add('correct');}});feedback.textContent=correct?'\u2713 Correct.':'\u2717 Not quite \u2014 the correct answer is highlighted above.';feedback.classList.add('show');}});}});}}
+wireQuiz('quiz7a','feedback7a');
+wireQuiz('quiz7b','feedback7b');
+</script>
+
+</body></html>

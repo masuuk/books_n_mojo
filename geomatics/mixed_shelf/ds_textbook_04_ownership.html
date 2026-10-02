@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_04_ownership_borrowing.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 4 — Ownership &amp; Borrowing · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Ch 04 — Ownership &amp; Borrowing</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_04_ownership.html#why-ownership" data-t="why-ownership" title="Why Ownership?"></a>
+  <a href="ds_textbook_04_ownership.html#arg-conventions" data-t="arg-conventions" title="Argument Conventions"></a>
+  <a href="ds_textbook_04_ownership.html#transfer" data-t="transfer" title="Transfer &amp; ^"></a>
+  <a href="ds_textbook_04_ownership.html#exclusivity" data-t="exclusivity" title="Exclusivity Rules"></a>
+  <a href="ds_textbook_04_ownership.html#at-a-glance" data-t="at-a-glance" title="Ownership at a glance"></a>
+  <a href="ds_textbook_04_ownership.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_04_ownership.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part I — Foundations · Chapter 4</div>
+  <h1>🔐 Ownership &amp; Borrowing</h1>
+  <p class="dek">Mojo's memory safety model — how ownership, borrowing, and exclusivity rules eliminate data races and use-after-free bugs without a garbage collector, while staying simpler than a full borrow checker.</p>
+
+  <section id="why-ownership">
+    <h2>Why ownership matters</h2>
+    <p>Every language must answer the question: <b>who is responsible for freeing this memory?</b> Python uses a garbage collector (reference counting + cycle detector). C lets you manage it manually (and crash). Some systems languages use a compile-time ownership system. Mojo follows that approach but with a key design goal: <b>make the common case easy and the hard case possible.</b></p>
+
+    <p>The problem ownership solves is real and costly. In Python, two variables can point to the same list, and modifications through one affect the other silently. In C, you can free memory and then accidentally use it. In Mojo, the compiler tracks every value's lifetime and rejects code that could cause memory errors.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="ownership"><span class="sw"></span>ownership.mojo</div>
+      </div>
+      <div class="panes" data-group="ownership">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — values have a single owner</span>
+<span class="tok-kw">var</span> a = [<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>]   <span class="tok-com"># a owns the list</span>
+<span class="tok-kw">var</span> b = a              <span class="tok-com"># COMPILE ERROR — can't copy implicitly</span>
+<span class="tok-kw">var</span> c = a^             <span class="tok-com"># OK — moves ownership from a to c</span>
+<span class="tok-com"># a is now invalid — can't use it</span>
+print(c)                <span class="tok-com"># [1, 2, 3]</span>
+
+<span class="tok-com"># Explicit copy when you need both</span>
+<span class="tok-kw">var</span> d = [<span class="tok-num">4</span>, <span class="tok-num">5</span>, <span class="tok-num">6</span>]
+<span class="tok-kw">var</span> e = d.copy()       <span class="tok-com"># deep copy — both d and e own their data</span>
+d.append(<span class="tok-num">7</span>)            <span class="tok-com"># only affects d</span>
+print(e)                <span class="tok-com"># [4, 5, 6] — unchanged</span></pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo enforces single ownership at compile time. Python's reference semantics are simpler but sacrifice control: the two names for one list above cost you nothing, but the <code class="inline">d = d.copy()</code> / <code class="inline">copy.deepcopy(a)</code> calls that buy Mojo's behaviour back are explicit in Python, and freeing is the collector's problem — which is also where the hidden copies, the race conditions and the unpredictable pauses come from.</p>
+
+    <div class="callout">
+      <span class="lbl">The data science angle</span>
+      <p>In ML pipelines, you often transform large tensors through multiple stages. Ownership semantics ensure that intermediate tensors are freed as soon as they're no longer needed — no garbage collector pausing your training loop mid-batch. This is why Mojo can maintain Python-like syntax while delivering C-like performance.</p>
+    </div>
+  </section>
+
+  <section id="arg-conventions">
+    <h2>Argument conventions: how values flow into functions</h2>
+    <p>Mojo uses five argument conventions to make ownership explicit at function boundaries. This is where Mojo diverges most from Python, which passes everything by reference.</p>
+
+    <table>
+      <thead>
+        <tr><th>Convention</th><th>Keyword</th><th>What happens</th><th>Use case</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>Default</b></td><td>(none)</td><td>Read-only borrow — no copy, no move</td><td>Most function arguments</td></tr>
+        <tr><td><b>Mutable</b></td><td><code class="inline">mut</code></td><td>Mutable borrow — can modify in place</td><td>In-place transformations</td></tr>
+        <tr><td><b>Owned</b></td><td><code class="inline">var</code></td><td>Takes ownership — caller can't use after call</td><td>Consuming / transforming data</td></tr>
+        <tr><td><b>Reference</b></td><td><code class="inline">ref</code></td><td>Mutable reference — must be an lvalue</td><td>Struct methods that modify self</td></tr>
+        <tr><td><b>Out</b></td><td><code class="inline">out</code></td><td>Initializes the parameter — caller gets the value</td><td>Constructors, factory functions</td></tr>
+      </tbody>
+    </table>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="args"><span class="sw"></span>arg_conventions.mojo</div>
+      </div>
+      <div class="panes" data-group="args">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Default — read-only borrow</span>
+<span class="tok-kw">def</span> <span class="tok-fn">length</span>(s: String) -&gt; Int:
+    <span class="tok-kw">return</span> len(s)  <span class="tok-com"># can read, can't modify</span>
+
+<span class="tok-com"># mut — mutable borrow (in-place modification)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">append_exclamation</span>(<span class="tok-kw">mut</span> s: String):
+    s += <span class="tok-str">"!"</span>  <span class="tok-com"># modifies the original</span>
+
+<span class="tok-kw">var</span> greeting = <span class="tok-str">"Hello"</span>
+<span class="tok-fn">append_exclamation</span>(greeting)
+print(greeting)  <span class="tok-com"># "Hello!"</span>
+
+<span class="tok-com"># var — takes ownership (consumes the value)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">process</span>(<span class="tok-kw">var</span> data: List[Int]) -&gt; Int:
+    <span class="tok-kw">var</span> total = <span class="tok-num">0</span>
+    <span class="tok-kw">for</span> item <span class="tok-kw">in</span> data:
+        total += item
+    <span class="tok-kw">return</span> total
+
+<span class="tok-kw">var</span> numbers = [<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>]
+<span class="tok-kw">var</span> result = <span class="tok-fn">process</span>(numbers^)  <span class="tok-com"># moves numbers into process</span>
+<span class="tok-com"># numbers is now invalid</span>
+
+<span class="tok-com"># out — output parameter (constructs the value)</span>
+<span class="tok-kw">def</span> <span class="tok-fn">create_vector</span>(<span class="tok-kw">out</span> result: List[Int], size: Int):
+    result = List[Int]()  <span class="tok-com"># initializes result</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(size):
+        result.append(i * i)
+
+<span class="tok-kw">var</span> squares: List[Int]
+<span class="tok-fn">create_vector</span>(squares, <span class="tok-num">5</span>)
+print(squares)  <span class="tok-com"># [0, 1, 4, 9, 16]</span></pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo's argument conventions make the same borrow/move distinctions that systems languages make — but with more readable syntax.</p>
+
+    <div class="callout">
+      <span class="lbl">Why this matters for ML code</span>
+      <p>When you pass a 10 GB tensor to a function, you absolutely do not want to copy it. The default (borrow) convention means the function reads the tensor without copying. If the function needs to modify it in place (e.g., normalization), you use <code class="inline">mut</code>. If the function consumes and transforms it (e.g., adding a layer), you use <code class="inline">var</code>. The compiler guarantees you never accidentally copy a massive tensor.</p>
+    </div>
+  </section>
+
+  <section id="transfer">
+    <h2>Transfer with ^ — explicit ownership handoff</h2>
+    <p>The <code class="inline">^</code> operator is Mojo's explicit ownership transfer. When you write <code class="inline">b = a^</code>, you're telling the compiler: "move the value from <code class="inline">a</code> into <code class="inline">b</code>. After this line, <code class="inline">a</code> is dead." This is the only way to transfer ownership of a non-<code class="inline">Copyable</code> value.</p>
+
+    <div class="code-block">
+      <div class="head">transfer patterns in practice</div>
+      <pre><span class="tok-com"># Pattern 1: Transfer into a function</span>
+<span class="tok-kw">var</span> model_data = load_training_data()
+<span class="tok-kw">var</span> stats = <span class="tok-fn">compute_statistics</span>(model_data^)  <span class="tok-com"># model_data is moved</span>
+<span class="tok-com"># Can't use model_data anymore — it's been consumed</span>
+
+<span class="tok-com"># Pattern 2: Move into a collection</span>
+<span class="tok-kw">var</span> results = List[<span class="ty">Experiment</span>]()
+<span class="tok-kw">for</span> config <span class="tok-kw">in</span> configs:
+    results.append(run_experiment(config^))
+
+<span class="tok-com"># Pattern 3: Swap ownership</span>
+<span class="tok-kw">var</span> old_buffer = allocate_buffer()
+<span class="tok-kw">var</span> new_buffer = old_buffer^  <span class="tok-com"># old_buffer is now empty</span>
+
+<span class="tok-com"># Pattern 4: Return to transfer out</span>
+<span class="tok-kw">def</span> <span class="tok-fn">transform</span>(<span class="tok-kw">var</span> data: List[Int]) -&gt; List[Int]:
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(len(data)):
+        data[i] *= <span class="tok-num">2</span>
+    <span class="tok-kw">return</span> data^  <span class="tok-com"># transfers ownership back to caller</span>
+
+<span class="tok-kw">var</span> raw = [<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>]
+<span class="tok-kw">var</span> doubled = <span class="tok-fn">transform</span>(raw^)
+print(doubled)  <span class="tok-com"># [2, 4, 6]</span></pre>
+    </div>
+
+    <p>Mojo also provides an <b>inference shortcut</b>: if a function takes a <code class="inline">var</code> parameter and the original variable is never used again, the compiler automatically inserts the <code class="inline">^</code> for you. This is called <b>last-use transfer</b>:</p>
+
+    <div class="code-block">
+      <div class="head">last-use inference</div>
+      <pre><span class="tok-kw">var</span> data = [<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>]
+
+<span class="tok-com"># Both of these are equivalent:</span>
+<span class="tok-fn">process</span>(data^)  <span class="tok-com"># explicit transfer</span>
+<span class="tok-fn">process</span>(data)   <span class="tok-com"># implicit — compiler sees data isn't used after</span>
+
+<span class="tok-com"># But this would NOT auto-transfer:</span>
+<span class="tok-fn">process</span>(data)
+print(data)      <span class="tok-com"># data is used again — no auto-transfer</span></pre>
+    </div>
+  </section>
+
+  <section id="exclusivity">
+    <h2>Exclusivity rules: no data races, ever</h2>
+    <p>Mojo enforces three fundamental rules at compile time:</p>
+    <ul>
+      <li><b>Rule 1:</b> You can have <b>either</b> one mutable reference <b>or</b> any number of immutable references to a value — never both.</li>
+      <li><b>Rule 2:</b> References must always be valid — no dangling pointers, no use-after-free.</li>
+      <li><b>Rule 3:</b> A value's owner decides when it's destroyed — deterministic destruction, no GC.</li>
+    </ul>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="excl"><span class="sw"></span>exclusivity.mojo</div>
+      </div>
+      <div class="panes" data-group="excl">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Multiple immutable borrows — ALLOWED</span>
+<span class="tok-kw">var</span> tensor = create_tensor()
+<span class="tok-kw">var</span> a = tensor.shape   <span class="tok-com"># immutable borrow</span>
+<span class="tok-kw">var</span> b = tensor.shape   <span class="tok-com"># another immutable borrow</span>
+print(a, b)              <span class="tok-com"># both valid simultaneously</span>
+
+<span class="tok-com"># Mutable borrow — EXCLUSIVE</span>
+<span class="tok-kw">def</span> <span class="tok-fn">normalize</span>(<span class="tok-kw">mut</span> t: Tensor[DType.float32]):
+    t /= t.max()
+
+<span class="tok-fn">normalize</span>(tensor)  <span class="tok-com"># mutable — no other borrows allowed</span>
+
+<span class="tok-com"># This would be a COMPILE ERROR:</span>
+<span class="tok-kw">var</span> data = [<span class="tok-num">1</span>, <span class="tok-num">2</span>, <span class="tok-num">3</span>]
+<span class="tok-kw">var</span> slice = data[...]   <span class="tok-com"># immutable borrow of data</span>
+data.append(<span class="tok-num">4</span>)          <span class="tok-com"># ERROR — can't mutate while borrowed</span>
+print(slice)
+
+<span class="tok-com"># Deterministic destruction</span>
+<span class="tok-kw">def</span> <span class="tok-fn">process_batch</span>():
+    <span class="tok-kw">var</span> buffer = allocate(<span class="tok-num">1024</span>)
+    <span class="tok-com"># ... use buffer ...</span>
+    <span class="tok-kw">return</span>  <span class="tok-com"># buffer.__del__ called HERE, deterministically</span>
+<span class="tok-com"># No GC pause, no finalize, no waiting</span></pre></div>
+      </div>
+    </div>
+    <p class="cap">Mojo prevents data races at compile time — the same guarantee systems programmers rely on, without the extra syntax.</p>
+  </section>
+
+  <section id="at-a-glance">
+    <h2>Ownership at a glance</h2>
+    <p>Mojo's ownership model makes deliberate choices to keep the common case simple:</p>
+
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>Mojo</th><th>Python</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Default argument</td><td>Immutable borrow (no syntax)</td><td>Pass-by-reference</td></tr>
+        <tr><td>Mutable borrow</td><td><code class="inline">mut</code> keyword</td><td>All objects shared by reference</td></tr>
+        <tr><td>Ownership transfer</td><td><code class="inline">^</code> sigil</td><td>Not a concept — GC manages memory</td></tr>
+        <tr><td>Lifetime tracking</td><td>None needed (inferred)</td><td>Handled by the garbage collector</td></tr>
+        <tr><td>Implicit copies</td><td>Never (must use <code class="inline">.copy()</code>)</td><td>Always shared; copies only when you ask</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="lbl">The big win for data scientists</span>
+      <p>Python programmers never think about ownership — and that's by design. But it means Python can't guarantee memory safety without a GC. Mojo gives you the <b>option</b> to opt into precise memory control when you need it (ML training loops, real-time inference) while keeping the simple Python-like syntax for everything else. The level of strictness is your signal: an unannotated <code class="inline">def</code> is the friendly path, a fully-annotated <code class="inline">def</code> is the fast path.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What happens when you write <code>var b = a^</code> in Mojo?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Both a and b point to the same data</button>
+        <button class="opt" data-correct="false">A shallow copy is made</button>
+        <button class="opt" data-correct="true">Ownership transfers from a to b; a is no longer valid</button>
+        <button class="opt" data-correct="false">b becomes a reference to a</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Which argument convention should you use for a function that reads a large tensor without modifying it?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false"><code>var</code> — transfer ownership</button>
+        <button class="opt" data-correct="true">Default (no keyword) — immutable borrow</button>
+        <button class="opt" data-correct="false"><code>mut</code> — mutable borrow</button>
+        <button class="opt" data-correct="false"><code>ref</code> — mutable reference</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Why does Mojo usually not need explicit lifetime annotations?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Mojo uses a garbage collector instead</button>
+        <button class="opt" data-correct="true">Mojo's compiler can infer lifetimes in most cases, keeping the syntax simpler</button>
+        <button class="opt" data-correct="false">Mojo doesn't have references</button>
+        <button class="opt" data-correct="false">Lifetime annotations are hidden inside struct definitions</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a function <code class="inline">moving_average</code> that takes ownership of a <code class="inline">List[Float64]</code> (using <code class="inline">var</code>), computes the moving average with a window of 3, and returns the result as a new list. Make sure the original list can't be used after the call.</li>
+        <li>Write a function <code class="inline">inplace_sort</code> that takes a <code class="inline">mut</code> parameter of type <code class="inline">List[Int]</code> and sorts it in place. Verify that the caller's list is modified.</li>
+        <li>Create a struct <code class="inline">Matrix</code> with a field <code class="inline">data: List[Float64]</code> and <code class="inline">rows, cols: Int</code>. Write a method <code class="inline">transpose</code> that returns a new <code class="inline">Matrix</code> by consuming the original (transfer ownership). Implement <code class="inline">Copyable</code> on the struct and write a second version using <code class="inline">.copy()</code> that keeps the original intact.</li>
+        <li>Identify the ownership error in this code and fix it: <code class="inline">var a = [1,2,3]; var b = a; print(a);</code></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_03_type_system.html">← Chapter 3: The Type System</a>
+    <a class="navbtn" href="ds_textbook_05_tensors.html">Chapter 5: Tensors &amp; NDArrays →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '✓ Correct.'
+        : '✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+
+</body></html>

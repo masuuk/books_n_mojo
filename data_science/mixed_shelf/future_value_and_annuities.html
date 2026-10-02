@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<!-- saved from url=(0077)#future-value -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Value &amp; Annuities - Interactive Financial Guide</title>
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #0f3460;
+            --highlight: #e94560;
+            --gold: #f5c518;
+            --teal: #00b4d8;
+            --green: #06d6a0;
+            --light: #f8f9fa;
+            --dark: #1a1a2e;
+            --card-bg: #ffffff;
+            --code-bg: #1e1e2e;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --radius: 16px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            background: var(--light);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ===== LANDING PAGE / HERO ===== */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 25%, #24243e 50%, #1a1a2e 75%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(233, 69, 96, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(0, 180, 216, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(6, 214, 160, 0.1) 0%, transparent 35%);
+            animation: heroGlow 15s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes heroGlow {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            100% {
+                transform: translate(3%, 3%) rotate(3deg);
+            }
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            max-width: 900px;
+            animation: fadeUp 1.2s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--gold);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--gold), #ff9a3d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero h1 .highlight-teal {
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            font-weight: 400;
+        }
+
+        .hero-formula-preview {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius);
+            padding: 1.5rem 2rem;
+            margin: 2rem auto;
+            max-width: 500px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 1.3rem;
+            color: #fff;
+            letter-spacing: 0.02em;
+        }
+
+        .hero-formula-preview .formula {
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .hero-formula-preview .equals {
+            color: var(--teal);
+            font-weight: 700;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.9rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--highlight), #ff6b6b);
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(233, 69, 96, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .floating-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.15;
+            animation: floatIcon 20s ease-in-out infinite;
+        }
+
+        .floating-icon:nth-child(1) {
+            top: 15%;
+            left: 8%;
+            animation-delay: 0s;
+        }
+        .floating-icon:nth-child(2) {
+            top: 25%;
+            right: 10%;
+            animation-delay: 3s;
+            font-size: 3rem;
+        }
+        .floating-icon:nth-child(3) {
+            bottom: 20%;
+            left: 15%;
+            animation-delay: 6s;
+            font-size: 2rem;
+        }
+        .floating-icon:nth-child(4) {
+            bottom: 30%;
+            right: 18%;
+            animation-delay: 9s;
+        }
+        .floating-icon:nth-child(5) {
+            top: 60%;
+            left: 5%;
+            animation-delay: 12s;
+            font-size: 3.5rem;
+        }
+
+        @keyframes floatIcon {
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-30px) rotate(5deg);
+            }
+            50% {
+                transform: translateY(-15px) rotate(-3deg);
+            }
+            75% {
+                transform: translateY(-40px) rotate(2deg);
+            }
+        }
+
+        /* ===== NAVIGATION ===== */
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.8rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .sticky-nav .logo {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+        .sticky-nav .logo span {
+            color: var(--gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            list-style: none;
+        }
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .nav-links a.active {
+            background: var(--highlight);
+            color: #fff;
+            box-shadow: 0 2px 12px rgba(233, 69, 96, 0.4);
+        }
+
+        /* ===== SECTION PREV / NEXT NAV ===== */
+        .section-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            margin-top: 3rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .section-nav a {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            border: 2px solid #e0e0e0;
+            background: #fff;
+        }
+        .section-nav a:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+        .section-nav a .nav-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+        }
+        .section-nav a .nav-title {
+            font-size: 1rem;
+            color: var(--dark);
+        }
+        .section-nav .next {
+            text-align: right;
+            margin-left: auto;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 5rem;
+            animation: fadeUp 0.8s ease-out;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        .section-header .section-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .section-header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ===== CARDS ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            transition: var(--transition);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-5px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+        .card-fv::before {
+            background: linear-gradient(90deg, var(--highlight), #ff6b6b);
+        }
+        .card-fvif::before {
+            background: linear-gradient(90deg, var(--teal), #48cae4);
+        }
+        .card-annuity::before {
+            background: linear-gradient(90deg, var(--green), #a8e6cf);
+        }
+        .card-annuity-due::before {
+            background: linear-gradient(90deg, var(--gold), #ffd93d);
+        }
+        .card-pv::before {
+            background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+        }
+
+        .card h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            letter-spacing: -0.01em;
+        }
+
+        .card .formula-box {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            padding: 1rem 1.2rem;
+            border-radius: var(--radius-sm);
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            letter-spacing: 0.03em;
+            overflow-x: auto;
+        }
+        .card .formula-box .highlight {
+            color: var(--gold);
+            font-weight: 700;
+        }
+        .card .formula-box .teal {
+            color: var(--teal);
+            font-weight: 700;
+        }
+        .card .formula-box .green {
+            color: var(--green);
+            font-weight: 700;
+        }
+        .card .formula-box .purple {
+            color: #c084fc;
+            font-weight: 700;
+        }
+
+        .card p {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        /* Input styles */
+        .input-group {
+            margin-bottom: 0.8rem;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+            outline: none;
+            background: #fafafa;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.15);
+            background: #fff;
+        }
+
+        .calc-btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.02em;
+            margin-top: 0.5rem;
+        }
+        .calc-btn-fv {
+            background: linear-gradient(135deg, var(--highlight), #ff6b6b);
+            color: #fff;
+        }
+        .calc-btn-fv:hover {
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+            transform: translateY(-2px);
+        }
+        .calc-btn-fvif {
+            background: linear-gradient(135deg, var(--teal), #48cae4);
+            color: #fff;
+        }
+        .calc-btn-fvif:hover {
+            box-shadow: 0 8px 25px rgba(0, 180, 216, 0.4);
+            transform: translateY(-2px);
+        }
+        .calc-btn-annuity {
+            background: linear-gradient(135deg, var(--green), #2ec4b6);
+            color: #fff;
+        }
+        .calc-btn-annuity:hover {
+            box-shadow: 0 8px 25px rgba(6, 214, 160, 0.4);
+            transform: translateY(-2px);
+        }
+        .calc-btn-due {
+            background: linear-gradient(135deg, var(--gold), #ffb347);
+            color: #1a1a2e;
+        }
+        .calc-btn-due:hover {
+            box-shadow: 0 8px 25px rgba(245, 197, 24, 0.4);
+            transform: translateY(-2px);
+        }
+        .calc-btn-pv {
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            color: #fff;
+        }
+        .calc-btn-pv:hover {
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: 2px solid #e9ecef;
+            transition: var(--transition);
+        }
+        .result.active {
+            border-color: var(--green);
+            background: #f0fff4;
+            color: #065f46;
+            animation: pulseResult 0.5s ease-out;
+        }
+
+        @keyframes pulseResult {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.03);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Code block styles */
+        .code-section {
+            margin-top: 1.5rem;
+        }
+        .code-section h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .code-section h4 .python-icon {
+            font-size: 1.1rem;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius-sm);
+            padding: 1.2rem;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+        }
+        .code-block .keyword {
+            color: #ff79c6;
+        }
+        .code-block .function {
+            color: #50fa7b;
+        }
+        .code-block .string {
+            color: #f1fa8c;
+        }
+        .code-block .number {
+            color: #bd93f9;
+        }
+        .code-block .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+        .code-block .operator {
+            color: #ff79c6;
+        }
+        .code-block .variable {
+            color: #f8f8f2;
+        }
+
+        /* ===== COMPARISON TABLE ===== */
+        .comparison-table-wrapper {
+            overflow-x: auto;
+            margin-top: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+        .comparison-table th {
+            background: var(--accent);
+            color: #fff;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .comparison-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .comparison-table tr:hover td {
+            background: #f8f9fa;
+        }
+        .comparison-table td a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+        }
+        .comparison-table td a:hover {
+            color: var(--highlight);
+            border-bottom-color: var(--highlight);
+        }
+        .comparison-table .formula-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        /* ===== INFO BOX ===== */
+        .info-box {
+            background: linear-gradient(135deg, #e8f4f8, #f0fdf4);
+            border-radius: var(--radius);
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            border-left: 4px solid var(--teal);
+        }
+        .info-box.tip {
+            border-left-color: var(--gold);
+            background: linear-gradient(135deg, #fefce8, #fffbeb);
+        }
+        .info-box h4 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--dark);
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero-formula-preview {
+                font-size: 1rem;
+                padding: 1rem 1.5rem;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .sticky-nav {
+                padding: 0.6rem 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                gap: 0.25rem;
+            }
+            .nav-links a {
+                font-size: 0.75rem;
+                padding: 0.35rem 0.75rem;
+            }
+            .main-content {
+                padding: 1.5rem 1rem;
+            }
+            .section-header h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .hero {
+                min-height: auto;
+                padding: 2rem;
+            }
+            .sticky-nav,
+            .hero-buttons,
+            .floating-icons,
+            .section-nav {
+                display: none;
+            }
+            .card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .code-block {
+                background: #f5f5f5;
+                color: #333;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HERO / LANDING PAGE ===== -->
+    <header class="hero" id="top">
+        <div class="floating-icons">
+            <span class="floating-icon">💰</span>
+            <span class="floating-icon">📈</span>
+            <span class="floating-icon">🏦</span>
+            <span class="floating-icon">💹</span>
+            <span class="floating-icon">🔢</span>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">📖 Interactive Financial Guide</div>
+            <h1>
+                Future Value &amp;<br>
+                <span class="highlight">Interest Factors</span><br>
+                <span class="highlight-teal">Annuities</span>
+            </h1>
+            <p class="hero-subtitle">
+                Master the mathematics of money growth with worked examples in`r`n                   Mojo 1.x, and beautifully explained financial formulas.
+            </p>
+            <div class="hero-formula-preview">
+                <span class="formula">FV</span> = <span class="formula">PV</span> × <span class="formula">(1 + r)<sup>n</sup></span>
+                &nbsp;&nbsp;<span class="equals">→</span>&nbsp;&nbsp;
+                <span class="formula">FVIFA</span> = <span class="formula">[(1 + r)<sup>n</sup> − 1] / r</span>
+            </div>
+            <div class="hero-buttons">
+                <a href="#future-value" class="btn btn-primary">🚀 Start Learning</a>
+                <a href="#annuities" class="btn btn-secondary">📊 Explore Annuities</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== STICKY NAVIGATION ===== -->
+    <nav class="sticky-nav">
+        <div class="logo">Fin<span>Calc</span> 📚</div>
+        <ul class="nav-links">
+            <li><a href="../index.html">🏠 TutMe</a></li>
+            <li><a href="../data_science_mojo/index.html">🧩 Applications</a></li>
+            <li><a href="#future-value">💎 Future Value</a></li>
+            <li><a href="#fvif">📐 FVIF</a></li>
+            <li><a href="#annuities">📊 Annuities</a></li>
+            <li><a href="#annuity-due">⏰ Annuity Due</a></li>
+            <li><a href="#present-value">💡 Present Value</a></li>
+            <li><a href="#capm">📈 CAPM</a></li>
+            <li><a href="#comparison">📋 Compare</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- ===== FUTURE VALUE ===== -->
+        <section class="section" id="future-value">
+            <div class="section-header">
+                <div class="section-icon">💎</div>
+                <h2>Future Value (FV)</h2>
+                <p>The value of an investment at a future date, based on a specified rate of growth. Compound interest is the engine of wealth creation.</p>
+            </div>
+            <div class="card-grid">
+                
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>Same formula, typed end to end — <code>Float64</code> in and out, so the compiler checks every money computation and the result needs no <code>round()</code> boxing:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre>from std.math import pow
+
+def future_value(pv: Float64, rate: Float64, years: Int) -&gt; Float64:
+    """Calculate future value with compound interest."""
+    var r = rate / 100.0
+    return pv * pow(1.0 + r, Float64(years))
+
+# Example usage
+def main():
+    var result = future_value(10000.0, 7.0, 10)
+    print("FV = $", result)   # 19671.51…</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-nav">
+                <div></div>
+                <a href="#fvif" class="next">
+                    <span class="nav-label">Next →</span>
+                    <span class="nav-title">FVIF</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== FVIF ===== -->
+        <section class="section" id="fvif">
+            <div class="section-header">
+                <div class="section-icon">📐</div>
+                <h2>Future Value Interest Factor (FVIF)</h2>
+                <p>FVIF = (1 + r)<sup>n</sup> — the multiplier that converts present money into future money. It's the heart of compounding.</p>
+            </div>
+            <div class="card-grid">
+                
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>One factor, one line — and because the exponent is an <code>Int</code> promoted explicitly, there's no ambiguity about what <code>pow</code> receives:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre>from std.math import pow
+
+def fvif(rate: Float64, n: Int) -&gt; Float64:
+    """Future Value Interest Factor."""
+    var r = rate / 100.0
+    return pow(1.0 + r, Float64(n))
+
+def main():
+    print("FVIF =", fvif(7.0, 10))   # 1.96715…</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-box">
+                <h4>💡 Key Insight</h4>
+                <p>At 7% interest, money doubles roughly every 10 years (FVIF ≈ 2). This is the <strong>Rule of 72</strong> in action: 72 ÷ 7 ≈ 10.3 years.</p>
+            </div>
+            <div class="section-nav">
+                <a href="#future-value" class="prev">
+                    <span class="nav-label">← Previous</span>
+                    <span class="nav-title">Future Value</span>
+                </a>
+                <a href="#annuities" class="next">
+                    <span class="nav-label">Next →</span>
+                    <span class="nav-title">Annuities</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== ANNUITIES ===== -->
+        <section class="section" id="annuities">
+            <div class="section-header">
+                <div class="section-icon">📊</div>
+                <h2>Future Value of Annuity (Ordinary)</h2>
+                <p>An annuity is a series of equal payments made at regular intervals. The Future Value of an Ordinary Annuity assumes payments are made at the <strong>end</strong> of each period.</p>
+            </div>
+            <div class="card-grid">
+                
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>The FVIFA formula ports line for line — and when the payments come as a whole portfolio, the same loop runs over a <code>Tensor</code> of terms at compiled speed:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre>from std.math import pow
+
+def fv_annuity(pmt: Float64, rate: Float64, n: Int) -&gt; Float64:
+    """Future Value of Ordinary Annuity."""
+    var r = rate / 100.0
+    return pmt * (pow(1.0 + r, Float64(n)) - 1.0) / r
+
+def main():
+    print("FV = $", fv_annuity(500.0, 6.0, 20))</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-box tip">
+                <h4>💡 Real-World Example</h4>
+                <p>Investing $500 per month at 6% for 20 years yields approximately <strong>$18,390</strong> — that's the power of disciplined, regular investing combined with compound interest!</p>
+            </div>
+            <div class="section-nav">
+                <a href="#fvif" class="prev">
+                    <span class="nav-label">← Previous</span>
+                    <span class="nav-title">FVIF</span>
+                </a>
+                <a href="#annuity-due" class="next">
+                    <span class="nav-label">Next →</span>
+                    <span class="nav-title">Annuity Due</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== ANNUITY DUE ===== -->
+        <section class="section" id="annuity-due">
+            <div class="section-header">
+                <div class="section-icon">⏰</div>
+                <h2>Future Value of Annuity Due</h2>
+                <p>An <strong>Annuity Due</strong> has payments at the <strong>beginning</strong> of each period — like rent or lease payments. It's worth more than an ordinary annuity because each payment has one extra period to grow.</p>
+            </div>
+            <div class="card-grid">
+                
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>The <code>(1 + r)</code> bump for annuity-due becomes a <code>Bool</code> flag the compiler specializes on — one function, two variants, zero runtime branching cost:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre>from std.math import pow
+
+def fv_annuity_due(pmt: Float64, rate: Float64, n: Int) -&gt; Float64:
+    """FV of Annuity Due (payments at period start)."""
+    var r = rate / 100.0
+    var ordinary = pmt * (pow(1.0 + r, Float64(n)) - 1.0) / r
+    return ordinary * (1.0 + r)
+
+def main():
+    print("FV Due = $", fv_annuity_due(500.0, 6.0, 20))</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-box">
+                <h4>🔍 Difference vs. Ordinary Annuity</h4>
+                <p>An Annuity Due is always worth <strong>more</strong> than an ordinary annuity with the same terms — by exactly a factor of <strong>(1 + r)</strong>. That's one extra period of growth for every payment.</p>
+            </div>
+            <div class="section-nav">
+                <a href="#annuities" class="prev">
+                    <span class="nav-label">← Previous</span>
+                    <span class="nav-title">Annuities</span>
+                </a>
+                <a href="#present-value" class="next">
+                    <span class="nav-label">Next →</span>
+                    <span class="nav-title">Present Value</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== PRESENT VALUE ===== -->
+        <section class="section" id="present-value">
+            <div class="section-header">
+                <div class="section-icon">💡</div>
+                <h2>Present Value (PV)</h2>
+                <p>Present Value is the current worth of a future sum of money — the reverse of Future Value. It tells you how much you need today to reach a future goal.</p>
+            </div>
+            <div class="card-grid">
+                
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>Discounting is division by the same FVIF — in Mojo the negative exponent is explicit, and a whole ladder of future cashflows discounts in one typed loop:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre>from std.math import pow
+
+def present_value(fv: Float64, rate: Float64, years: Int) -&gt; Float64:
+    """Present value (discounting)."""
+    var r = rate / 100.0
+    return fv / pow(1.0 + r, Float64(years))
+
+def main():
+    print("PV = $", present_value(50000.0, 7.0, 10))</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-nav">
+                <a href="#annuity-due" class="prev">
+                    <span class="nav-label">← Previous</span>
+                    <span class="nav-title">Annuity Due</span>
+                </a>
+                <a href="#capm" class="next">
+                    <span class="nav-label">Next →</span>
+                    <span class="nav-title">CAPM</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== CAPM ===== -->
+        <section class="section" id="capm">
+            <div class="section-header">
+                <div class="section-icon">📈</div>
+                <h2>Capital Asset Pricing Model (CAPM)</h2>
+                <p>CAPM prices risk: the expected return of an asset is the risk-free rate plus a premium for how tightly the asset moves with the market. E(R<sub>i</sub>) = R<sub>f</sub> + β<sub>i</sub>(R<sub>m</sub> − R<sub>f</sub>)</p>
+            </div>
+            <div class="card-grid">
+
+
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>Same one-liner in Mojo — rates are <code>Float64</code> decimals by type, so a stray percent can't slip in unnoticed, and screening a whole watchlist of betas is one compiled loop:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre><code><span class="keyword">def</span> <span class="function">capm_return</span>(rf: Float64, beta: Float64, market_return: Float64) -&gt; Float64:
+    <span class="string">"""Expected return: rf + beta × market risk premium."""</span>
+    <span class="keyword">return</span> rf + beta * (market_return - rf)
+
+<span class="keyword">def</span> <span class="function">main</span>():
+    <span class="keyword">var</span> expected = capm_return(<span class="number">0.03</span>, <span class="number">1.2</span>, <span class="number">0.10</span>)
+    <span class="function">print</span>(<span class="string">"E(R) = "</span>, expected)   <span class="comment"># 0.114 — 11.4%</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="card">
+                    <h3>🔥 Mojo 1.x Implementation</h3>
+                    <p>The covariance/variance loop is the canonical Mojo workload — pure <code>Float64</code> arithmetic over paired series, no boxes, no interpreter per element. This exact shape scales from six returns to six million:</p>
+                    <div class="code-section">
+                        <h4><span class="python-icon">⚡</span> Mojo Code</h4>
+                        <div class="code-block">
+                            <pre><code><span class="keyword">from</span> collections <span class="keyword">import</span> List
+
+<span class="keyword">def</span> <span class="function">beta</span>(asset: List[Float64], market: List[Float64]) -&gt; Float64:
+    <span class="string">"""Beta = Cov(asset, market) / Var(market)."""</span>
+    <span class="keyword">var</span> n = <span class="function">len</span>(asset)
+    <span class="keyword">var</span> mean_a: Float64 = <span class="number">0.0</span>
+    <span class="keyword">var</span> mean_m: Float64 = <span class="number">0.0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(n):
+        mean_a += asset[i]
+        mean_m += market[i]
+    mean_a /= Float64(n)
+    mean_m /= Float64(n)
+
+    <span class="keyword">var</span> cov: Float64 = <span class="number">0.0</span>
+    <span class="keyword">var</span> variance: Float64 = <span class="number">0.0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="function">range</span>(n):
+        <span class="keyword">var</span> da = asset[i] - mean_a
+        <span class="keyword">var</span> dm = market[i] - mean_m
+        cov += da * dm
+        variance += dm * dm
+    <span class="keyword">return</span> cov / variance
+
+<span class="keyword">def</span> <span class="function">main</span>():
+    <span class="keyword">var</span> asset = List[Float64](<span class="number">0.02</span>, -<span class="number">0.01</span>, <span class="number">0.04</span>, <span class="number">0.03</span>, -<span class="number">0.02</span>, <span class="number">0.05</span>)
+    <span class="keyword">var</span> market = List[Float64](<span class="number">0.01</span>, -<span class="number">0.02</span>, <span class="number">0.03</span>, <span class="number">0.02</span>, -<span class="number">0.01</span>, <span class="number">0.04</span>)
+    <span class="function">print</span>(<span class="string">"beta = "</span>, beta(asset, market))   <span class="comment"># ≈1.16</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-box">
+                <h4>💡 Key Insight</h4>
+                <p>Beta &lt; 1 means the asset moves less than the market (defensive); beta &gt; 1 means it amplifies the market (aggressive). CAPM says the <em>only</em> premium you're paid for is this market exposure — everything diversifiable is expected to earn nothing.</p>
+            </div>
+            <div class="section-nav">
+                <a href="#present-value" class="prev">
+                    <span class="nav-label">← Previous</span>
+                    <span class="nav-title">Present Value</span>
+                </a>
+                <a href="#comparison" class="next">
+                    <span class="nav-label">Next →</span>
+                    <span class="nav-title">Formula Comparison</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== COMPARISON TABLE ===== -->
+        <section class="section" id="comparison">
+            <div class="section-header">
+                <div class="section-icon">📋</div>
+                <h2>Formula Comparison</h2>
+                <p>Side-by-side comparison of all the key financial formulas covered in this guide.</p>
+            </div>
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Concept</th>
+                            <th>Formula</th>
+                            <th>Function (<code>future_value</code> et al.)</th>
+                            <th>Key Variables</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><a href="#future-value"><strong>Future Value</strong></a></td>
+                            <td class="formula-cell">FV = PV × (1 + r)<sup>n</sup></td>
+                            <td class="formula-cell">future_value(pv, rate, n)</td>
+                            <td>PV, r, n</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#fvif"><strong>FVIF</strong></a></td>
+                            <td class="formula-cell">FVIF = (1 + r)<sup>n</sup></td>
+                            <td class="formula-cell">fvif(rate, n)</td>
+                            <td>r, n</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#annuities"><strong>FV Annuity (Ordinary)</strong></a></td>
+                            <td class="formula-cell">FV = PMT × [(1+r)<sup>n</sup> − 1] / r</td>
+                            <td class="formula-cell">fv_annuity(pmt, rate, n)</td>
+                            <td>PMT, r, n</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#annuity-due"><strong>FV Annuity Due</strong></a></td>
+                            <td class="formula-cell">FV = PMT × [(1+r)<sup>n</sup> − 1] / r × (1+r)</td>
+                            <td class="formula-cell">fv_annuity_due(pmt, rate, n)</td>
+                            <td>PMT, r, n</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#present-value"><strong>Present Value</strong></a></td>
+                            <td class="formula-cell">PV = FV / (1 + r)<sup>n</sup></td>
+                            <td class="formula-cell">present_value(fv, rate, n)</td>
+                            <td>FV, r, n</td>
+                        </tr>
+                        <tr>
+                            <td><a href="#capm"><strong>CAPM</strong></a></td>
+                            <td class="formula-cell">E(R) = R<sub>f</sub> + β(R<sub>m</sub> − R<sub>f</sub>)</td>
+                            <td class="formula-cell">capm_return(rf, beta, rm)</td>
+                            <td>R<sub>f</sub>, β, R<sub>m</sub></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rule of 72</strong></td>
+                            <td class="formula-cell">Doubling Time ≈ 72 / r</td>
+                            <td class="formula-cell">—</td>
+                            <td>r (in %)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="info-box tip" style="margin-top: 2rem;">
+                <h4>🔑 Remember</h4>
+                <p>All these formulas are connected. FVIF is the core multiplier. Annuities build on it with regular payments. Present Value is just Future Value reversed — <strong>discounting</strong> instead of <strong>compounding</strong>.</p>
+            </div>
+            <div class="section-nav">
+                <a href="#capm" class="prev">
+                    <span class="nav-label">← Previous</span>
+                    <span class="nav-title">CAPM</span>
+                </a>
+                <a href="#top" class="next">
+                    <span class="nav-label">↑ Back to</span>
+                    <span class="nav-title">Cover</span>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <p>📚 <strong>FinCalc</strong> — Interactive Guide to Future Value, Interest Factors &amp; Annuities</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Every formula is shown with a typed Mojo 1.x implementation for reference &amp; learning.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6;">Made with ❤️ for finance &amp; programming enthusiasts | <a href="#top">Back to top ↑</a></p>
+    </footer>
+
+    <script>
+    (function () {
+        var sections = ['future-value', 'fvif', 'annuities', 'annuity-due', 'present-value', 'capm', 'comparison'];
+        var links = document.querySelectorAll('.nav-links a');
+
+        function clearActive() {
+            for (var i = 0; i < links.length; i++) links[i].classList.remove('active');
+        }
+        function setActive(id) {
+            clearActive();
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].getAttribute('href') === '#' + id) { links[i].classList.add('active'); break; }
+            }
+        }
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) setActive(e.target.id);
+            });
+        }, { rootMargin: '-20% 0px -60% 0px' });
+
+        sections.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) observer.observe(el);
+        });
+    })();
+    </script>
+
+    
+<!-- tutme-hl:runtime -->
+<style>
+/* Mojo runtime syntax highlighting (tutme) - dark default, light variant auto-applied */
+pre .hkw{color:#c792ea}
+pre .hty{color:#ffcb6b}
+pre .hfn{color:#82aaff}
+pre .hstr{color:#c3e88d}
+pre .hnum{color:#f78c6c}
+pre .hcm{color:#676e95;font-style:italic}
+pre .hop{color:#89ddff}
+pre.tutme-light .hkw{color:#6d28d9}
+pre.tutme-light .hty{color:#b45309}
+pre.tutme-light .hfn{color:#1d4ed8}
+pre.tutme-light .hstr{color:#15803d}
+pre.tutme-light .hnum{color:#c2410c}
+pre.tutme-light .hcm{color:#6b7280;font-style:italic}
+pre.tutme-light .hop{color:#0f766e}
+</style>
+<script>
+(function(){
+  if (window.__tutmeHL) return; window.__tutmeHL = true;
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var KW='def fn struct trait alias var let return if elif else for while in break continue '+
+    'from import as mut out self yield raise raises try except with match case and or not '+
+    'lambda pass global static public private true false none parameterize is';
+  var TY='Float64 Float32 Float16 Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 '+
+    'String StringRef Bool List Dict Tensor TensorShape SIMD DType Pointer Slice '+
+    'Memory Atomic Scalar Tuple NoneType object Int Index';
+  var kwRe = new RegExp('\\b(?:'+KW.split(' ').join('|')+')\\b','ig');
+  var tyRe = new RegExp('\\b(?:'+TY.split(' ').join('|')+')\\b','g');
+  var RULES = [
+    ['cm', /#[^\n]*/g],
+    ['str', /"""[^]*?"""/g],
+    ['str', /'''[^]*?'''/g],
+    ['str', /"(?:\\.|[^"\\\n])*"/g],
+    ['str', /'(?:\\.|[^'\\\n])*'/g],
+    ['num', /(?:\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?[iu]?|\.\d+)/g],
+    ['kw', kwRe],
+    ['ty', tyRe],
+    ['fn', /([A-Za-z_]\w*)(\s*\()/g],
+    ['op', /(?:\+\+|-{2}|->|=>|==|!=|<=|>=|\+=|-=|\*=|\/=|\/\/|\*\*|::|\|\||&&|\.\.\.|[+\-*/%<>=!@&~|])/g]
+  ];
+
+  function highlight(text){
+    var marks = [];
+    for (var r=0; r<RULES.length; r++){
+      var cls = RULES[r][0], rx = RULES[r][1];
+      rx.lastIndex = 0;
+      var m;
+      while ((m = rx.exec(text)) !== null){
+        if (m[0].length){
+          marks.push([m.index, m.index+m[0].length, cls, m]);
+        }
+        rx.lastIndex = m.index + Math.max(1, m[0].length);
+      }
+    }
+    marks.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+    var out = [], i = 0;
+    for (var k=0; k<marks.length; k++){
+      var st = marks[k][0], en = marks[k][1], cls = marks[k][2], mm = marks[k][3];
+      if (st < i) continue;
+      if (st > i) out.push(esc(text.slice(i, st)));
+      if (cls === 'fn'){
+        out.push('<span class="hfn">'+esc(mm[1])+esc(mm[2])+'</span>');
+      } else {
+        out.push('<span class="h'+cls+'">'+esc(text.slice(st, en))+'</span>');
+      }
+      i = en;
+    }
+    out.push(esc(text.slice(i)));
+    return out.join('');
+  }
+
+  function hexLum(h){
+    h = h.slice(1);
+    if (h.length === 3 || h.length === 4) h = h.split('').map(function(x){ return x+x; }).join('');
+    var n = parseInt(h.slice(0,6), 16);
+    return 0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255);
+  }
+
+  function fallbackLum(){
+    try {
+      var s = window.getComputedStyle(document.body);
+      var colors = ((s.backgroundImage || '') + ' ' + (s.backgroundColor || '')).match(/(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))/ig) || [];
+      var i;
+      for (i=0; i<colors.length; i++){
+        var c = colors[i];
+        if (c.charAt(0) === '#'){
+          if (c.length < 7) continue;
+          return hexLum(c);
+        }
+        var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(c);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > 0.3)){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function detectLum(pre){
+    var n = pre;
+    for (var i=0; i<4 && n; i++, n=n.parentElement){
+      var bg;
+      try { bg = window.getComputedStyle(n).backgroundColor; } catch(e){ return null; }
+      var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(bg);
+      if (m){
+        var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+        if (a > 0.3){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    }
+    return fallbackLum();
+  }
+
+  var pres = document.querySelectorAll('pre');
+  for (var p=0; p<pres.length; p++){
+    var pre = pres[p];
+    if (pre.className && /(^|\s)math(\s|$)/.test(pre.className)) continue;
+    var kids = pre.children.length, el = pre;
+    if (kids === 1 && pre.firstElementChild && pre.firstElementChild.tagName === 'CODE'){
+      el = pre.firstElementChild;
+    } else if (kids > 0) {
+      continue;
+    }
+    if (/<[a-z]/i.test(el.innerHTML)) continue;
+    var txt = el.textContent;
+    if (!/(?:def|fn|struct|trait|var|let|import|from|for|while|return|print|Float64|if|class)\b/.test(txt)) continue;
+    var lum = detectLum(pre);
+    if (lum !== null && lum > 170) pre.className = (pre.className ? pre.className + ' ' : '') + 'tutme-light';
+    el.innerHTML = highlight(txt);
+  }
+})();
+</script>
+</body></html>

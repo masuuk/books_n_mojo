@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_08_neural_network_from_scratch.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 8 — A Neural Network from Scratch in Mojo · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 08 / 13</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_08_neural_network.html#intro" data-t="intro" title="Introduction"></a>
+  <a href="ds_textbook_08_neural_network.html#architecture" data-t="architecture" title="Network Architecture"></a>
+  <a href="ds_textbook_08_neural_network.html#forward" data-t="forward" title="Forward Pass"></a>
+  <a href="ds_textbook_08_neural_network.html#backward" data-t="backward" title="Backward Pass"></a>
+  <a href="ds_textbook_08_neural_network.html#training" data-t="training" title="Training Loop"></a>
+  <a href="ds_textbook_08_neural_network.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_08_neural_network.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part III — Deep Learning · Chapter 8</div>
+  <h1>🧠 A Neural Network from Scratch in Mojo</h1>
+  <p class="dek">Implement a 2-layer neural network with ReLU activation, manual gradient computation, and a training loop — all in Mojo, no frameworks required.</p>
+
+  <section id="intro">
+    <p>Building a neural network from scratch is the fastest way to understand what frameworks like PyTorch and JAX actually do for you. In this chapter, you'll implement every piece by hand: weight initialization, the forward pass through two linear layers with ReLU, the backward pass with manual gradient computation, and a training loop that updates weights via stochastic gradient descent.</p>
+    <p>The goal isn't to replace PyTorch — it's to understand the machinery so deeply that when you do use a framework, you know exactly what's happening under the hood. And because we're writing it in Mojo, you'll see how a systems-level language handles the same math that Python does, but with zero interpreter overhead.</p>
+  </section>
+
+  <section id="architecture">
+    <h2>Network architecture</h2>
+    <p>Our network takes a vector of <b>n_features</b> inputs, passes them through a hidden layer of <b>n_hidden</b> neurons with ReLU activation, and outputs a single value through a linear output layer. This is the simplest architecture that can learn non-linear decision boundaries.</p>
+
+    <div class="code-block">
+      <div class="head">architecture overview</div>
+      <pre><span class="tok-com">Input (n_features) → Linear → ReLU → Linear → Output (1)</span>
+
+<span class="tok-com">Layer 1:  W1 (n_hidden × n_features)  + b1 (n_hidden)</span>
+<span class="tok-com">          z1 = W1 · x + b1</span>
+<span class="tok-com">          a1 = max(0, z1)              ← ReLU</span>
+
+<span class="tok-com">Layer 2:  W2 (1 × n_hidden)  + b2 (1)</span>
+<span class="tok-com">          z2 = W2 · a1 + b2</span>
+<span class="tok-com">          output = sigmoid(z2)         ← for binary classification</span></pre>
+    </div>
+
+    <p>The weight matrices are initialized with small random values (He initialization for ReLU layers) to break symmetry and prevent vanishing gradients. Each weight is drawn from a normal distribution scaled by <code class="inline">sqrt(2 / n_features)</code>.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="arch"><span class="sw"></span>network.mojo</div>
+      </div>
+      <div class="panes" data-group="arch">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — network struct with He initialization</span>
+<span class="tok-kw">from</span> math <span class="tok-kw">import</span> sqrt, sigmoid
+
+<span class="tok-kw">struct</span> <span class="tok-ty">NeuralNetwork</span>:
+    <span class="tok-kw">var</span> W1: <span class="tok-ty">List</span>[Float64]
+    <span class="tok-kw">var</span> b1: <span class="tok-ty">List</span>[Float64]
+    <span class="tok-kw">var</span> W2: <span class="tok-ty">List</span>[Float64]
+    <span class="tok-kw">var</span> b2: <span class="tok-ty">List</span>[Float64]
+    <span class="tok-kw">var</span> n_hidden: Int
+    <span class="tok-kw">var</span> n_features: Int
+    <span class="tok-kw">var</span> lr: Float64
+
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-kw">out</span> self, n_features: Int, n_hidden: Int,
+                lr: Float64 = <span class="tok-num">0.01</span>):
+        self.n_features = n_features
+        self.n_hidden = n_hidden
+        self.lr = lr
+
+        <span class="tok-com"># He initialization for ReLU layers</span>
+        <span class="tok-kw">var</span> scale1 = sqrt(<span class="tok-num">2.0</span> / Float64(n_features))
+        self.W1 = <span class="tok-ty">List</span>[Float64]()
+        <span class="tok-kw">for</span> _ <span class="tok-kw">in</span> range(n_hidden * n_features):
+            self.W1.append(randn() * scale1)
+        self.b1 = <span class="tok-ty">List</span>[Float64]()
+        <span class="tok-kw">for</span> _ <span class="tok-kw">in</span> range(n_hidden):
+            self.b1.append(<span class="tok-num">0.0</span>)
+
+        <span class="tok-kw">var</span> scale2 = sqrt(<span class="tok-num">2.0</span> / Float64(n_hidden))
+        self.W2 = <span class="tok-ty">List</span>[Float64]()
+        <span class="tok-kw">for</span> _ <span class="tok-kw">in</span> range(n_hidden):
+            self.W2.append(randn() * scale2)
+        self.b2 = [<span class="tok-num">0.0</span>]</pre></div>
+      </div>
+    </div>
+    <p class="cap">He initialization scales weights by sqrt(2/n) so that the variance of activations stays constant across layers — critical for training deep networks. In <code class="inline">numpy</code> that constructor is one line, <code class="inline">self.W1 = np.random.randn(n_hidden, n_features) * scale1</code>, and the matrix keeps its own two dimensions. Here the same weights live in a flat <code class="inline">List</code>[Float64] with the shape carried in <code class="inline">n_features</code>, so every access from here on does its own index arithmetic.</p>
+  </section>
+
+  <section id="forward">
+    <h2>The forward pass</h2>
+    <p>The forward pass computes the network's prediction given an input. It's a sequence of matrix multiplications and element-wise activations. In Mojo, we store everything in flat <code class="inline">List</code>[Float64] arrays and compute the matrix multiply manually — this shows exactly what's happening at the memory level.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="fwd"><span class="sw"></span>forward.mojo</div>
+      </div>
+      <div class="panes" data-group="fwd">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — forward pass with ReLU and sigmoid</span>
+<span class="tok-kw">from</span> math <span class="tok-kw">import</span> sigmoid
+
+<span class="tok-kw">def</span> <span class="tok-fn">matmul</span>(A: <span class="tok-ty">List</span>[Float64], B: <span class="tok-ty">List</span>[Float64],
+           rows: Int, cols: Int, inner: Int) -&gt; <span class="tok-ty">List</span>[Float64]:
+    <span class="tok-com"># A is (rows × inner), B is (inner × cols)</span>
+    <span class="tok-kw">var</span> C = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(rows):
+        <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(cols):
+            <span class="tok-kw">var</span> sum: Float64 = <span class="tok-num">0.0</span>
+            <span class="tok-kw">for</span> k <span class="tok-kw">in</span> range(inner):
+                sum += A[i * inner + k] * B[k * cols + j]
+            C.append(sum)
+    <span class="tok-kw">return</span> C
+
+<span class="tok-kw">def</span> <span class="tok-fn">relu</span>(x: <span class="tok-ty">List</span>[Float64]) -&gt; <span class="tok-ty">List</span>[Float64]:
+    <span class="tok-kw">var</span> result = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> val <span class="tok-kw">in</span> x:
+        result.append(max(val, <span class="tok-num">0.0</span>))
+    <span class="tok-kw">return</span> result
+
+<span class="tok-kw">def</span> <span class="tok-fn">forward</span>(self: <span class="tok-ty">NeuralNetwork</span>,
+             x: <span class="tok-ty">List</span>[Float64]) -&gt; (<span class="tok-ty">List</span>[Float64], <span class="tok-ty">List</span>[Float64], <span class="tok-ty">List</span>[Float64]):
+    <span class="tok-com"># Layer 1: z1 = W1 · x + b1, a1 = ReLU(z1)</span>
+    <span class="tok-kw">var</span> z1 = matmul(self.W1, x,
+                    self.n_hidden, <span class="tok-num">1</span>, self.n_features)
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        z1[i] += self.b1[i]
+    <span class="tok-kw">var</span> a1 = relu(z1)
+
+    <span class="tok-com"># Layer 2: z2 = W2 · a1 + b2</span>
+    <span class="tok-kw">var</span> z2 = matmul(self.W2, a1, <span class="tok-num">1</span>, <span class="tok-num">1</span>, self.n_hidden)
+    z2[<span class="tok-num">0</span>] += self.b2[<span class="tok-num">0</span>]
+    <span class="tok-kw">var</span> output = [sigmoid(z2[<span class="tok-num">0</span>])]
+
+    <span class="tok-kw">return</span> (z1, a1, output)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The <code class="inline">numpy</code> version of those three lines is <code class="inline">self.z1 = self.W1 @ x + self.b1</code>, <code class="inline">np.maximum(0, self.z1)</code> for the ReLU, and <code class="inline">1 / (1 + np.exp(-self.z2))</code> for the sigmoid — compact and correct, with every element still a Python float on the heap.</p>
+
+    <p>The Mojo version stores matrices as flat lists and computes the dot product explicitly. While this is slower than calling BLAS (which we'd do in production), it makes every operation transparent. You can see exactly how the <code class="inline">n_hidden × n_features</code> multiplication unrolls into individual multiply-accumulate operations.</p>
+  </section>
+
+  <section id="backward">
+    <h2>The backward pass (manual gradients)</h2>
+    <p>Backpropagation computes gradients of the loss with respect to each weight by applying the chain rule from the output layer back to the input. This is where most bugs hide — a sign error or a transposed matrix will silently produce wrong gradients that make training diverge.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="bwd"><span class="sw"></span>backward.mojo</div>
+      </div>
+      <div class="panes" data-group="bwd">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — backward pass with manual gradient computation</span>
+<span class="tok-kw">def</span> <span class="tok-fn">backward</span>(<span class="tok-kw">mut</span> self, x: <span class="tok-ty">List</span>[Float64], y: Float64,
+             output: Float64, a1: <span class="tok-ty">List</span>[Float64],
+             z1: <span class="tok-ty">List</span>[Float64]):
+    <span class="tok-kw">var</span> m = <span class="tok-num">1</span>  <span class="tok-com"># batch size (single sample)</span>
+
+    <span class="tok-com"># Output layer gradients (binary cross-entropy + sigmoid)</span>
+    <span class="tok-kw">var</span> dz2 = output - y  <span class="tok-com"># (1,) shape</span>
+    <span class="tok-kw">var</span> dW2 = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        dW2.append(dz2 * a1[i] / Float64(m))
+    <span class="tok-kw">var</span> db2 = [dz2 / Float64(m)]
+
+    <span class="tok-com"># Hidden layer gradients</span>
+    <span class="tok-kw">var</span> da1 = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        da1.append(self.W2[i] * dz2)
+    <span class="tok-kw">var</span> dz1 = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        <span class="tok-com"># ReLU derivative: 1 if z1 &gt; 0, else 0</span>
+        <span class="tok-kw">var</span> relu_grad = <span class="tok-num">1.0</span> <span class="tok-kw">if</span> z1[i] &gt; <span class="tok-num">0.0</span> <span class="tok-kw">else</span> <span class="tok-num">0.0</span>
+        dz1.append(da1[i] * relu_grad)
+
+    <span class="tok-kw">var</span> dW1 = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(self.n_features):
+            dW1.append(dz1[i] * x[j] / Float64(m))
+    <span class="tok-kw">var</span> db1 = <span class="tok-ty">List</span>[Float64]()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        db1.append(dz1[i] / Float64(m))
+
+    <span class="tok-com"># Gradient descent update</span>
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(len(self.W1)):
+        self.W1[i] -= self.lr * dW1[i]
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        self.b1[i] -= self.lr * db1[i]
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(self.n_hidden):
+        self.W2[i] -= self.lr * dW2[i]
+    self.b2[<span class="tok-num">0</span>] -= self.lr * db2[<span class="tok-num">0</span>]</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The same backward pass in <code class="inline">numpy</code> is five lines of <code class="inline">@</code> and <code class="inline">.T</code>, with <code class="inline">np.sum(..., axis=1, keepdims=True)</code> reducing the bias gradients. The flat-list version is longer for exactly one reason: it has to name the index, which is what makes the <code class="inline">dW1</code> mistake in the callout below possible in the first place.</p>
+
+    <div class="callout">
+      <span class="lbl">🐛 Common bug</span>
+      <p>The most frequent mistake in implementing backprop is getting the matrix dimensions wrong in <code class="inline">dW1 = dz1 · x.T</code>. In our flat-list Mojo version, you must manually compute the index: <code class="inline">dW1[i * n_features + j] = dz1[i] * x[j]</code>. This is equivalent to an outer product, not a dot product.</p>
+    </div>
+  </section>
+
+  <section id="training">
+    <h2>The training loop</h2>
+    <p>The training loop ties everything together: iterate over epochs, process each sample (or batch), forward pass, compute loss, backward pass, update weights. We'll track the binary cross-entropy loss to verify the network is learning.</p>
+
+    <div class="code-block">
+      <div class="head">training loop in Mojo</div>
+      <pre><span class="tok-kw">def</span> <span class="tok-fn">bce_loss</span>(pred: Float64, target: Float64) -&gt; Float64:
+    <span class="tok-kw">var</span> eps = <span class="tok-num">1e-7</span>
+    <span class="tok-kw">var</span> p = max(min(pred, <span class="tok-num">1.0</span> - eps), eps)
+    <span class="tok-kw">return</span> -(target * log(p) + (<span class="tok-num">1.0</span> - target) * log(<span class="tok-num">1.0</span> - p))
+
+<span class="tok-kw">def</span> <span class="tok-fn">train</span>(<span class="tok-kw">mut</span> self, X: <span class="tok-ty">List</span>[Float64], y: <span class="tok-ty">List</span>[Float64],
+          epochs: Int = <span class="tok-num">1000</span>):
+    <span class="tok-kw">var</span> n_samples = len(y)
+    <span class="tok-kw">for</span> epoch <span class="tok-kw">in</span> range(epochs):
+        <span class="tok-kw">var</span> total_loss: Float64 = <span class="tok-num">0.0</span>
+
+        <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(n_samples):
+            <span class="tok-com"># Extract sample i as a flat list</span>
+            <span class="tok-kw">var</span> x_i = <span class="tok-ty">List</span>[Float64]()
+            <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(self.n_features):
+                x_i.append(X[i * self.n_features + j])
+
+            <span class="tok-com"># Forward</span>
+            <span class="tok-kw">var</span> (z1, a1, output) = self.forward(x_i)
+
+            <span class="tok-com"># Loss</span>
+            total_loss += bce_loss(output[<span class="tok-num">0</span>], y[i])
+
+            <span class="tok-com"># Backward + update</span>
+            self.backward(x_i, y[i], output[<span class="tok-num">0</span>], a1, z1)
+
+        <span class="tok-kw">if</span> epoch % <span class="tok-num">100</span> == <span class="tok-num">0</span>:
+            <span class="tok-kw">var</span> avg_loss = total_loss / Float64(n_samples)
+            print(<span class="tok-str">f"Epoch {epoch}: loss = {avg_loss:.6f}"</span>)
+
+<span class="tok-com"># Create synthetic XOR data and train</span>
+<span class="tok-kw">var</span> X = [<span class="tok-num">0.0</span>,<span class="tok-num">0.0</span>, <span class="tok-num">0.0</span>,<span class="tok-num">1.0</span>, <span class="tok-num">1.0</span>,<span class="tok-num">0.0</span>, <span class="tok-num">1.0</span>,<span class="tok-num">1.0</span>]
+<span class="tok-kw">var</span> y = [<span class="tok-num">0.0</span>, <span class="tok-num">1.0</span>, <span class="tok-num">1.0</span>, <span class="tok-num">0.0</span>]
+<span class="tok-kw">var</span> net = <span class="tok-ty">NeuralNetwork</span>(n_features=<span class="tok-num">2</span>, n_hidden=<span class="tok-num">8</span>, lr=<span class="tok-num">0.1</span>)
+net.train(X, y, epochs=<span class="tok-num">2000</span>)</pre>
+    </div>
+
+    <div class="callout">
+      <span class="lbl">👀 What to expect</span>
+      <p>On the XOR problem, the loss should decrease from ~0.7 to ~0.1 over 2000 epochs. If it doesn't converge, check your backward pass — the most common issue is a sign error in the <code class="inline">dz2 = output - y</code> term (it should be <code class="inline">pred - target</code>, not <code class="inline">target - pred</code>).</p>
+    </div>
+
+    <h3>Comparing with PyTorch</h3>
+    <p>The equivalent PyTorch code is about 20 lines because <code class="inline">torch.nn</code> handles weight initialization, forward/backward hooks, and gradient updates automatically. But the math is identical — PyTorch just does the same matrix multiplications and ReLU activations, but with autograd tracking the computation graph for you.</p>
+
+    <table>
+      <thead><tr><th>Aspect</th><th>Mojo (from scratch)</th><th>PyTorch</th></tr></thead>
+      <tbody>
+        <tr><td>Lines of code</td><td>~120</td><td>~20</td></tr>
+        <tr><td>Performance</td><td>Good (native speed)</td><td>Good (CUDA kernels)</td></tr>
+        <tr><td>Flexibility</td><td>Full control</td><td>Framework constraints</td></tr>
+        <tr><td>Debugging</td><td>Easy (no magic)</td><td>Hard (autograd graph)</td></tr>
+        <tr><td>GPU support</td><td>Requires manual kernel</td><td>Built-in .cuda()</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">Why is He initialization used instead of initializing all weights to the same value?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">It makes training converge faster in the first epoch</button>
+        <button class="opt" data-correct="true">It breaks symmetry so different neurons learn different features</button>
+        <button class="opt" data-correct="false">It prevents the network from overfitting</button>
+        <button class="opt" data-correct="false">It eliminates the need for a learning rate</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">In the backward pass, what is the derivative of ReLU at z = 0?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">1</button>
+        <button class="opt" data-correct="false">-1</button>
+        <button class="opt" data-correct="true">0 (we define it as 0 at exactly z = 0)</button>
+        <button class="opt" data-correct="false">undefined</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What does the <code>dz2 = output - y</code> term represent in the backward pass?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">The learning rate adjustment</button>
+        <button class="opt" data-correct="false">The ReLU derivative</button>
+        <button class="opt" data-correct="true">The gradient of binary cross-entropy loss with respect to the pre-activation output</button>
+        <button class="opt" data-correct="false">The weight decay regularization term</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Extend the <code class="inline">NeuralNetwork</code> to support an arbitrary number of hidden layers by storing weights in a <code class="inline">List</code>[<code class="inline">List</code>[Float64]]. Implement a generalized forward and backward pass for any depth.</li>
+        <li>Add momentum to the SGD optimizer: maintain a velocity term for each weight that accumulates the running average of past gradients. Update: <code class="inline">v = beta * v + lr * grad; w -= v</code>.</li>
+        <li>Implement mini-batch training: modify the training loop to process batches of 32 samples at a time instead of individual samples. Compute the average gradient across the batch before updating weights.</li>
+        <li>Replace the manual sigmoid with a numerically stable version: <code class="inline">if z &gt;= 0: 1/(1+exp(-z)) else: exp(z)/(1+exp(z))</code>. Test both on large negative inputs to verify the stable version doesn't produce 0.0.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_07_pipelines.html">← Chapter 7: Fast Data Pipelines</a>
+    <a class="navbtn" href="ds_textbook_09_autodiff.html">Chapter 9: Autodiff and Metaprogramming →</a>
+    <a class="navbtn" href="neural_network.html">🔬 NN from Scratch (hands-on)</a>
+    <a class="navbtn" href="mlp_xor.html">🤖 MLP XOR Lab</a>
+    <a class="navbtn" href="nn_mojo.html">🧮 3-4-1 NN in Mojo &amp; NumPy</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '✓ Correct.'
+        : '✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

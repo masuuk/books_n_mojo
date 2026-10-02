@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Networks from Scratch in Mojo · ML Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --bg-primary:#0b0d15;--bg-secondary:#12162b;--bg-card:rgba(255,255,255,0.04);
+  --bg-code:rgba(0,0,0,0.4);
+  --text-primary:#ffffff;--text-secondary:#d8def0;--text-muted:#ffd98f;
+  --accent-1:#6c5ce7;--accent-2:#00b4d8;--accent-3:#f77f00;
+  --accent-gradient:linear-gradient(135deg,#6c5ce7,#00b4d8,#f77f00);
+  --border-color:rgba(255,255,255,0.18);--radius:16px;--radius-sm:8px;
+  --transition:0.3s cubic-bezier(0.4,0,0.2,1);--max-width:920px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+::selection{background:rgba(108,92,231,0.4);color:#fff;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg-primary);}
+::-webkit-scrollbar-thumb{background:var(--accent-1);border-radius:10px;}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent-gradient);z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:64px;background:rgba(11,13,21,0.85);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;}
+.logo-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;}
+.logo span{color:var(--text-secondary);font-weight:400;}
+.logo .mojo{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.chnum{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent-2);letter-spacing:0.04em;}
+
+.container{max-width:var(--max-width);margin:0 auto;padding:0 24px;}
+.wrap{padding:5rem 0 8rem;}
+
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,180,216,0.12);padding:4px 16px;border-radius:100px;border:1px solid rgba(0,180,216,0.15);margin-bottom:16px;}
+h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.03em;line-height:1.15;margin-bottom:12px;}
+h1 .highlight{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dek{font-size:1.1rem;color:var(--text-secondary);max-width:640px;margin-bottom:40px;line-height:1.8;}
+
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border-color);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.2rem;font-weight:600;margin:2rem 0 0.8rem;color:var(--text-primary);}
+p{color:var(--text-secondary);margin:0 0 1.1rem;line-height:1.8;}
+p strong{color:var(--text-primary);}
+ul,ol{color:var(--text-secondary);padding-left:24px;line-height:1.8;}
+li{margin-bottom:6px;}
+code.inline{font-family:var(--font-mono);font-size:0.85em;background:rgba(108,92,231,0.12);padding:2px 8px;border-radius:6px;color:#c084fc;border:1px solid rgba(108,92,231,0.2);}
+
+.info-box{padding:20px 24px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:20px 0;}
+.info-box strong{color:var(--text-primary);}
+.info-box p{margin-top:4px;color:var(--text-secondary);}
+.tip-box{background:rgba(0,180,216,0.05);border-color:rgba(0,180,216,0.12);}
+.tip-box strong{color:var(--accent-2);}
+.warning-box{background:rgba(247,127,0,0.06);border-color:rgba(247,127,0,0.12);}
+.warning-box strong{color:var(--accent-3);}
+
+.code-tabs{margin:20px 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-color);background:var(--bg-code);}
+.tabs-header{display:flex;gap:2px;padding:8px 12px 0;background:rgba(0,0,0,0.3);border-bottom:1px solid var(--border-color);}
+.tab-btn{padding:8px 18px;font-family:var(--font-mono);font-size:0.75rem;font-weight:500;background:none;border:none;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:var(--transition);position:relative;}
+.tab-btn:hover{color:var(--text-primary);background:rgba(255,255,255,0.04);}
+.tab-btn.active{color:var(--text-primary);background:rgba(255,255,255,0.18);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent-gradient);border-radius:4px;}
+.tab-content{display:none;padding:16px 20px;overflow-x:auto;background:rgba(0,0,0,0.2);}
+.tab-content.active{display:block;}
+pre{font-family:var(--font-mono);font-size:0.85rem;line-height:1.8;color:#e2e8f0;margin:0;white-space:pre-wrap;}
+pre .kw{color:#c084fc;}pre .fn{color:#60a5fa;}pre .str{color:#4ade80;}pre .num{color:#fbbf24;}pre .cmt{color:#a8b6d4;font-style:italic;}pre .op{color:#f472b6;}pre .type{color:#34d399;}pre .var{color:#fcd34d;}
+pre.eq{background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:14px 18px;color:#e2e8f0;}
+
+table.cheat{width:100%;border-collapse:collapse;margin:20px 0;font-size:0.88rem;}
+table.cheat th{font-family:var(--font-mono);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;text-align:left;padding:12px 16px;background:rgba(0,0,0,0.3);color:var(--accent-2);border-bottom:2px solid var(--border-color);}
+table.cheat td{padding:10px 16px;border-bottom:1px solid var(--border-color);color:var(--text-secondary);vertical-align:top;}
+table.cheat tr:hover td{background:rgba(255,255,255,0.02);}
+table.cheat td:first-child{font-weight:600;color:var(--text-primary);white-space:nowrap;}
+table.cheat code{font-family:var(--font-mono);font-size:0.82em;color:#c084fc;}
+table.cheat td.center,table.cheat th.center{text-align:center;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);gap:16px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.85rem;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-color);padding:10px 16px;border-radius:var(--radius-sm);transition:var(--transition);}
+.navbtn:hover{border-color:var(--accent-1);color:var(--text-primary);}
+
+.mini-toc{position:fixed;right:2vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--border-color);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--accent-2);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+
+@media(max-width:600px){
+  h1{font-size:2rem;}
+  .wrap{padding:3rem 0 5rem;}
+  table.cheat{font-size:0.78rem;}
+  table.cheat th,table.cheat td{padding:8px 10px;}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="logo" href="../index.html">
+    <span class="logo-icon">M</span>
+    <span><span class="mojo">Mojo</span> <span>Textbook · ML Lab</span></span>
+  </a>
+  <span class="chnum">Lab — Neural Networks from Scratch</span> <a href="index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">Finance Hub</a> · <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">Mojo Textbook</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="#goal"></a>
+  <a href="#xor-problem"></a>
+  <a href="#architecture"></a>
+  <a href="#loss"></a>
+  <a href="#backprop"></a>
+  <a href="#program"></a>
+  <a href="#run"></a>
+  <a href="#exercises"></a>
+  <a href="#perceptron"></a>
+  <a href="#summary"></a>
+</div>
+<div class="wrap">
+<div class="container">
+  <span class="kicker">ML Lab · Mojo 1.x</span>
+  <h1>Neural Networks from <span class="highlight">Scratch</span></h1>
+  <p class="dek">A hand-rolled feed-forward network learns XOR, and a single sigmoid neuron learns to add — pure Mojo, a <code class="inline">List[Float64]</code> matrix library, and zero machine-learning dependencies. Model, backprop, and optimizer are all written out in the open.</p>
+
+  <section id="goal">
+    <h2>1. What Are We Building?</h2>
+    <p>Sit down, class. Today we answer the most important question in this course: <strong>what is actually inside a neural network?</strong> Not a call to <code class="inline">import torch</code> — the network itself. We will build a <strong>2&nbsp;→&nbsp;4&nbsp;→&nbsp;1 multilayer perceptron</strong> and train it to solve XOR, the classic non-linearly-separable problem. Then we will shrink to a <strong>single sigmoid neuron</strong> and watch it learn to add two numbers.</p>
+    <p>Everything is written from scratch in Mojo 1.x, faithfully following the structure of two beloved tutorials — the Python XOR MLP (ReLU hidden layer, sigmoid output, binary cross-entropy, gradient descent) and the Rust single-neuron perceptron (online updates with the sigmoid derivative <code class="inline">output &times; (1 - output)</code>). The only imported function is the <code class="inline">exp</code> used by the sigmoid; even the random number generator is ours.</p>
+    <div class="info-box">
+      <strong>💡 Why "from scratch" matters:</strong>
+      <p>When you write the forward pass, the backward pass, and the optimizer yourself, you can no longer pretend the math is magic. Every gradient becomes a quantity you have computed with your own hands. The point of this lab is not efficiency — it is <em>understanding</em>.</p>
+    </div>
+  </section>
+
+  <section id="xor-problem">
+    <h2>2. The XOR Problem</h2>
+    <p>XOR ("exclusive or") is the truth table below: the answer is 1 exactly when the two inputs differ.</p>
+    <table class="cheat">
+      <thead><tr><th>x&#8321;</th><th>x&#8322;</th><th>x&#8321; XOR x&#8322;</th></tr></thead>
+      <tbody>
+        <tr><td class="center">0</td><td class="center">0</td><td class="center">0</td></tr>
+        <tr><td class="center">0</td><td class="center">1</td><td class="center">1</td></tr>
+        <tr><td class="center">1</td><td class="center">0</td><td class="center">1</td></tr>
+        <tr><td class="center">1</td><td class="center">1</td><td class="center">0</td></tr>
+      </tbody>
+    </table>
+    <p>Plot the four points on a square. The two "1" answers sit on opposite corners, and the two "0" answers on the other opposite corners. <strong>No single straight line separates them.</strong> A single neuron — one weighted sum followed by an activation — can only draw one line, so a perceptron <em>cannot</em> learn XOR, no matter how hard you train it. In 1969 Minsky and Papert used exactly this example to show the limits of the perceptron, and it stalled the field for a decade.</p>
+    <p>The escape is a <strong>hidden layer</strong>. Give the network a few middle neurons, let each of them decide "am I on this half of the square?," and the output neuron can combine those answers into the XOR pattern. "Hidden" only means we never tell the network the target for those neurons directly — they must discover their own roles through backpropagation.</p>
+    <div class="info-box tip-box">
+      <strong>🚀 Professor's aside:</strong>
+      <p>This is the deep-learning origin story. Hidden layers are what turn "a perceptron" into "a neural network," and backpropagation is the algorithm that learns what the hidden neurons should mean.</p>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <h2>3. Architecture and Notation</h2>
+    <p>Our network has three layers: 2 inputs, 4 hidden neurons with ReLU, and 1 output neuron with a sigmoid. We store every tensor as a dense matrix in a row-major flat array, and we adopt one convention that keeps every formula clean:</p>
+    <div class="warning-box">
+      <strong>⚠️ The column convention:</strong>
+      <p><strong>Each training example is a column.</strong> So the input matrix <code class="inline">X</code> has shape <code class="inline">(2, m)</code> — 2 features and <code class="inline">m</code> = 4 examples — and the labels <code class="inline">Y</code> are one row, <code class="inline">(1, m)</code>. The weight matrices are <code class="inline">W1 = (hidden, 2)</code> and <code class="inline">w2 = (hidden, 1)</code>. Nearly every bug you will ever write in a from-scratch network is a transposed shape; write the convention on your hand before you start.</p>
+    </div>
+    <p>The forward pass, example by example:</p>
+    <pre class="eq">Z1 = W1 @ X + b1         (4,2) @ (2,m) + (4,1)   ->  (4,m)    pre-activation of hidden layer
+A1 = ReLU(Z1)                                          (4,m)    hidden activations
+Z2 = w2^T @ A1 + b2       (1,4) @ (4,m) + (1,1)   ->  (1,m)    pre-activation of output
+A2 = sigmoid(Z2)                                        (1,m)    prediction probabilities</pre>
+    <p>where <code class="inline">b1</code> and <code class="inline">b2</code> are bias vectors that are broadcast across every column — our <code class="inline">Matrix.add_bias</code> adds the <code class="inline">(rows, 1)</code> vector to each column in one loop.</p>
+  </section>
+
+  <section id="loss">
+    <h2>4. The Loss</h2>
+    <p>Because the output is a probability, we measure error with <strong>binary cross-entropy</strong>, averaged over the four examples:</p>
+    <pre class="eq">J = - (1/m) * sum_j [ y_j * ln(a_j) + (1 - y_j) * ln(1 - a_j) ]</pre>
+    <p>When the prediction <code class="inline">a_j</code> agrees with the target <code class="inline">y_j</code>, that example contributes almost nothing; when they disagree — say the network says 0.99 and the answer is 0 — the log term blows up and the loss punishes the network hard. We clamp <code class="inline">a_j</code> to <code class="inline">[1e-15, 1 - 1e-15]</code> purely so <code class="inline">log</code> never sees 0 or 1.</p>
+  </section>
+
+  <section id="backprop">
+    <h2>5. Backpropagation</h2>
+    <p>Training is a loop: run the forward pass, measure the loss, then compute how much each weight contributed to that loss and nudge every weight downhill. The nudges are the gradients of <code class="inline">J</code> with respect to each parameter, found with the chain rule — error at the output, propagated backward through the layers.</p>
+    <p>The first step has a famous simplification. For a sigmoid output combined with cross-entropy, the derivative of the loss with respect to the pre-activation <code class="inline">Z2</code> collapses to the plain difference:</p>
+    <pre class="eq">dZ2 = A2 - Y                        (1,m)   "output error"</pre>
+    <p>Then the chain rule walks backward, layer by layer. Writing <code class="inline">m</code> for the number of examples and <code class="inline">&#8855;</code> for element-wise (Hadamard) multiplication:</p>
+    <pre class="eq">dW2  = (1/m) * A1 @ dZ2^T           (4,m) @ (m,1)  ->  (4,1)
+db2  = (1/m) * sum_rows(dZ2)                            (1,1)
+dA1  = w2 @ dZ2                       (4,1) @ (1,m)  ->  (4,m)
+dZ1  = dA1 &#8855; ReLU'(Z1)            where ReLU'(x) = 1 if x &gt; 0 else 0
+dW1  = (1/m) * dZ1 @ X^T             (4,m) @ (m,2)  ->  (4,2)
+db1  = (1/m) * sum_rows(dZ1)                            (4,1)</pre>
+    <p>The ReLU derivative is a mask: for every hidden neuron that was "dead" (input &le; 0) no gradient flows through it — which is why ReLU networks must be initialized with care (see the experiments at the end). Finally, the update is plain gradient descent, one step for the whole batch:</p>
+    <pre class="eq">W1 -= lr * dW1     b1 -= lr * db1     w2 -= lr * dW2     b2 -= lr * db2</pre>
+    <p>We apologise in advance for the variable name realism: in the code, <code class="inline">dZ2</code> appears as <code class="inline">dz2</code>, <code class="inline">dW1</code> as <code class="inline">dw1</code>, and so on.</p>
+    <div class="info-box">
+      <strong>💡 Trust, but verify:</strong>
+      <p>Every formula above was checked numerically before we wrote the tutorial: perturb one weight by a tiny &epsilon;, recompute the loss, and compare <code class="inline">(J(w+&epsilon;) - J(w-&epsilon;)) / 2&epsilon;</code> against the analytic gradient. They match to roughly one part in 10&sup1;&#8304;. When your own network misbehaves, this is the first tool to reach for.</p>
+    </div>
+  </section>
+
+  <section id="program">
+    <h2>6. The Complete Program</h2>
+    <p>Here is the whole thing — <code class="inline">mlp_xor.mojo</code>. Read it in five parts: the deterministic PRNG, the small <code class="inline">Matrix</code> library, the activations, the network (init / forward / loss / backward / update / predict), and the driver that builds the XOR data and trains.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="mlp-xor">mlp_xor.mojo</button>
+      </div>
+      <div class="tab-content active" id="mlp-xor">
+        <pre><span class="cmt"># ============================================================================</span>
+<span class="cmt">#  Neural Network from scratch in Mojo 1.x  —  XOR (2 - 4 - 1 MLP)</span>
+<span class="cmt">#</span>
+<span class="cmt">#  Written in the style of the classic &quot;from scratch&quot; tutorials for Python</span>
+<span class="cmt">#  (Murmuarpan: ReLU hidden, sigmoid output, binary cross-entropy, SGD) and</span>
+<span class="cmt">#  Rust (Faisal Arshed / Julius Hietala: hand-rolled matrices and backprop).</span>
+<span class="cmt">#</span>
+<span class="cmt">#  Run with:   mojo mlp_xor.mojo</span>
+<span class="cmt"># ============================================================================</span>
+<span class="kw">from</span> <span class="var">std</span>.<span class="var">math</span> <span class="kw">import</span> <span class="var">exp</span>, <span class="var">log</span>, <span class="var">floor</span>, <span class="var">max</span>, <span class="var">min</span>
+
+<span class="cmt"># ---------------------------------------------------------------- PRNG ----</span>
+<span class="kw">struct</span> <span class="type">XorShift</span>:
+    <span class="str">&quot;&quot;</span>&quot;<span class="var">A</span> <span class="var">tiny</span> <span class="var">deterministic</span> <span class="var">pseudo</span>-<span class="var">random</span> <span class="fn">generator</span> (<span class="var">xorshift64</span>*).
+
+    <span class="var">Implemented</span> <span class="var">by</span> <span class="var">hand</span> <span class="var">so</span> <span class="var">that</span> <span class="var">every</span> <span class="var">run</span> <span class="var">of</span> <span class="var">the</span> <span class="var">tutorial</span> <span class="var">is</span> <span class="var">reproducible</span>:
+    <span class="var">the</span> <span class="var">same</span> <span class="var">seed</span> <span class="var">always</span> <span class="var">produces</span> <span class="var">the</span> <span class="var">same</span> <span class="var">network</span> <span class="var">and</span> <span class="var">the</span> <span class="var">same</span> <span class="var">results</span>.
+    <span class="str">&quot;&quot;</span>&quot;
+
+    <span class="kw">var</span> <span class="var">state</span>: <span class="type">UInt64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="var">self</span>, <span class="var">seed</span>: <span class="type">UInt64</span>):
+        <span class="var">self</span>.<span class="var">state</span> = <span class="var">seed</span>
+        <span class="kw">if</span> <span class="var">self</span>.<span class="var">state</span> == <span class="num">0</span>:
+            <span class="var">self</span>.<span class="var">state</span> = <span class="num">88172645463325252</span>
+        <span class="kw">for</span> <span class="var">_</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+            <span class="var">_</span> = <span class="var">self</span>.<span class="fn">next_u64</span>()
+
+    <span class="kw">def</span> <span class="fn">next_u64</span>(<span class="kw">mut</span> <span class="var">self</span>) -&gt; <span class="type">UInt64</span>:
+        <span class="kw">var</span> <span class="var">s</span> = <span class="var">self</span>.<span class="var">state</span>
+        <span class="var">s</span> ^= <span class="var">s</span> &lt;&lt; <span class="num">13</span>
+        <span class="var">s</span> ^= <span class="var">s</span> &gt;&gt; <span class="num">7</span>
+        <span class="var">s</span> ^= <span class="var">s</span> &lt;&lt; <span class="num">17</span>
+        <span class="var">self</span>.<span class="var">state</span> = <span class="var">s</span>
+        <span class="kw">return</span> <span class="var">s</span>
+
+    <span class="kw">def</span> <span class="fn">next_f64</span>(<span class="kw">mut</span> <span class="var">self</span>) -&gt; <span class="type">Float64</span>:
+        <span class="cmt"># Pull the top 53 bits and scale them into [0, 1).</span>
+        <span class="kw">return</span> <span class="type">Float64</span>(<span class="var">self</span>.<span class="fn">next_u64</span>() &gt;&gt; <span class="num">11</span>) / <span class="type">Float64</span>(<span class="num">1</span> &lt;&lt; <span class="num">53</span>)
+
+
+<span class="cmt"># -------------------------------------------------------------- Matrix ----</span>
+<span class="kw">struct</span> <span class="type">Matrix</span>(<span class="var">Copyable</span>, <span class="var">Movable</span>):
+    <span class="str">&quot;&quot;</span>&quot;<span class="var">A</span> <span class="var">dense</span> <span class="var">matrix</span> <span class="var">stored</span> <span class="var">row</span>-<span class="var">major</span> <span class="kw">in</span> <span class="var">a</span> <span class="var">flat</span> <span class="type">List</span>[<span class="type">Float64</span>].
+
+    <span class="var">Convention</span> <span class="var">used</span> <span class="var">everywhere</span> <span class="var">below</span>: <span class="var">an</span> <span class="var">example</span> <span class="var">is</span> <span class="var">a</span> *<span class="var">column</span>*. <span class="var">So</span> <span class="var">X</span> <span class="var">is</span>
+    (<span class="var">features_d</span> <span class="var">x</span> <span class="var">m</span>), <span class="var">y</span> <span class="fn">is</span> (<span class="num">1</span> <span class="var">x</span> <span class="var">m</span>), <span class="var">W1</span> <span class="fn">is</span> (<span class="var">hidden</span> <span class="var">x</span> <span class="var">features_d</span>), <span class="var">etc</span>.
+    <span class="str">&quot;&quot;</span>&quot;
+
+    <span class="kw">var</span> <span class="var">rows</span>: <span class="type">Int</span>
+    <span class="kw">var</span> <span class="var">cols</span>: <span class="type">Int</span>
+    <span class="kw">var</span> <span class="var">data</span>: <span class="type">List</span>[<span class="type">Float64</span>]
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="var">self</span>, <span class="var">rows</span>: <span class="type">Int</span>, <span class="var">cols</span>: <span class="type">Int</span>):
+        <span class="var">self</span>.<span class="var">rows</span> = <span class="var">rows</span>
+        <span class="var">self</span>.<span class="var">cols</span> = <span class="var">cols</span>
+        <span class="var">self</span>.<span class="var">data</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> <span class="var">_</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">rows</span> * <span class="var">cols</span>):
+            <span class="var">self</span>.<span class="var">data</span>.<span class="fn">append</span>(<span class="num">0.0</span>)
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="var">self</span>, *, <span class="var">copy</span>: <span class="kw">Self</span>):
+        <span class="var">self</span>.<span class="var">rows</span> = <span class="var">copy</span>.<span class="var">rows</span>
+        <span class="var">self</span>.<span class="var">cols</span> = <span class="var">copy</span>.<span class="var">cols</span>
+        <span class="var">self</span>.<span class="var">data</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="var">copy</span>.<span class="var">data</span>)):
+            <span class="var">self</span>.<span class="var">data</span>.<span class="fn">append</span>(<span class="var">copy</span>.<span class="var">data</span>[<span class="var">i</span>])
+
+    <span class="kw">def</span> <span class="fn">get</span>(<span class="var">self</span>, <span class="var">r</span>: <span class="type">Int</span>, <span class="var">c</span>: <span class="type">Int</span>) -&gt; <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="var">self</span>.<span class="var">data</span>[<span class="var">r</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">c</span>]
+
+    <span class="kw">def</span> <span class="fn">set</span>(<span class="kw">mut</span> <span class="var">self</span>, <span class="var">r</span>: <span class="type">Int</span>, <span class="var">c</span>: <span class="type">Int</span>, <span class="var">v</span>: <span class="type">Float64</span>):
+        <span class="var">self</span>.<span class="var">data</span>[<span class="var">r</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">c</span>] = <span class="var">v</span>
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">zeros</span>(<span class="var">rows</span>: <span class="type">Int</span>, <span class="var">cols</span>: <span class="type">Int</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="kw">return</span> <span class="type">Matrix</span>(<span class="var">rows</span>, <span class="var">cols</span>)
+
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">rand_small</span>(<span class="var">rows</span>: <span class="type">Int</span>, <span class="var">cols</span>: <span class="type">Int</span>, <span class="kw">mut</span> <span class="var">rng</span>: <span class="type">XorShift</span>, <span class="var">scale</span>: <span class="type">Float64</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="str">&quot;&quot;</span><span class="str">&quot;Uniform entries in [-scale/2, +scale/2) — a tiny random init.&quot;</span><span class="str">&quot;&quot;</span>
+        <span class="kw">var</span> <span class="var">m</span> = <span class="type">Matrix</span>(<span class="var">rows</span>, <span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="var">m</span>.<span class="var">data</span>)):
+            <span class="var">m</span>.<span class="var">data</span>[<span class="var">i</span>] = (<span class="var">rng</span>.<span class="fn">next_f64</span>() - <span class="num">0.5</span>) * <span class="var">scale</span>
+        <span class="kw">return</span> <span class="var">m</span>^
+
+    <span class="kw">def</span> <span class="fn">transpose</span>(<span class="var">self</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">cols</span>, <span class="var">self</span>.<span class="var">rows</span>)
+        <span class="kw">for</span> <span class="var">r</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">rows</span>):
+            <span class="kw">for</span> <span class="var">c</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">cols</span>):
+                <span class="kw">out</span>.<span class="var">data</span>[<span class="var">c</span> * <span class="var">self</span>.<span class="var">rows</span> + <span class="var">r</span>] = <span class="var">self</span>.<span class="var">data</span>[<span class="var">r</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">c</span>]
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">matmul</span>(<span class="var">self</span>, <span class="var">other</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="str">&quot;&quot;</span><span class="str">&quot;This @ other, with a pure triple loop. No BLAS, no surprises.&quot;</span><span class="str">&quot;&quot;</span>
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="var">other</span>.<span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">rows</span>):
+            <span class="kw">for</span> <span class="var">j</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">other</span>.<span class="var">cols</span>):
+                <span class="kw">var</span> <span class="var">acc</span> = <span class="num">0.0</span>
+                <span class="kw">for</span> <span class="var">k</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">cols</span>):
+                    <span class="var">acc</span> += <span class="var">self</span>.<span class="var">data</span>[<span class="var">i</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">k</span>] * <span class="var">other</span>.<span class="var">data</span>[<span class="var">k</span> * <span class="var">other</span>.<span class="var">cols</span> + <span class="var">j</span>]
+                <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span> * <span class="var">other</span>.<span class="var">cols</span> + <span class="var">j</span>] = <span class="var">acc</span>
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">add</span>(<span class="var">self</span>, <span class="var">other</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="var">self</span>.<span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+            <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="var">self</span>.<span class="var">data</span>[<span class="var">i</span>] + <span class="var">other</span>.<span class="var">data</span>[<span class="var">i</span>]
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">sub</span>(<span class="var">self</span>, <span class="var">other</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="var">self</span>.<span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+            <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="var">self</span>.<span class="var">data</span>[<span class="var">i</span>] - <span class="var">other</span>.<span class="var">data</span>[<span class="var">i</span>]
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">mul</span>(<span class="var">self</span>, <span class="var">other</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="str">&quot;&quot;</span><span class="str">&quot;Element-wise (Hadamard) product: same shape, entry by entry.&quot;</span><span class="str">&quot;&quot;</span>
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="var">self</span>.<span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+            <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="var">self</span>.<span class="var">data</span>[<span class="var">i</span>] * <span class="var">other</span>.<span class="var">data</span>[<span class="var">i</span>]
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">scalar_mul</span>(<span class="var">self</span>, <span class="var">factor</span>: <span class="type">Float64</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="var">self</span>.<span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+            <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="var">self</span>.<span class="var">data</span>[<span class="var">i</span>] * <span class="var">factor</span>
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">add_bias</span>(<span class="var">self</span>, <span class="var">b</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="str">&quot;&quot;</span><span class="str">&quot;Add a column bias vector b (rows x 1) to every column.&quot;</span><span class="str">&quot;&quot;</span>
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="var">self</span>.<span class="var">cols</span>)
+        <span class="kw">for</span> <span class="var">r</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">rows</span>):
+            <span class="kw">var</span> <span class="var">bias</span> = <span class="var">b</span>.<span class="fn">get</span>(<span class="var">r</span>, <span class="num">0</span>)
+            <span class="kw">for</span> <span class="var">c</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">cols</span>):
+                <span class="kw">out</span>.<span class="var">data</span>[<span class="var">r</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">c</span>] = <span class="var">self</span>.<span class="var">data</span>[<span class="var">r</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">c</span>] + <span class="var">bias</span>
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+    <span class="kw">def</span> <span class="fn">sum_rows</span>(<span class="var">self</span>) -&gt; <span class="type">Matrix</span>:
+        <span class="str">&quot;&quot;</span><span class="str">&quot;Sum each row into a rows x 1 matrix (numpy keepdims=True).&quot;</span><span class="str">&quot;&quot;</span>
+        <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">self</span>.<span class="var">rows</span>, <span class="num">1</span>)
+        <span class="kw">for</span> <span class="var">r</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">rows</span>):
+            <span class="kw">var</span> <span class="var">acc</span> = <span class="num">0.0</span>
+            <span class="kw">for</span> <span class="var">c</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">self</span>.<span class="var">cols</span>):
+                <span class="var">acc</span> += <span class="var">self</span>.<span class="var">data</span>[<span class="var">r</span> * <span class="var">self</span>.<span class="var">cols</span> + <span class="var">c</span>]
+            <span class="kw">out</span>.<span class="var">data</span>[<span class="var">r</span>] = <span class="var">acc</span>
+        <span class="kw">return</span> <span class="kw">out</span>^
+
+
+<span class="cmt"># ---------------------------------------------------------- activations ---</span>
+<span class="kw">def</span> <span class="fn">sigmoid</span>(<span class="var">x</span>: <span class="type">Float64</span>) -&gt; <span class="type">Float64</span>:
+    <span class="kw">return</span> <span class="num">1.0</span> / (<span class="num">1.0</span> + <span class="fn">exp</span>(-<span class="var">x</span>))
+
+<span class="kw">def</span> <span class="fn">relu</span>(<span class="var">x</span>: <span class="type">Float64</span>) -&gt; <span class="type">Float64</span>:
+    <span class="kw">if</span> <span class="var">x</span> &gt; <span class="num">0.0</span>:
+        <span class="kw">return</span> <span class="var">x</span>
+    <span class="kw">return</span> <span class="num">0.0</span>
+
+<span class="kw">def</span> <span class="fn">sigmoid_m</span>(<span class="var">m</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">m</span>.<span class="var">rows</span>, <span class="var">m</span>.<span class="var">cols</span>)
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+        <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="fn">sigmoid</span>(<span class="var">m</span>.<span class="var">data</span>[<span class="var">i</span>])
+    <span class="kw">return</span> <span class="kw">out</span>^
+
+<span class="kw">def</span> <span class="fn">relu_m</span>(<span class="var">m</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+    <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">m</span>.<span class="var">rows</span>, <span class="var">m</span>.<span class="var">cols</span>)
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+        <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="fn">relu</span>(<span class="var">m</span>.<span class="var">data</span>[<span class="var">i</span>])
+    <span class="kw">return</span> <span class="kw">out</span>^
+
+<span class="kw">def</span> <span class="fn">relu_mask</span>(<span class="var">m</span>: <span class="type">Matrix</span>) -&gt; <span class="type">Matrix</span>:
+    <span class="str">&quot;&quot;</span><span class="str">&quot;ReLU derivative: 1.0 where the input was positive, else 0.0.&quot;</span><span class="str">&quot;&quot;</span>
+    <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="var">m</span>.<span class="var">rows</span>, <span class="var">m</span>.<span class="var">cols</span>)
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(<span class="kw">out</span>.<span class="var">data</span>)):
+        <span class="kw">out</span>.<span class="var">data</span>[<span class="var">i</span>] = <span class="num">1.0</span> <span class="kw">if</span> <span class="var">m</span>.<span class="var">data</span>[<span class="var">i</span>] &gt; <span class="num">0.0</span> <span class="kw">else</span> <span class="num">0.0</span>
+    <span class="kw">return</span> <span class="kw">out</span>^
+
+
+<span class="cmt"># --------------------------------------------------------------- network ---</span>
+<span class="kw">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="type">Parameters</span>(<span class="var">Movable</span>):
+    <span class="kw">var</span> <span class="var">w1</span>: <span class="type">Matrix</span>  <span class="cmt"># (hidden x 2)</span>
+    <span class="kw">var</span> <span class="var">b1</span>: <span class="type">Matrix</span>  <span class="cmt"># (hidden x 1)</span>
+    <span class="kw">var</span> <span class="var">w2</span>: <span class="type">Matrix</span>  <span class="cmt"># (hidden x 1)</span>
+    <span class="kw">var</span> <span class="var">b2</span>: <span class="type">Matrix</span>  <span class="cmt"># (1 x 1)</span>
+
+<span class="kw">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="type">Cache</span>(<span class="var">Movable</span>):
+    <span class="str">&quot;&quot;</span><span class="str">&quot;Intermediates of forward(), needed again by backward().&quot;</span><span class="str">&quot;&quot;</span>
+    <span class="kw">var</span> <span class="var">z1</span>: <span class="type">Matrix</span>  <span class="cmt"># pre-activation of the hidden layer</span>
+    <span class="kw">var</span> <span class="var">a1</span>: <span class="type">Matrix</span>  <span class="cmt"># ReLU(z1)</span>
+    <span class="kw">var</span> <span class="var">z2</span>: <span class="type">Matrix</span>  <span class="cmt"># pre-activation of the output</span>
+    <span class="kw">var</span> <span class="var">a2</span>: <span class="type">Matrix</span>  <span class="cmt"># sigmoid(z2) — the prediction probability</span>
+
+<span class="kw">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="type">Gradients</span>(<span class="var">Movable</span>):
+    <span class="kw">var</span> <span class="var">dw1</span>: <span class="type">Matrix</span>
+    <span class="kw">var</span> <span class="var">db1</span>: <span class="type">Matrix</span>
+    <span class="kw">var</span> <span class="var">dw2</span>: <span class="type">Matrix</span>
+    <span class="kw">var</span> <span class="var">db2</span>: <span class="type">Matrix</span>
+
+<span class="kw">def</span> <span class="fn">init_parameters</span>(<span class="kw">mut</span> <span class="var">rng</span>: <span class="type">XorShift</span>, <span class="var">hidden</span>: <span class="type">Int</span>, <span class="var">scale</span>: <span class="type">Float64</span>) -&gt; <span class="type">Parameters</span>:
+    <span class="str">&quot;&quot;</span><span class="str">&quot;Small random weights; zero biases. Deterministic for a fixed seed.&quot;</span><span class="str">&quot;&quot;</span>
+    <span class="kw">return</span> <span class="type">Parameters</span>(
+        <span class="var">w1</span>=<span class="type">Matrix</span>.<span class="fn">rand_small</span>(<span class="var">hidden</span>, <span class="num">2</span>, <span class="var">rng</span>, <span class="var">scale</span>),
+        <span class="var">b1</span>=<span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="var">hidden</span>, <span class="num">1</span>),
+        <span class="var">w2</span>=<span class="type">Matrix</span>.<span class="fn">rand_small</span>(<span class="var">hidden</span>, <span class="num">1</span>, <span class="var">rng</span>, <span class="var">scale</span>),
+        <span class="var">b2</span>=<span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">1</span>),
+    )
+
+<span class="kw">def</span> <span class="fn">forward</span>(<span class="var">X</span>: <span class="type">Matrix</span>, <span class="var">p</span>: <span class="type">Parameters</span>) -&gt; <span class="type">Cache</span>:
+    <span class="kw">var</span> <span class="var">z1</span> = <span class="var">p</span>.<span class="var">w1</span>.<span class="fn">matmul</span>(<span class="var">X</span>).<span class="fn">add_bias</span>(<span class="var">p</span>.<span class="var">b1</span>)
+    <span class="kw">var</span> <span class="var">a1</span> = <span class="fn">relu_m</span>(<span class="var">z1</span>)
+    <span class="kw">var</span> <span class="var">z2</span> = <span class="var">p</span>.<span class="var">w2</span>.<span class="fn">transpose</span>().<span class="fn">matmul</span>(<span class="var">a1</span>).<span class="fn">add_bias</span>(<span class="var">p</span>.<span class="var">b2</span>)
+    <span class="kw">var</span> <span class="var">a2</span> = <span class="fn">sigmoid_m</span>(<span class="var">z2</span>)
+    <span class="kw">return</span> <span class="type">Cache</span>(<span class="var">z1</span>=<span class="var">z1</span>^, <span class="var">a1</span>=<span class="var">a1</span>^, <span class="var">z2</span>=<span class="var">z2</span>^, <span class="var">a2</span>=<span class="var">a2</span>^)
+
+<span class="kw">def</span> <span class="fn">compute_loss</span>(<span class="var">Y</span>: <span class="type">Matrix</span>, <span class="var">cache</span>: <span class="type">Cache</span>) -&gt; <span class="type">Float64</span>:
+    <span class="str">&quot;&quot;</span>&quot;<span class="var">Binary</span> <span class="var">cross</span>-<span class="var">entropy</span>, <span class="var">averaged</span> <span class="var">over</span> <span class="var">the</span> <span class="var">m</span> <span class="var">examples</span>.
+
+    <span class="var">We</span> <span class="var">clamp</span> <span class="var">a2</span> <span class="var">to</span> [<span class="var">eps</span>, <span class="num">1</span>-<span class="var">eps</span>] <span class="var">so</span> <span class="fn">log</span>() <span class="var">never</span> <span class="var">sees</span> <span class="num">0</span> <span class="var">or</span> <span class="num">1</span>.
+    <span class="str">&quot;&quot;</span>&quot;
+    <span class="kw">var</span> <span class="var">m</span> = <span class="var">Y</span>.<span class="var">cols</span>
+    <span class="kw">var</span> <span class="var">acc</span> = <span class="num">0.0</span>
+    <span class="kw">for</span> <span class="var">j</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">m</span>):
+        <span class="kw">var</span> <span class="var">y</span> = <span class="var">Y</span>.<span class="fn">get</span>(<span class="num">0</span>, <span class="var">j</span>)
+        <span class="kw">var</span> <span class="var">a</span> = <span class="fn">min</span>(<span class="fn">max</span>(<span class="var">cache</span>.<span class="var">a2</span>.<span class="fn">get</span>(<span class="num">0</span>, <span class="var">j</span>), <span class="num">1e-15</span>), <span class="num">1.0</span> - <span class="num">1e-15</span>)
+        <span class="var">acc</span> += <span class="var">y</span> * <span class="fn">log</span>(<span class="var">a</span>) + (<span class="num">1.0</span> - <span class="var">y</span>) * <span class="fn">log</span>(<span class="num">1.0</span> - <span class="var">a</span>)
+    <span class="kw">return</span> -<span class="var">acc</span> / <span class="type">Float64</span>(<span class="var">m</span>)
+
+<span class="kw">def</span> <span class="fn">backward</span>(<span class="var">X</span>: <span class="type">Matrix</span>, <span class="var">Y</span>: <span class="type">Matrix</span>, <span class="var">cache</span>: <span class="type">Cache</span>, <span class="var">p</span>: <span class="type">Parameters</span>) -&gt; <span class="type">Gradients</span>:
+    <span class="kw">var</span> <span class="var">m</span> = <span class="type">Float64</span>(<span class="var">X</span>.<span class="var">cols</span>)
+
+    <span class="cmt"># For the output neuron, sigmoid + cross-entropy simplify beautifully:</span>
+    <span class="cmt">#   dL/dZ2 = A2 - Y</span>
+    <span class="kw">var</span> <span class="var">dz2</span> = <span class="var">cache</span>.<span class="var">a2</span>.<span class="fn">sub</span>(<span class="var">Y</span>)
+    <span class="cmt">#   dL/dW2 = (1/m) * A1 @ dZ2^T        dL/db2 = (1/m) * sum_rows(dZ2)</span>
+    <span class="kw">var</span> <span class="var">dw2</span> = <span class="var">cache</span>.<span class="var">a1</span>.<span class="fn">matmul</span>(<span class="var">dz2</span>.<span class="fn">transpose</span>()).<span class="fn">scalar_mul</span>(<span class="num">1.0</span> / <span class="var">m</span>)
+    <span class="kw">var</span> <span class="var">db2</span> = <span class="var">dz2</span>.<span class="fn">sum_rows</span>().<span class="fn">scalar_mul</span>(<span class="num">1.0</span> / <span class="var">m</span>)
+
+    <span class="cmt"># Backprop through the hidden layer:</span>
+    <span class="cmt">#   dL/dA1 = W2 @ dZ2                 dL/dZ1 = dL/dA1 * relu&#x27;(Z1)</span>
+    <span class="kw">var</span> <span class="var">da1</span> = <span class="var">p</span>.<span class="var">w2</span>.<span class="fn">matmul</span>(<span class="var">dz2</span>)
+    <span class="kw">var</span> <span class="var">dz1</span> = <span class="var">da1</span>.<span class="fn">mul</span>(<span class="fn">relu_mask</span>(<span class="var">cache</span>.<span class="var">z1</span>))
+    <span class="cmt">#   dL/dW1 = (1/m) * dZ1 @ X^T        dL/db1 = (1/m) * sum_rows(dZ1)</span>
+    <span class="kw">var</span> <span class="var">dw1</span> = <span class="var">dz1</span>.<span class="fn">matmul</span>(<span class="var">X</span>.<span class="fn">transpose</span>()).<span class="fn">scalar_mul</span>(<span class="num">1.0</span> / <span class="var">m</span>)
+    <span class="kw">var</span> <span class="var">db1</span> = <span class="var">dz1</span>.<span class="fn">sum_rows</span>().<span class="fn">scalar_mul</span>(<span class="num">1.0</span> / <span class="var">m</span>)
+
+    <span class="kw">return</span> <span class="type">Gradients</span>(<span class="var">dw1</span>=<span class="var">dw1</span>^, <span class="var">db1</span>=<span class="var">db1</span>^, <span class="var">dw2</span>=<span class="var">dw2</span>^, <span class="var">db2</span>=<span class="var">db2</span>^)
+
+<span class="kw">def</span> <span class="fn">update</span>(<span class="kw">mut</span> <span class="var">p</span>: <span class="type">Parameters</span>, <span class="var">g</span>: <span class="type">Gradients</span>, <span class="var">learning_rate</span>: <span class="type">Float64</span>):
+    <span class="str">&quot;&quot;</span><span class="str">&quot;One vanilla batch-gradient-descent step.&quot;</span><span class="str">&quot;&quot;</span>
+    <span class="var">p</span>.<span class="var">w1</span> = <span class="var">p</span>.<span class="var">w1</span>.<span class="fn">sub</span>(<span class="var">g</span>.<span class="var">dw1</span>.<span class="fn">scalar_mul</span>(<span class="var">learning_rate</span>))
+    <span class="var">p</span>.<span class="var">b1</span> = <span class="var">p</span>.<span class="var">b1</span>.<span class="fn">sub</span>(<span class="var">g</span>.<span class="var">db1</span>.<span class="fn">scalar_mul</span>(<span class="var">learning_rate</span>))
+    <span class="var">p</span>.<span class="var">w2</span> = <span class="var">p</span>.<span class="var">w2</span>.<span class="fn">sub</span>(<span class="var">g</span>.<span class="var">dw2</span>.<span class="fn">scalar_mul</span>(<span class="var">learning_rate</span>))
+    <span class="var">p</span>.<span class="var">b2</span> = <span class="var">p</span>.<span class="var">b2</span>.<span class="fn">sub</span>(<span class="var">g</span>.<span class="var">db2</span>.<span class="fn">scalar_mul</span>(<span class="var">learning_rate</span>))
+
+<span class="kw">def</span> <span class="fn">predict</span>(<span class="var">X</span>: <span class="type">Matrix</span>, <span class="var">p</span>: <span class="type">Parameters</span>) -&gt; <span class="type">Matrix</span>:
+    <span class="str">&quot;&quot;</span><span class="str">&quot;Threshold the network&#x27;s probability at 0.5.&quot;</span><span class="str">&quot;&quot;</span>
+    <span class="kw">var</span> <span class="var">cache</span> = <span class="fn">forward</span>(<span class="var">X</span>, <span class="var">p</span>)
+    <span class="kw">var</span> <span class="kw">out</span> = <span class="type">Matrix</span>(<span class="num">1</span>, <span class="var">X</span>.<span class="var">cols</span>)
+    <span class="kw">for</span> <span class="var">j</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">X</span>.<span class="var">cols</span>):
+        <span class="kw">out</span>.<span class="var">data</span>[<span class="var">j</span>] = <span class="num">1.0</span> <span class="kw">if</span> <span class="var">cache</span>.<span class="var">a2</span>.<span class="fn">get</span>(<span class="num">0</span>, <span class="var">j</span>) &gt; <span class="num">0.5</span> <span class="kw">else</span> <span class="num">0.0</span>
+    <span class="kw">return</span> <span class="kw">out</span>^
+
+
+<span class="cmt"># -------------------------------------------------------------- driver ----</span>
+<span class="kw">def</span> <span class="fn">main</span>() <span class="kw">raises</span>:
+    <span class="cmt"># The XOR truth table. Each example is a column:</span>
+    <span class="cmt">#   x1 x2 -&gt; y</span>
+    <span class="cmt">#   0  0     0</span>
+    <span class="cmt">#   0  1     1</span>
+    <span class="cmt">#   1  0     1</span>
+    <span class="cmt">#   1  1     0</span>
+    <span class="kw">var</span> <span class="var">X</span> = <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">2</span>, <span class="num">4</span>)
+    <span class="var">X</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="num">0.0</span>); <span class="var">X</span>.<span class="fn">set</span>(<span class="num">1</span>, <span class="num">0</span>, <span class="num">0.0</span>)
+    <span class="var">X</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="num">0.0</span>); <span class="var">X</span>.<span class="fn">set</span>(<span class="num">1</span>, <span class="num">1</span>, <span class="num">1.0</span>)
+    <span class="var">X</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">2</span>, <span class="num">1.0</span>); <span class="var">X</span>.<span class="fn">set</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">0.0</span>)
+    <span class="var">X</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">3</span>, <span class="num">1.0</span>); <span class="var">X</span>.<span class="fn">set</span>(<span class="num">1</span>, <span class="num">3</span>, <span class="num">1.0</span>)
+
+    <span class="kw">var</span> <span class="var">Y</span> = <span class="type">Matrix</span>.<span class="fn">zeros</span>(<span class="num">1</span>, <span class="num">4</span>)
+    <span class="var">Y</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="num">0.0</span>)
+    <span class="var">Y</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="num">1.0</span>)
+    <span class="var">Y</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">2</span>, <span class="num">1.0</span>)
+    <span class="var">Y</span>.<span class="fn">set</span>(<span class="num">0</span>, <span class="num">3</span>, <span class="num">0.0</span>)
+
+    <span class="cmt"># Hyper-parameters. (Try hidden=2: the network gets stuck — XOR needs</span>
+    <span class="cmt"># room for two competing &quot;on/off&quot; hidden features.)</span>
+    <span class="kw">var</span> <span class="var">hidden</span> = <span class="num">4</span>               <span class="cmt"># neurons in the hidden layer</span>
+    <span class="kw">var</span> <span class="var">init_scale</span> = <span class="num">1.0</span>         <span class="cmt"># initial weights come from [-0.5, +0.5)</span>
+    <span class="kw">var</span> <span class="var">learning_rate</span> = <span class="num">0.5</span>
+    <span class="kw">var</span> <span class="var">epochs</span> = <span class="num">4000</span>
+    <span class="kw">var</span> <span class="var">rng</span> = <span class="type">XorShift</span>(<span class="var">seed</span>=<span class="type">UInt64</span>(<span class="num">100</span>))
+
+    <span class="kw">var</span> <span class="var">params</span> = <span class="fn">init_parameters</span>(<span class="var">rng</span>, <span class="var">hidden</span>, <span class="var">init_scale</span>)
+
+    <span class="kw">for</span> <span class="var">epoch</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">epochs</span>):
+        <span class="kw">var</span> <span class="var">cache</span> = <span class="fn">forward</span>(<span class="var">X</span>, <span class="var">params</span>)
+        <span class="kw">var</span> <span class="var">loss</span> = <span class="fn">compute_loss</span>(<span class="var">Y</span>, <span class="var">cache</span>)
+        <span class="kw">var</span> <span class="var">grads</span> = <span class="fn">backward</span>(<span class="var">X</span>, <span class="var">Y</span>, <span class="var">cache</span>, <span class="var">params</span>)
+        <span class="fn">update</span>(<span class="var">params</span>, <span class="var">grads</span>, <span class="var">learning_rate</span>)
+        <span class="kw">if</span> <span class="var">epoch</span> % <span class="num">1000</span> == <span class="num">0</span>:
+            <span class="kw">var</span> <span class="var">shown</span> = <span class="fn">floor</span>(<span class="var">loss</span> * <span class="num">10000.0</span>) / <span class="num">10000.0</span>
+            <span class="fn">print</span>(<span class="str">t&quot;epoch {epoch}   loss {shown}&quot;</span>)
+
+    <span class="cmt"># What the network actually outputs (before thresholding) — it should be</span>
+    <span class="cmt"># close to 0.01 / 0.99, not just &quot;less than / greater than 0.5&quot;.</span>
+    <span class="kw">var</span> <span class="var">cache</span> = <span class="fn">forward</span>(<span class="var">X</span>, <span class="var">params</span>)
+    <span class="kw">var</span> <span class="var">line</span> = <span class="str">&quot;&quot;</span>
+    <span class="kw">for</span> <span class="var">j</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">X</span>.<span class="var">cols</span>):
+        <span class="var">line</span> += <span class="type">String</span>(<span class="str">t&quot;  {floor(cache.a2.get(0, j) * 10000.0) / 10000.0}&quot;</span>)
+    <span class="fn">print</span>(<span class="str">&quot;sigmoid output probabilities:&quot;</span>)
+    <span class="fn">print</span>(<span class="str">&quot; &quot;</span>, <span class="var">line</span>)
+
+    <span class="cmt"># Thresholded predictions: 0 1 1 0 is the XOR truth table.</span>
+    <span class="kw">var</span> <span class="var">preds</span> = <span class="fn">predict</span>(<span class="var">X</span>, <span class="var">params</span>)
+    <span class="var">line</span> = <span class="str">&quot;&quot;</span>
+    <span class="kw">for</span> <span class="var">j</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">X</span>.<span class="var">cols</span>):
+        <span class="var">line</span> += <span class="type">String</span>(<span class="str">t&quot; {Int(preds.get(0, j))}&quot;</span>)
+    <span class="fn">print</span>(<span class="str">&quot;predictions (expected 0 1 1 0):&quot;</span>)
+    <span class="fn">print</span>(<span class="str">&quot; &quot;</span>, <span class="var">line</span>)</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="run">
+    <h2>7. Running It</h2>
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="run-shell">shell</button>
+      </div>
+      <div class="tab-content active" id="run-shell">
+        <pre><span class="fn">mojo</span> mlp_xor.mojo</pre>
+      </div>
+    </div>
+    <p>What you should see (numbers round to one part in 10&sup4;):</p>
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="run-out">output</button>
+      </div>
+      <div class="tab-content active" id="run-out">
+        <pre>epoch 0   loss 0.6975
+epoch 1000   loss 0.005
+epoch 2000   loss 0.0021
+epoch 3000   loss 0.0013
+sigmoid output probabilities:
+    0.0027  0.9996  0.9996  0.0002
+predictions (expected 0 1 1 0):
+   0 1 1 0</pre>
+      </div>
+    </div>
+    <p>Notice what the probabilities reveal beyond the 0/1 verdict: for the two XOR-is-1 inputs the network says <strong>0.9996</strong> — genuinely confident — and for the XOR-is-0 inputs it says <strong>0.0027</strong> and <strong>0.0002</strong>. This is what "learning the truth table" looks like at the raw-neuron level.</p>
+  </section>
+
+  <section id="exercises">
+    <h2>8. Experiments and Homework</h2>
+    <p>Now that it works, break it on purpose. Each of these teaches you something real:</p>
+    <ul>
+      <li><strong>Shrink the hidden layer:</strong> set <code class="inline">hidden = 2</code>. The loss falls to about 0.35 and stays there. Two ReLU neurons plus a bias cannot carve the square into the four regions XOR needs — this is the empirical face of the Minsky-Papert result.</li>
+      <li><strong>Tune the learning rate:</strong> sweep <code class="inline">learning_rate</code> over 0.1, 0.5, 1.0. Too small and training crawls; too large and the loss explodes to 0.693 (the "always guess half" plateau) or diverges entirely.</li>
+      <li><strong>Change the seed:</strong> <code class="inline">XorShift(seed=UInt64(...))</code> makes every run reproducible. Different seeds converge to slightly different final losses; a bad seed plus a fragile architecture is how networks "randomly fail."</li>
+      <li><strong>Widen instead of deepening:</strong> try <code class="inline">hidden = 8</code>. More capacity, similar loss, slightly slower loop. XOR is small enough that 4 neurons is the sweet spot.</li>
+    </ul>
+    <div class="warning-box">
+      <strong>⚠️ Homework — the initialization trap:</strong>
+      <p>Initialize the weights with a tiny scale (say <code class="inline">scale = 0.02</code>) and the same architecture stalls at loss 0.4774: all four hidden ReLUs die before they ever learn. Dead ReLUs send zero gradient backward, and a network of dead neurons cannot learn anything. This is why deep-learning frameworks obsess over initialization schemes.</p>
+    </div>
+  </section>
+
+  <section id="perceptron">
+    <h2>9. Part Two — One Neuron Learns to Add</h2>
+    <p>Now the same ideas in miniature, following the classic Rust tutorial (Faisal Arshed): a <strong>single sigmoid neuron</strong> trained to approximate <code class="inline">a + b</code> for two fractions. With three parameters — two weights and one bias — it is the smallest "neural network" that deserves the name.</p>
+    <p>The training rule is online (one example at a time) gradient descent on the squared error. For each example:</p>
+    <pre class="eq">output = sigmoid(w0*x0 + w1*x1 + b)
+error  = target - output
+delta  = output * (1 - output)          , the sigmoid derivative sigma'(z)
+w0    += lr * error * x0 * delta
+w1    += lr * error * x1 * delta
+b     += lr * error * delta</pre>
+    <p>The perceptron cannot solve XOR — but a convex problem like a sum is exactly its home turf. We train on a deterministic 10&times;10 grid of pairs, then test on the same 25 inputs the Rust tutorial prints.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="perc-code">perceptron_add.mojo</button>
+      </div>
+      <div class="tab-content active" id="perc-code">
+        <pre><span class="cmt"># ============================================================================</span>
+<span class="cmt">#  A single sigmoid neuron that learns to ADD — Mojo 1.x</span>
+<span class="cmt">#</span>
+<span class="cmt">#  Faithful port of the classic Rust perceptron demo (Faisal Arshed, &quot;Building</span>
+<span class="cmt">#  a Neural Network in Rust (From Scratch)&quot;): online updates with</span>
+<span class="cmt">#      error  = target - output</span>
+<span class="cmt">#      delta  = output * (1 - output)      # sigmoid derivative</span>
+<span class="cmt">#      w[j]  += lr * error * input[j] * delta</span>
+<span class="cmt">#      bias  += lr * error * delta</span>
+<span class="cmt">#  Here we train on a deterministic grid of pairs and test on the same 25</span>
+<span class="cmt">#  inputs the Rust tutorial prints.</span>
+<span class="cmt">#</span>
+<span class="cmt">#  Run with:   mojo perceptron_add.mojo</span>
+<span class="cmt"># ============================================================================</span>
+<span class="kw">from</span> <span class="var">std</span>.<span class="var">math</span> <span class="kw">import</span> <span class="var">exp</span>, <span class="var">floor</span>, <span class="var">min</span>, <span class="var">max</span>
+
+<span class="cmt"># ---------------------------------------------------------------- PRNG ----</span>
+<span class="kw">struct</span> <span class="type">XorShift</span>:
+    <span class="str">&quot;&quot;</span><span class="str">&quot;Xorshift64* pseudo-random generator (deterministic, reproducible).&quot;</span><span class="str">&quot;&quot;</span>
+
+    <span class="kw">var</span> <span class="var">state</span>: <span class="type">UInt64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="var">self</span>, <span class="var">seed</span>: <span class="type">UInt64</span>):
+        <span class="var">self</span>.<span class="var">state</span> = <span class="var">seed</span>
+        <span class="kw">if</span> <span class="var">self</span>.<span class="var">state</span> == <span class="num">0</span>:
+            <span class="var">self</span>.<span class="var">state</span> = <span class="num">88172645463325252</span>
+        <span class="kw">for</span> <span class="var">_</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+            <span class="var">_</span> = <span class="var">self</span>.<span class="fn">next_u64</span>()
+
+    <span class="kw">def</span> <span class="fn">next_u64</span>(<span class="kw">mut</span> <span class="var">self</span>) -&gt; <span class="type">UInt64</span>:
+        <span class="kw">var</span> <span class="var">s</span> = <span class="var">self</span>.<span class="var">state</span>
+        <span class="var">s</span> ^= <span class="var">s</span> &lt;&lt; <span class="num">13</span>
+        <span class="var">s</span> ^= <span class="var">s</span> &gt;&gt; <span class="num">7</span>
+        <span class="var">s</span> ^= <span class="var">s</span> &lt;&lt; <span class="num">17</span>
+        <span class="var">self</span>.<span class="var">state</span> = <span class="var">s</span>
+        <span class="kw">return</span> <span class="var">s</span>
+
+    <span class="kw">def</span> <span class="fn">next_f64</span>(<span class="kw">mut</span> <span class="var">self</span>) -&gt; <span class="type">Float64</span>:
+        <span class="kw">return</span> <span class="type">Float64</span>(<span class="var">self</span>.<span class="fn">next_u64</span>() &gt;&gt; <span class="num">11</span>) / <span class="type">Float64</span>(<span class="num">1</span> &lt;&lt; <span class="num">53</span>)
+
+
+<span class="cmt"># ----------------------------------------------------------- perceptron ----</span>
+<span class="kw">struct</span> <span class="type">Perceptron</span>:
+    <span class="str">&quot;&quot;</span><span class="str">&quot;One sigmoid neuron: output = sigma(w . x + b).&quot;</span><span class="str">&quot;&quot;</span>
+
+    <span class="kw">var</span> <span class="var">w</span>: <span class="type">List</span>[<span class="type">Float64</span>]  <span class="cmt"># two weights, one per input</span>
+    <span class="kw">var</span> <span class="var">bias</span>: <span class="type">Float64</span>
+    <span class="kw">var</span> <span class="var">learning_rate</span>: <span class="type">Float64</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">out</span> <span class="var">self</span>, <span class="kw">mut</span> <span class="var">rng</span>: <span class="type">XorShift</span>, <span class="var">learning_rate</span>: <span class="type">Float64</span>):
+        <span class="var">self</span>.<span class="var">w</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+        <span class="kw">for</span> <span class="var">_</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>):
+            <span class="var">self</span>.<span class="var">w</span>.<span class="fn">append</span>(<span class="var">rng</span>.<span class="fn">next_f64</span>())
+        <span class="var">self</span>.<span class="var">bias</span> = <span class="var">rng</span>.<span class="fn">next_f64</span>()
+        <span class="var">self</span>.<span class="var">learning_rate</span> = <span class="var">learning_rate</span>
+
+    <span class="kw">def</span> <span class="fn">predict</span>(<span class="var">self</span>, <span class="var">x0</span>: <span class="type">Float64</span>, <span class="var">x1</span>: <span class="type">Float64</span>) -&gt; <span class="type">Float64</span>:
+        <span class="kw">var</span> <span class="var">z</span> = <span class="var">self</span>.<span class="var">bias</span> + <span class="var">self</span>.<span class="var">w</span>[<span class="num">0</span>] * <span class="var">x0</span> + <span class="var">self</span>.<span class="var">w</span>[<span class="num">1</span>] * <span class="var">x1</span>
+        <span class="kw">return</span> <span class="num">1.0</span> / (<span class="num">1.0</span> + <span class="fn">exp</span>(-<span class="var">z</span>))
+
+    <span class="kw">def</span> <span class="fn">train_one</span>(<span class="kw">mut</span> <span class="var">self</span>, <span class="var">x0</span>: <span class="type">Float64</span>, <span class="var">x1</span>: <span class="type">Float64</span>, <span class="var">target</span>: <span class="type">Float64</span>):
+        <span class="str">&quot;&quot;</span><span class="str">&quot;One online update on a single example (gradient descent on MSE).&quot;</span><span class="str">&quot;&quot;</span>
+        <span class="kw">var</span> <span class="var">output</span> = <span class="var">self</span>.<span class="fn">predict</span>(<span class="var">x0</span>, <span class="var">x1</span>)
+        <span class="kw">var</span> <span class="var">error</span> = <span class="var">target</span> - <span class="var">output</span>
+        <span class="kw">var</span> <span class="var">delta</span> = <span class="var">output</span> * (<span class="num">1.0</span> - <span class="var">output</span>)  <span class="cmt"># sigma&#x27;(z)</span>
+        <span class="var">self</span>.<span class="var">w</span>[<span class="num">0</span>] += <span class="var">self</span>.<span class="var">learning_rate</span> * <span class="var">error</span> * <span class="var">x0</span> * <span class="var">delta</span>
+        <span class="var">self</span>.<span class="var">w</span>[<span class="num">1</span>] += <span class="var">self</span>.<span class="var">learning_rate</span> * <span class="var">error</span> * <span class="var">x1</span> * <span class="var">delta</span>
+        <span class="var">self</span>.<span class="var">bias</span> += <span class="var">self</span>.<span class="var">learning_rate</span> * <span class="var">error</span> * <span class="var">delta</span>
+
+
+<span class="cmt"># -------------------------------------------------------------- driver ----</span>
+<span class="kw">def</span> <span class="fn">main</span>() <span class="kw">raises</span>:
+    <span class="cmt"># Training data: every pair (a, b) on a 10x10 grid in [0, 1) with the</span>
+    <span class="cmt"># target equal to the sum a + b. 100 examples in total.</span>
+    <span class="kw">var</span> <span class="var">n_train</span> = <span class="num">0</span>
+    <span class="kw">var</span> <span class="var">tx</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">var</span> <span class="var">ty</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">for</span> <span class="var">a</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+        <span class="kw">for</span> <span class="var">b</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+            <span class="var">tx</span>.<span class="fn">append</span>(<span class="type">Float64</span>(<span class="var">a</span>) / <span class="num">10.0</span>)
+            <span class="var">tx</span>.<span class="fn">append</span>(<span class="type">Float64</span>(<span class="var">b</span>) / <span class="num">10.0</span>)
+            <span class="var">ty</span>.<span class="fn">append</span>(<span class="type">Float64</span>(<span class="var">a</span> + <span class="var">b</span>) / <span class="num">10.0</span>)
+            <span class="var">n_train</span> += <span class="num">1</span>
+
+    <span class="cmt"># The 25 test inputs printed in the Rust tutorial.</span>
+    <span class="kw">var</span> <span class="var">n_test</span> = <span class="num">25</span>
+    <span class="kw">var</span> <span class="var">test_x</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="kw">var</span> <span class="var">test_y</span> = <span class="type">List</span>[<span class="type">Float64</span>]()
+    <span class="cmt"># (x0, x1, expected sum).</span>
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.9</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">1.0</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.5</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.5</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">1.0</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.5</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.6</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.9</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.7</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.8</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.4</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.5</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.6</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.9</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.0</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.9</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.6</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.0</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.1</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.3</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.0</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.2</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.6</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.7</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.5</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.8</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.9</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">1.0</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.4</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.5</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.4</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.6</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.7</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.0</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.7</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.6</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.3</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.9</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.4</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.1</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.0</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.1</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.2</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.6</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.8</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.5</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.0</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.5</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.6</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.4</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">1.0</span>)
+    <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.4</span>); <span class="var">test_x</span>.<span class="fn">append</span>(<span class="num">0.5</span>); <span class="var">test_y</span>.<span class="fn">append</span>(<span class="num">0.9</span>)
+
+    <span class="kw">var</span> <span class="var">rng</span> = <span class="type">XorShift</span>(<span class="var">seed</span>=<span class="type">UInt64</span>(<span class="num">42</span>))
+    <span class="kw">var</span> <span class="var">net</span> = <span class="type">Perceptron</span>(<span class="var">rng</span>, <span class="var">learning_rate</span>=<span class="num">0.1</span>)
+
+    <span class="kw">var</span> <span class="var">epochs</span> = <span class="num">10000</span>
+    <span class="kw">for</span> <span class="var">_</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">epochs</span>):
+        <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">n_train</span>):
+            <span class="var">net</span>.<span class="fn">train_one</span>(<span class="var">tx</span>[<span class="num">2</span> * <span class="var">i</span>], <span class="var">tx</span>[<span class="num">2</span> * <span class="var">i</span> + <span class="num">1</span>], <span class="var">ty</span>[<span class="var">i</span>])
+
+    <span class="cmt"># How well does it sum? Round to one decimal, like the tutorial&#x27;s output.</span>
+    <span class="kw">var</span> <span class="var">correct</span> = <span class="num">0</span>
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">n_test</span>):
+        <span class="kw">var</span> <span class="var">pred</span> = <span class="var">net</span>.<span class="fn">predict</span>(<span class="var">test_x</span>[<span class="num">2</span> * <span class="var">i</span>], <span class="var">test_x</span>[<span class="num">2</span> * <span class="var">i</span> + <span class="num">1</span>])
+        <span class="kw">var</span> <span class="var">rounded</span> = <span class="fn">floor</span>(<span class="var">pred</span> * <span class="num">10.0</span> + <span class="num">0.5</span>) / <span class="num">10.0</span>
+        <span class="kw">var</span> <span class="var">want</span> = <span class="fn">floor</span>(<span class="var">test_y</span>[<span class="var">i</span>] * <span class="num">10.0</span> + <span class="num">0.5</span>) / <span class="num">10.0</span>
+        <span class="kw">if</span> <span class="var">rounded</span> == <span class="var">want</span>:
+            <span class="var">correct</span> += <span class="num">1</span>
+        <span class="kw">var</span> <span class="var">shown</span> = <span class="fn">floor</span>(<span class="var">pred</span> * <span class="num">10.0</span> + <span class="num">0.5</span>) / <span class="num">10.0</span>
+        <span class="fn">print</span>(<span class="str">t&quot;Input: [{test_x[2*i]}, {test_x[2*i+1]}], Prediction: {shown}&quot;</span>)
+
+    <span class="fn">print</span>(<span class="str">&quot; &quot;</span>)
+    <span class="fn">print</span>(<span class="str">&quot;Correct to 1 decimal place:&quot;</span>, <span class="type">String</span>(<span class="var">correct</span>), <span class="str">&quot;of&quot;</span>, <span class="type">String</span>(<span class="var">n_test</span>))
+    <span class="fn">print</span>(<span class="str">&quot;Weights:&quot;</span>, <span class="type">String</span>(<span class="var">net</span>.<span class="var">w</span>[<span class="num">0</span>]), <span class="type">String</span>(<span class="var">net</span>.<span class="var">w</span>[<span class="num">1</span>]), <span class="str">&quot; Bias:&quot;</span>, <span class="type">String</span>(<span class="var">net</span>.<span class="var">bias</span>))</pre>
+      </div>
+    </div>
+
+    <p>After 10,000 epochs the network reports <strong>18 of 25 test sums correct to one decimal place</strong> — the same ballpark as the tutorial's "around 80%," with a very satisfying set of learned weights:</p>
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="perc-out">output (excerpt)</button>
+      </div>
+      <div class="tab-content active" id="perc-out">
+        <pre>Input: [0.9, 0.1], Prediction: 1.0
+Input: [0.5, 0.5], Prediction: 1.0
+Input: [0.2, 0.3], Prediction: 0.5
+Input: [0.3, 0.1], Prediction: 0.4
+Input: [0.1, 0.2], Prediction: 0.2
+Input: [0.0, 0.1], Prediction: 0.1
+...
+Correct to 1 decimal place: 18 of 25
+Weights: 6.00971087045895 6.004522169551327  Bias: -3.0210571325652307</pre>
+      </div>
+    </div>
+    <p>Look at those final parameters: both weights are close to 6 and the bias is about -3. A sigmoid with <code class="inline">w &asymp; 6</code> on each input and <code class="inline">b &asymp; -3</code> is a soft step that fires at roughly <code class="inline">x&#8320; + x&#8321; &gt; 0.5</code> — the neuron has discovered "sum," as best a single step function can.</p>
+  </section>
+
+  <section id="summary">
+    <h2>10. Summary</h2>
+    <ul>
+      <li>A <strong>hidden layer</strong> turns a linearly-limited perceptron into a universal function approximator; XOR is the classic demonstration.</li>
+      <li>Columns-as-examples keeps the linear algebra honest: <code class="inline">W @ X</code> bumps the label matrix through the network, and the same convention makes the backward formulas transpose correctly.</li>
+      <li>For sigmoid + cross-entropy, <strong>the output error is simply <code class="inline">A2 - Y</code></strong>; the rest is chain rule, applied twice.</li>
+      <li>Backprop is not magic — it is verified math. When anything is wrong, numeric gradients will tell you instantly.</li>
+    </ul>
+    <div class="info-box">
+      <strong>📋 That's a wrap:</strong>
+      <p>You now own every line of a working neural network: the RNG, the matrices, the forward pass, the backward pass, and the optimizer. From here, every framework you ever meet is just this loop, scaled up and optimized — multiplications through matrix libraries, gradients through automatic differentiation, and the same humble <code class="inline">w -= lr * dw</code> underneath.</p>
+    </div>
+  </section>
+
+  <div class="info-box">
+    <strong>📚 Related reading on this shelf:</strong>
+    <p>
+      <a href="perceptrons_and_activation.html" style="color:var(--accent-2);text-decoration:underline;">🧠 Perceptrons &amp; Activations</a> ·
+      <a href="neural_network.html" style="color:var(--accent-2);text-decoration:underline;">🔬 Neural Network from Scratch (2-2-1)</a> ·
+      <a href="nn_mojo.html" style="color:var(--accent-2);text-decoration:underline;">🧮 3-4-1 NN in Mojo &amp; NumPy, side by side</a> ·
+      <a href="numoj.html" style="color:var(--accent-2);text-decoration:underline;">🧰 nj: the same network on a small array library</a> ·
+      <a href="ds_textbook_08_neural_network.html" style="color:var(--accent-2);text-decoration:underline;">📘 Textbook Ch. 8 — NN from Scratch</a> ·
+      <a href="ds_ml_textbook_06_building_models.html" style="color:var(--accent-2);text-decoration:underline;">📙 Building ML Models</a> ·
+      <a href="ds_advanced_09_autodiff.html" style="color:var(--accent-2);text-decoration:underline;">⚡ Autodiff &amp; Optimization</a>
+    </p>
+  </div>
+  <div class="chapnav">
+    <a  class="navbtn" href="index.html">← Finance Hub</a>
+    <a class="navbtn" href="neural_network.html">Neural Network from Scratch →</a>
+  </div>
+  <div class="chapnav" style="margin-top:.5rem;border-top:none;padding-top:0;">
+    <a class="navbtn" href="perceptrons_and_activation.html">← Perceptrons &amp; Activations</a>
+    <a class="navbtn" href="ds_ml_textbook_06_building_models.html">Building ML Models →</a>
+  </div>
+  <div class="chapnav" style="margin-top:.5rem;border-top:none;padding-top:0;">
+    <a class="navbtn" href="nn_mojo.html">← 3-4-1 NN in Mojo &amp; NumPy</a>
+    <a  class="navbtn" href="index.html">Finance Hub →</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const group=this.closest('.code-tabs');
+    group.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    group.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    this.classList.add('active');
+    const target=group.querySelector('#'+this.getAttribute('data-tab'));
+    if(target) target.classList.add('active');
+  });
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

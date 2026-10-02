@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GNSS Surveying — Coordinate Frames, Site Calibration &amp; Georeferencing (Part 1 · Mojo 1.x)</title>
+<style>
+  :root {
+    --bg: #0f1720;
+    --panel: #152231;
+    --accent: #4cc9f0;
+    --accent2: #f72585;
+    --text: #e6edf3;
+    --muted: #ffd98f;
+    --py: #3776ab;
+    --mj: #ff5b12;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .fade-in { animation: rise .7s cubic-bezier(.2,.7,.3,1) both; }
+    .fade-in:nth-child(2) { animation-delay: .12s; }
+    .fade-in:nth-child(3) { animation-delay: .24s; }
+    .fade-in:nth-child(4) { animation-delay: .36s; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  header {
+    position: relative;
+    overflow: hidden;
+    padding: 88px 24px 72px;
+    text-align: center;
+    border-bottom: 1px solid #21384f;
+    background:
+      radial-gradient(1100px 480px at 78% -12%, #14405e55, transparent 62%),
+      radial-gradient(760px 420px at 12% 108%, #f7258518, transparent 60%),
+      linear-gradient(160deg, #0a111c 0%, #0e1c2e 55%, #10243a 100%);
+  }
+  /* surveying backdrop: coordinate grid + trilateration circles */
+  header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(#4cc9f00d 1px, transparent 1px),
+      linear-gradient(90deg, #4cc9f00d 1px, transparent 1px),
+      radial-gradient(circle at 72% 40%, transparent 116px, #4cc9f01f 117px, transparent 120px),
+      radial-gradient(circle at 72% 40%, transparent 186px, #4cc9f016 187px, transparent 190px),
+      radial-gradient(circle at 72% 40%, transparent 256px, #4cc9f00d 257px, transparent 260px);
+    background-size: 48px 48px, 48px 48px, 100% 100%, 100% 100%, 100% 100%;
+    -webkit-mask-image: radial-gradient(ellipse 78% 92% at 50% 46%, #000 30%, transparent 78%);
+            mask-image: radial-gradient(ellipse 78% 92% at 50% 46%, #000 30%, transparent 78%);
+    pointer-events: none;
+  }
+  header > * { position: relative; }
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: #9cc1ff;
+    padding: 7px 18px;
+    border: 1px solid #4cc9f033;
+    border-radius: 999px;
+    background: #4cc9f00a;
+  }
+  .kicker::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px 2px #4cc9f0aa;
+  }
+  header h1 {
+    margin: 26px auto 0;
+    max-width: 17ch;
+    font-size: clamp(2rem, 5.2vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: -.015em;
+    line-height: 1.12;
+    background: linear-gradient(92deg, #eaf4fc 8%, var(--accent) 58%, #8f9ffb 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+  }
+  header p.lede {
+    color: #fff4d6;
+    font-size: 1.08rem;
+    max-width: 62ch;
+    margin: 20px auto 0;
+    line-height: 1.75;
+  }
+  header p.lede b { color: #d5e6f5; font-weight: 600; }
+  .badges {
+    margin-top: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 9px;
+  }
+  .badges span, .badges a {
+    display: inline-block;
+    border: 1px solid #ffffff1f;
+    border-radius: 999px;
+    padding: 6px 15px;
+    font-size: .82rem;
+    letter-spacing: .02em;
+    color: #c3dbef;
+    background: #ffffff08;
+    backdrop-filter: blur(4px);
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color .2s, color .2s, transform .2s;
+  }
+  .badges span:hover, .badges a:hover {
+    border-color: #4cc9f066;
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+  nav {
+    background: #0b1220e6;
+    backdrop-filter: blur(12px);
+    padding: 10px 16px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid #1d3048;
+  }
+  nav a {
+    display: inline-block;
+    color: #ffe4a3;
+    margin: 2px 2px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: .92rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color .18s, background .18s;
+  }
+  nav a:hover {
+    color: #ffffff;
+    background: #4cc9f01f;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 24px; }
+  section {
+    background: var(--panel);
+    padding: 24px;
+    border-radius: 10px;
+    margin-bottom: 28px;
+    border-left: 4px solid var(--accent);
+  }
+  section h2 {
+    margin-top: 0;
+    color: var(--accent);
+    border-bottom: 1px dashed #2b3e55;
+    padding-bottom: 8px;
+  }
+  section h3 { color: #bde0fe; margin-top: 24px; }
+  /* chapter brief */
+  .brief {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: start;
+    background: linear-gradient(120deg, #4cc9f014, #f725850d);
+    border: 1px solid #2b3e55;
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 0 0 20px;
+  }
+  .brief-label {
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-top: 4px;
+    white-space: nowrap;
+  }
+  .brief p { margin: 0; color: #ffe4a3; font-size: .95rem; }
+  .brief p b { color: #dceaf6; }
+  /* topic brief */
+  .topic-brief {
+    color: var(--muted);
+    font-style: italic;
+    font-size: .93rem;
+    margin: 4px 0 14px;
+    padding-left: 12px;
+    border-left: 2px solid #2b3e55;
+  }
+  .formula {
+    background: #0b1220;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: "Cambria Math", "STIX Two Math", serif;
+    overflow-x: auto;
+    margin: 12px 0;
+    border-left: 3px solid var(--accent2);
+  }
+  .code-block {
+    position: relative;
+    margin: 14px 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .code-block .lang-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: white;
+  }
+  .lang-mojo { background: var(--mj); }
+  pre {
+    background: #0b1220;
+    padding: 16px;
+    margin: 0;
+    overflow-x: auto;
+    font-family: "Fira Code", Consolas, monospace;
+    font-size: 0.9em;
+    color: #d6deeb;
+  }
+  /* syntax highlighting tokens */
+  .kw  { color: #c792ea; }                    /* keywords            */
+  .fn  { color: #82aaff; }                    /* function names      */
+  .str { color: #ecc48d; }                    /* strings             */
+  .num { color: #f78c6c; }                    /* numbers             */
+  .com { color: #637777; font-style: italic; }/* comments            */
+  .typ { color: #ffcb6b; }                    /* types               */
+  .dec { color: #ff5874; }                    /* decorators/comptime */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+  }
+  th, td {
+    border: 1px solid #2b3e55;
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #0b1220; color: var(--accent); }
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 0.9em;
+  }
+  .note {
+    background: #1a2a3d;
+    border-left: 3px solid var(--accent2);
+    padding: 10px 14px;
+    margin: 12px 0;
+    border-radius: 4px;
+  }
+  .note ul { margin: 8px 0 0; padding-left: 20px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin: 14px 0;
+  }
+  .card {
+    background: #0e1a28;
+    border: 1px solid #22364d;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .card h4 { margin: 0 0 6px 0; color: #bde0fe; }
+  .card p { margin: 0; color: #ffe4a3; font-size: .9rem; }
+  .card .tag {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    color: var(--accent);
+    border: 1px solid #4cc9f04d;
+    border-radius: 999px;
+    padding: 2px 10px;
+    margin-bottom: 8px;
+    background: #4cc9f00f;
+  }
+  code { font-family: "Fira Code", Consolas, monospace; color: #bde0fe; }
+  /* cross-reference to the Part 2 companion document */
+  .xref {
+    background: #12202f;
+    border: 1px dashed #33506b;
+    border-left: 3px solid var(--accent2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: .93rem;
+    color: #ffe4a3;
+  }
+  .xref a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .xref a:hover { text-decoration: underline; }
+  /* end-of-part continuation panel */
+  .continue {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    background: linear-gradient(120deg, #14405e33, #f725851a), #0e1a28;
+    border: 1px solid #2b3e55;
+    border-left: 4px solid var(--accent2);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 28px;
+  }
+  .continue-label {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 6px;
+  }
+  .continue p { margin: 0; color: #ffe4a3; font-size: .95rem; max-width: 72ch; }
+  .continue h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .continue-btn {
+    flex-shrink: 0;
+    display: inline-block;
+    background: linear-gradient(92deg, var(--accent), #8f9ffb);
+    color: #07121d;
+    font-weight: 800;
+    font-size: .95rem;
+    padding: 12px 26px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px #4cc9f033; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker fade-in">Part 1 · GNSS Surveying · Site Calibration · Georeferencing</div>
+  <h1 class="fade-in">GNSS Surveying</h1>
+  <p class="lede fade-in">
+    A complete, code-backed tutorial on <b>coordinate frames &amp; transformations</b>,
+    <b>site calibration</b>, <b>georeferencing</b> and <b>GPS/GNSS theory</b> — every core
+    algorithm implemented in <b>Mojo&nbsp;1.x</b>, with worked surveying examples
+    and quality-control procedures throughout. The course continues in
+    <b>Part&nbsp;2 — The Karney-Krüger Equations</b>, the Transverse Mercator / UTM
+    projection deep dive that picks up exactly where this part's projection thread ends.
+  </p>
+  <div class="badges fade-in">
+    <span style="border-color:#f7258566;color:#f7a8c9;background:#f7258514;">Part 1 of 2</span>
+    <a href="#frames">Geodesy &amp; ECEF</a>
+    <a href="#transforms">2D/3D Helmert</a>
+    <a href="#calibration">Least Squares</a>
+    <a href="#calibration">Site Calibration</a>
+    <a href="#georef">Affine Georeferencing</a>
+    <a href="#gps">GNSS Point Positioning</a>
+    <a href="#gps">DOP &amp; Error Budget</a>
+    <a href="karney_krueger_equations.html" style="border-color:#4cc9f066;color:var(--accent);">Part 2 · TM / UTM Series →</a>
+  </div>
+</header>
+
+<nav>
+  <a href="../index.html">📚 TutMe</a>
+  <a href="../index.html">🧩 Applications</a>
+  <a href="index.html">Finance</a>
+  <a href="geo_computations.html" style="color:var(--accent);">Geomatics Computations</a>
+  <a href="#frames">1. Coordinate Frames</a>
+  <a href="#transforms">2. Transformations</a>
+  <a href="#calibration">3. Site Calibration</a>
+  <a href="#georef">4. Georeferencing</a>
+  <a href="#gps">5. GPS Theory</a>
+  <a href="#workflow">6. Workflow &amp; QC</a>
+  <a href="karney_krueger_equations.html" style="color:var(--accent);border:1px solid #4cc9f04d;">Part 2: Karney-Krüger →</a>
+</nav>
+
+<main>
+
+<!-- ========================================================= -->
+<section id="frames">
+  <h2>1. Coordinate Frames &amp; Basic Geodesy</h2>
+
+  <div class="brief">
+    <span class="brief-label">Brief</span>
+    <p>
+      GNSS hands you Earth-centred Cartesian coordinates, maps are drawn on a projected grid, and
+      levels are referred to a physical vertical datum. This chapter builds the conversion chain —
+      <b>geodetic ⇄ ECEF ⇄ local ENU</b> — on the WGS84 ellipsoid. Every later chapter (calibration,
+      georeferencing, point positioning) speaks in one of these three frames, so getting the chain
+      right is what keeps a millimetre from becoming a metre.
+    </p>
+  </div>
+
+  <p>
+    GNSS positioning passes through several conceptual layers: satellite-frame observations →
+    Earth-centred Earth-fixed (ECEF) Cartesian coordinates → geodetic latitude, longitude and
+    ellipsoidal height → projected grid coordinates → local/site coordinates after localisation →
+    orthometric heights after applying a geoid model.
+  </p>
+
+  <h3>1.1 The WGS84 ellipsoid</h3>
+  <p class="topic-brief">
+    The single reference surface that defines latitude, longitude and ellipsoidal height
+    worldwide — two numbers (a and f) from which everything else is derived.
+  </p>
+  <div class="formula">
+    a = 6 378 137.0 m &nbsp;|&nbsp; f = 1 / 298.257223563 &nbsp;|&nbsp; e² = 2f − f²
+  </div>
+
+  <p class="xref">
+    These two constants are also the entry point to the projection half of the course: mapping
+    ellipsoidal (φ, λ) onto a Transverse Mercator grid — UTM zones, Southern African LO belts —
+    to sub-millimetre accuracy is developed in full in
+    <a href="karney_krueger_equations.html">Part 2 — The Karney-Krüger Equations</a>.
+  </p>
+
+  <h3>1.2 Geodetic ↔ ECEF</h3>
+  <p class="topic-brief">
+    The forward conversion is closed-form; the inverse has no simple algebraic solution and is
+    therefore iterated until the latitude converges.
+  </p>
+  <p>From geodetic (φ, λ, h) to ECEF:</p>
+  <div class="formula">
+    N = a / √(1 − e² sin²φ) &nbsp; (radius of curvature in the prime vertical)<br>
+    X = (N + h) cosφ cosλ<br>
+    Y = (N + h) cosφ sinλ<br>
+    Z = (N(1 − e²) + h) sinφ
+  </div>
+  <p>The reverse (ECEF → geodetic) is usually solved iteratively.</p>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — coordinate_transform.mojo</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> sqrt, sin, cos, atan2, hypot, radians, degrees, abs
+
+<span class="kw">comptime</span> A: <span class="typ">Float64</span> = <span class="num">6378137.0</span>
+<span class="kw">comptime</span> F: <span class="typ">Float64</span> = <span class="num">1.0</span> / <span class="num">298.257223563</span>
+<span class="kw">comptime</span> E2: <span class="typ">Float64</span> = <span class="num">2.0</span> * F - F * F
+
+<span class="kw">def</span> <span class="fn">geodetic_to_ecef</span>(lat_deg: <span class="typ">Float64</span>, lon_deg: <span class="typ">Float64</span>, h: <span class="typ">Float64</span>)
+        -&gt; <span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>, <span class="typ">Float64</span>]:
+    <span class="kw">var</span> lat = <span class="fn">radians</span>(lat_deg)
+    <span class="kw">var</span> lon = <span class="fn">radians</span>(lon_deg)
+    <span class="kw">var</span> sin_lat = <span class="fn">sin</span>(lat)
+    <span class="kw">var</span> cos_lat = <span class="fn">cos</span>(lat)
+    <span class="kw">var</span> sin_lon = <span class="fn">sin</span>(lon)
+    <span class="kw">var</span> cos_lon = <span class="fn">cos</span>(lon)
+
+    <span class="com"># prime-vertical radius of curvature</span>
+    <span class="kw">var</span> N = A / <span class="fn">sqrt</span>(<span class="num">1.0</span> - E2 * sin_lat * sin_lat)
+
+    <span class="kw">var</span> x = (N + h) * cos_lat * cos_lon
+    <span class="kw">var</span> y = (N + h) * cos_lat * sin_lon
+    <span class="kw">var</span> z = (N * (<span class="num">1.0</span> - E2) + h) * sin_lat
+    <span class="kw">return</span> (x, y, z)
+
+<span class="kw">def</span> <span class="fn">ecef_to_geodetic</span>(x: <span class="typ">Float64</span>, y: <span class="typ">Float64</span>, z: <span class="typ">Float64</span>)
+        -&gt; <span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>, <span class="typ">Float64</span>]:
+    <span class="kw">var</span> lon = <span class="fn">atan2</span>(y, x)
+    <span class="kw">var</span> p = <span class="fn">hypot</span>(x, y)
+    <span class="kw">var</span> lat = <span class="fn">atan2</span>(z, p * (<span class="num">1.0</span> - E2))
+    <span class="kw">var</span> h: <span class="typ">Float64</span> = <span class="num">0.0</span>
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+        <span class="kw">var</span> sin_lat = <span class="fn">sin</span>(lat)
+        <span class="kw">var</span> N = A / <span class="fn">sqrt</span>(<span class="num">1.0</span> - E2 * sin_lat * sin_lat)
+        h = p / <span class="fn">cos</span>(lat) - N
+        <span class="kw">var</span> lat_new = <span class="fn">atan2</span>(z, p * (<span class="num">1.0</span> - E2 * N / (N + h)))
+        <span class="kw">if</span> <span class="fn">abs</span>(lat_new - lat) &lt; <span class="num">1e-12</span>:
+            <span class="kw">break</span>
+        lat = lat_new
+    <span class="kw">return</span> (<span class="fn">degrees</span>(lat), <span class="fn">degrees</span>(lon), h)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> x, y, z = <span class="fn">geodetic_to_ecef</span>(<span class="num">45.9764</span>, <span class="num">7.6586</span>, <span class="num">4478.0</span>)
+    <span class="fn">print</span>(<span class="str">"ECEF:"</span>, x, y, z)
+    <span class="kw">var</span> lat2, lon2, h2 = <span class="fn">ecef_to_geodetic</span>(x, y, z)
+    <span class="fn">print</span>(<span class="str">"Back:"</span>, lat2, <span class="str">"deg"</span>, lon2, <span class="str">"deg"</span>, h2, <span class="str">"m"</span>)
+</code></pre>
+  </div>
+
+  <h3>1.3 ECEF → local ENU (East, North, Up)</h3>
+  <p class="topic-brief">
+    Rotating an ECEF difference vector into a horizon frame at a reference point — the natural
+    way to express GNSS baselines, misclosures and residuals in metres you can point at.
+  </p>
+  <p>
+    Topocentric ENU coordinates at a reference point (φ₀, λ₀) are the natural frame for
+    expressing local GNSS baselines and residuals:
+  </p>
+  <div class="formula">
+    [e n u]ᵀ = R · [ΔX ΔY ΔZ]ᵀ<br><br>
+    R = [ −sinλ₀ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cosλ₀ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 ]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;[ −sinφ₀cosλ₀ &nbsp; −sinφ₀sinλ₀ &nbsp; cosφ₀ ]<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;[ &nbsp;cosφ₀cosλ₀ &nbsp;&nbsp;&nbsp;cosφ₀sinλ₀ &nbsp;&nbsp;&nbsp;sinφ₀ ]
+  </div>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — ecef_to_enu.mojo</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> sin, cos, radians
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Vec3</span>:
+    <span class="kw">var</span> x: <span class="typ">Float64</span>
+    <span class="kw">var</span> y: <span class="typ">Float64</span>
+    <span class="kw">var</span> z: <span class="typ">Float64</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">ENU</span>:
+    <span class="kw">var</span> e: <span class="typ">Float64</span>
+    <span class="kw">var</span> n: <span class="typ">Float64</span>
+    <span class="kw">var</span> u: <span class="typ">Float64</span>
+
+<span class="kw">def</span> <span class="fn">ecef_delta_to_enu</span>(d: <span class="typ">Vec3</span>, lat0_deg: <span class="typ">Float64</span>, lon0_deg: <span class="typ">Float64</span>) -&gt; <span class="typ">ENU</span>:
+    <span class="str">"""
+    Rotate an ECEF difference vector into the local horizon frame
+    at (lat0_deg, lon0_deg). The rotation is expanded component by
+    component, so no matrix library is needed.
+    """</span>
+    <span class="kw">var</span> lat0 = <span class="fn">radians</span>(lat0_deg)
+    <span class="kw">var</span> lon0 = <span class="fn">radians</span>(lon0_deg)
+    <span class="kw">var</span> sin_lat = <span class="fn">sin</span>(lat0)
+    <span class="kw">var</span> cos_lat = <span class="fn">cos</span>(lat0)
+    <span class="kw">var</span> sin_lon = <span class="fn">sin</span>(lon0)
+    <span class="kw">var</span> cos_lon = <span class="fn">cos</span>(lon0)
+
+    <span class="com"># row 1 of R: east = -sin(lon)*dX + cos(lon)*dY</span>
+    <span class="kw">var</span> e = -sin_lon * d.x + cos_lon * d.y
+    <span class="com"># row 2 of R: north = -sin(lat)cos(lon)*dX - sin(lat)sin(lon)*dY + cos(lat)*dZ</span>
+    <span class="kw">var</span> n = -sin_lat*cos_lon * d.x - sin_lat*sin_lon * d.y + cos_lat * d.z
+    <span class="com"># row 3 of R: up = cos(lat)cos(lon)*dX + cos(lat)sin(lon)*dY + sin(lat)*dZ</span>
+    <span class="kw">var</span> u =  cos_lat*cos_lon * d.x + cos_lat*sin_lon * d.y + sin_lat * d.z
+    <span class="kw">return</span> <span class="fn">ENU</span>(e, n, u)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="com"># a 100 m step along the ECEF X axis, seen from 45 N, 8 E:</span>
+    <span class="com"># mostly north with a small up component, as expected at mid-latitude</span>
+    <span class="kw">var</span> enu = <span class="fn">ecef_delta_to_enu</span>(<span class="fn">Vec3</span>(<span class="num">100.0</span>, <span class="num">0.0</span>, <span class="num">0.0</span>), <span class="num">45.0</span>, <span class="num">8.0</span>)
+    <span class="fn">print</span>(<span class="str">"ENU (m):"</span>, enu.e, enu.n, enu.u)
+</code></pre>
+  </div>
+
+  <div class="note">
+    <b>Ellipsoidal height ≠ orthometric height.</b> GNSS naturally gives height relative to the
+    reference ellipsoid. Surveying elevations refer to a physical vertical datum; a geoid model
+    relates the two, approximately H = h − N under the usual convention.
+  </div>
+</section>
+
+<!-- ========================================================= -->
+<section id="transforms">
+  <h2>2. Coordinate Transformations</h2>
+
+  <div class="brief">
+    <span class="brief-label">Brief</span>
+    <p>
+      A transformation changes the numbers that describe a point while preserving its physical
+      location. This chapter covers the four models a surveyor actually uses — <b>translation</b>,
+      <b>2D similarity (4-parameter)</b>, <b>affine (6-parameter)</b> and <b>3D Helmert
+      (7-parameter)</b> — how to choose between them from the control geometry, and how to
+      estimate their parameters by least squares rather than by hand.
+    </p>
+  </div>
+
+  <p>
+    A coordinate transformation changes the numerical representation of a point while
+    preserving its physical location according to a defined mathematical model and reference
+    system. In surveying the most common are the <b>2D similarity / conformal</b> (4-parameter)
+    model, the <b>affine</b> (6-parameter) model, and the <b>3D Helmert 7-parameter</b>
+    transformation used between geodetic datums (e.g. WGS84 ↔ a local datum).
+  </p>
+
+  <h3>2.1 Choosing a transformation</h3>
+  <p class="topic-brief">
+    Start from the simplest model that explains the data: every extra parameter must be paid for
+    with more control points and more opportunity to hide a datum error.
+  </p>
+  <table>
+    <tbody><tr><th>Transformation</th><th>Typical use</th><th>Parameters</th><th>Minimum control</th></tr>
+    <tr><td>2D translation</td><td>Shift an arbitrary local grid</td><td>ΔE, ΔN</td><td>1 point</td></tr>
+    <tr><td>2D similarity / Helmert</td><td>Localisation between two horizontal systems</td><td>tx, ty, rotation, scale</td><td>2 points</td></tr>
+    <tr><td>Affine</td><td>CAD / scanned-map correction with differential scale or shear</td><td>6 coefficients</td><td>3 non-collinear points</td></tr>
+    <tr><td>3D Helmert</td><td>Datum / reference-frame transformation</td><td>3 translations, 3 rotations, scale</td><td>3 points (use more)</td></tr>
+    <tr><td><a href="karney_krueger_equations.html#s5" style="color:var(--accent);">Projection</a></td><td>Geographic ↔ projected coordinates — the subject of <a href="karney_krueger_equations.html" style="color:var(--accent);">Part 2</a></td><td>CRS / projection parameters</td><td>defined by CRS</td></tr>
+    <tr><td>Polynomial / rubber-sheet</td><td>Non-uniform historical distortion</td><td>order-dependent</td><td>many points</td></tr>
+  </tbody></table>
+
+  <h3>2.2 The 2D similarity (4-parameter) model</h3>
+  <p class="topic-brief">
+    Rotation, uniform scale and two translations — the workhorse of site localisation and the
+    model most survey software calls a "Helmert" in 2D.
+  </p>
+  <div class="formula">
+    E′ = t<sub>x</sub> + s(E cos θ − N sin θ)<br>
+    N′ = t<sub>y</sub> + s(E sin θ + N cos θ)
+  </div>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> cos, sin, radians
+
+<span class="kw">def</span> <span class="fn">similarity</span>(E: <span class="typ">Float64</span>, N: <span class="typ">Float64</span>,
+              tx: <span class="typ">Float64</span>, ty: <span class="typ">Float64</span>,
+              scale: <span class="typ">Float64</span>, theta_deg: <span class="typ">Float64</span>)
+              -&gt; <span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>]:
+    <span class="kw">var</span> t = <span class="fn">radians</span>(theta_deg)
+    <span class="kw">var</span> Ep = tx + scale * (E*<span class="fn">cos</span>(t) - N*<span class="fn">sin</span>(t))
+    <span class="kw">var</span> Np = ty + scale * (E*<span class="fn">sin</span>(t) + N*<span class="fn">cos</span>(t))
+    <span class="kw">return</span> (Ep, Np)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> p = <span class="fn">similarity</span>(<span class="num">1000.0</span>, <span class="num">500.0</span>, <span class="num">250.0</span>, -<span class="num">100.0</span>, <span class="num">1.0002</span>, <span class="num">0.15</span>)
+    <span class="fn">print</span>(p)
+</code></pre>
+  </div>
+
+  <h3>2.3 Estimating a transformation from control points</h3>
+  <p class="topic-brief">
+    Replace <i>s·cosθ</i> and <i>s·sinθ</i> with two new unknowns and the non-linear model becomes
+    linear — solvable in one least-squares pass and convertible back to scale and rotation.
+  </p>
+  <p>
+    With at least two non-identical horizontal control points, a 2D similarity transformation
+    can theoretically be determined. In real work, use more points than the minimum and inspect
+    residuals. Writing a = s·cos θ and b = s·sin θ linearises the model:
+  </p>
+  <div class="formula">
+    E′ = t<sub>x</sub> + a·E − b·N &nbsp;&nbsp;/&nbsp;&nbsp; N′ = t<sub>y</sub> + b·E + a·N
+    &nbsp;&nbsp;⇒&nbsp;&nbsp; scale = √(a²+b²), θ = atan2(b, a)
+  </div>
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — least-squares estimation</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> hypot, atan2, degrees
+
+<span class="com"># 4-parameter similarity from control points via 4x4 normal equations</span>
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">CtrlPt</span>:
+    <span class="kw">var</span> E:  <span class="typ">Float64</span>
+    <span class="kw">var</span> N:  <span class="typ">Float64</span>
+    <span class="kw">var</span> Ep: <span class="typ">Float64</span>
+    <span class="kw">var</span> Np: <span class="typ">Float64</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Similarity4</span>:
+    <span class="kw">var</span> tx: <span class="typ">Float64</span>
+    <span class="kw">var</span> ty: <span class="typ">Float64</span>
+    <span class="kw">var</span> scale: <span class="typ">Float64</span>
+    <span class="kw">var</span> theta_deg: <span class="typ">Float64</span>
+
+<span class="com"># Solve an augmented 4x5 system M by Gauss elimination (last col = RHS).</span>
+<span class="com"># `mut` marks the argument as mutated in place — Mojo arguments are</span>
+<span class="com"># immutable by default in 1.0.</span>
+<span class="kw">def</span> <span class="fn">solve4x4</span>(<span class="kw">mut</span> M: <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]) -&gt; <span class="typ">List</span>[<span class="typ">Float64</span>]:
+    <span class="kw">var</span> n: <span class="typ">Int</span> = <span class="num">4</span>
+    <span class="com"># forward elimination</span>
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(k + <span class="num">1</span>, n):
+            <span class="kw">var</span> f = M[i][k] / M[k][k]
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(k, n + <span class="num">1</span>):
+                M[i][j] = M[i][j] - f * M[k][j]
+    <span class="com"># back substitution</span>
+    <span class="kw">var</span> x = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n):
+        x.<span class="fn">append</span>(<span class="num">0.0</span>)
+    <span class="kw">for</span> ii <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> i = n - <span class="num">1</span> - ii
+        <span class="kw">var</span> s: <span class="typ">Float64</span> = M[i][n]
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="num">1</span>, n):
+            s = s - M[i][j] * x[j]
+        x[i] = s / M[i][i]
+    <span class="kw">return</span> x
+
+<span class="kw">def</span> <span class="fn">solve_similarity</span>(pts: <span class="typ">List</span>[<span class="typ">CtrlPt</span>]) -&gt; <span class="typ">Similarity4</span>:
+    <span class="com"># Build normal equations for 4 unknowns (augmented 4x5)</span>
+    <span class="kw">var</span> M = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+            row.<span class="fn">append</span>(<span class="num">0.0</span>)
+        M.<span class="fn">append</span>(row)
+
+    <span class="kw">for</span> p <span class="kw">in</span> pts:
+        <span class="com"># E equation: [1, 0, E, -N | Ep]</span>
+        <span class="com"># N equation: [0, 1, N,  E | Np]</span>
+        <span class="com"># one row per coordinate equation, augmented with the RHS value</span>
+        <span class="kw">var</span> r1: <span class="typ">List</span>[<span class="typ">Float64</span>] = [<span class="num">1.0</span>, <span class="num">0.0</span>, p.E, -p.N, p.Ep]
+        <span class="kw">var</span> r2: <span class="typ">List</span>[<span class="typ">Float64</span>] = [<span class="num">0.0</span>, <span class="num">1.0</span>, p.N,  p.E, p.Np]
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+                M[i][j] += r1[i]*r1[j] + r2[i]*r2[j]
+            M[i][<span class="num">4</span>] += r1[i]*r1[<span class="num">4</span>] + r2[i]*r2[<span class="num">4</span>]
+
+    <span class="kw">var</span> x = <span class="fn">solve4x4</span>(M)
+    <span class="com"># x = [tx, ty, a, b]; recover classical parameters from a, b</span>
+    <span class="kw">var</span> a = x[<span class="num">2</span>]
+    <span class="kw">var</span> b = x[<span class="num">3</span>]
+    <span class="kw">return</span> <span class="fn">Similarity4</span>(tx=x[<span class="num">0</span>], ty=x[<span class="num">1</span>],
+                       scale=<span class="fn">hypot</span>(a, b),
+                       theta_deg=<span class="fn">degrees</span>(<span class="fn">atan2</span>(b, a)))
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> pts: <span class="typ">List</span>[<span class="typ">CtrlPt</span>] = [
+        <span class="fn">CtrlPt</span>(<span class="num">1000.0</span>, <span class="num">500.0</span>, <span class="num">1250.10</span>, <span class="num">399.80</span>),
+        <span class="fn">CtrlPt</span>(<span class="num">1200.0</span>, <span class="num">500.0</span>, <span class="num">1450.02</span>, <span class="num">400.25</span>),
+        <span class="fn">CtrlPt</span>(<span class="num">1000.0</span>, <span class="num">700.0</span>, <span class="num">1249.70</span>, <span class="num">600.05</span>),
+        <span class="fn">CtrlPt</span>(<span class="num">1200.0</span>, <span class="num">700.0</span>, <span class="num">1450.12</span>, <span class="num">600.10</span>)
+    ]
+    <span class="kw">var</span> t = <span class="fn">solve_similarity</span>(pts)
+    <span class="fn">print</span>(<span class="str">"tx, ty:"</span>, t.tx, t.ty)                       <span class="com"># 249.98 -101.38</span>
+    <span class="fn">print</span>(<span class="str">"scale:"</span>, t.scale, <span class="str">"theta_deg:"</span>, t.theta_deg)  <span class="com"># 1.00055, 0.05726</span>
+</code></pre>
+  </div>
+
+  <h3>2.4 The Helmert 7-parameter model (3D datum transformation)</h3>
+  <p class="topic-brief">
+    Three translations, three small rotations and a scale in ppm — the standard way to move a
+    point cloud from one geodetic datum to another, valid only while the rotations stay small.
+  </p>
+  <div class="formula">
+    X<sub>t</sub> = T<sub>x</sub> + (1 + s) · [ X − R<sub>z</sub>·Y + R<sub>y</sub>·Z ]<br>
+    Y<sub>t</sub> = T<sub>y</sub> + (1 + s) · [ R<sub>z</sub>·X + Y − R<sub>x</sub>·Z ]<br>
+    Z<sub>t</sub> = T<sub>z</sub> + (1 + s) · [ −R<sub>y</sub>·X + R<sub>x</sub>·Y + Z ]
+  </div>
+  <p>
+    where <i>T<sub>x,y,z</sub></i> are translations (m), <i>R<sub>x,y,z</sub></i> are rotations
+    (radians, small-angle form), and <i>s</i> is the scale factor (often given in ppm).
+  </p>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — helmert.mojo</span>
+<pre><code><span class="com"># Helmert 7-parameter in pure Mojo — the small-angle rotation is</span>
+<span class="com"># expanded explicitly, so no matrix library is required.</span>
+<span class="kw">comptime</span> PI: <span class="typ">Float64</span> = <span class="num">3.14159265358979323846</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Vec3</span>:
+    <span class="kw">var</span> x: <span class="typ">Float64</span>
+    <span class="kw">var</span> y: <span class="typ">Float64</span>
+    <span class="kw">var</span> z: <span class="typ">Float64</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">HelmertParams</span>:
+    <span class="kw">var</span> tx: <span class="typ">Float64</span>
+    <span class="kw">var</span> ty: <span class="typ">Float64</span>
+    <span class="kw">var</span> tz: <span class="typ">Float64</span>
+    <span class="kw">var</span> rx: <span class="typ">Float64</span>   <span class="com"># radians</span>
+    <span class="kw">var</span> ry: <span class="typ">Float64</span>
+    <span class="kw">var</span> rz: <span class="typ">Float64</span>
+    <span class="kw">var</span> s_ppm: <span class="typ">Float64</span>
+
+<span class="kw">def</span> <span class="fn">arcsec_to_rad</span>(a: <span class="typ">Float64</span>) -&gt; <span class="typ">Float64</span>:
+    <span class="kw">return</span> a / <span class="num">3600.0</span> * PI / <span class="num">180.0</span>
+
+<span class="kw">def</span> <span class="fn">helmert_forward</span>(p: <span class="typ">Vec3</span>, h: <span class="typ">HelmertParams</span>) -&gt; <span class="typ">Vec3</span>:
+    <span class="com"># Small-angle rotation + scale + translation</span>
+    <span class="kw">var</span> s = <span class="num">1.0</span> + h.s_ppm * <span class="num">1e-6</span>
+    <span class="kw">var</span> X = p.x
+    <span class="kw">var</span> Y = p.y
+    <span class="kw">var</span> Z = p.z
+
+    <span class="com"># small-angle rotation R applied to (X, Y, Z), component by component</span>
+    <span class="kw">var</span> xr = X - h.rz * Y + h.ry * Z
+    <span class="kw">var</span> yr = h.rz * X + Y - h.rx * Z
+    <span class="kw">var</span> zr = -h.ry * X + h.rx * Y + Z
+
+    <span class="kw">return</span> <span class="fn">Vec3</span>(h.tx + s * xr, h.ty + s * yr, h.tz + s * zr)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> h = <span class="fn">HelmertParams</span>(
+        tx=-<span class="num">117.763</span>, ty=-<span class="num">51.510</span>, tz=<span class="num">139.061</span>,
+        rx=<span class="fn">arcsec_to_rad</span>(-<span class="num">0.1917</span>),
+        ry=<span class="fn">arcsec_to_rad</span>(-<span class="num">0.2220</span>),
+        rz=<span class="fn">arcsec_to_rad</span>(-<span class="num">0.2470</span>),
+        s_ppm=-<span class="num">0.191</span>,
+    )
+    <span class="kw">var</span> src = <span class="fn">Vec3</span>(-<span class="num">4852421.0</span>, <span class="num">2560578.0</span>, -<span class="num">3336862.0</span>)
+    <span class="kw">var</span> dst = <span class="fn">helmert_forward</span>(src, h)
+    <span class="fn">print</span>(<span class="str">"Transformed XYZ:"</span>, dst.x, dst.y, dst.z)
+</code></pre>
+  </div>
+
+  <div class="note">
+    <b>Do not confuse models.</b> If your data require a datum transformation, projection
+    transformation, geoid correction or time-dependent reference-frame transformation, a simple
+    2D Helmert fit may merely hide the underlying problem. The rigorous projection step —
+    ellipsoid to Transverse Mercator grid via the Karney-Krüger n-series — is the subject of
+    <a href="karney_krueger_equations.html" style="color:var(--accent);">Part 2 of this course</a>.
+  </div>
+</section>
+<!-- ========================================================= -->
+<section id="calibration">
+  <h2>3. Site Calibration / Localisation</h2>
+
+  <div class="brief">
+    <span class="brief-label">Brief</span>
+    <p>
+      Site calibration ties a local survey grid to a global reference system using points observed
+      in both. This chapter sets up the observation equations, solves them by least squares in
+      Mojo, and treats vertical localisation separately. The emphasis is on the
+      <b>residual check</b>: a calibration is only credible if the misclosures at the control points
+      are small, random and independently verified.
+    </p>
+  </div>
+
+  <p>
+    A <b>site calibration</b> (or <b>localisation</b>) ties a local total-station or GPS control
+    network to a global coordinate system (e.g. WGS84 / UTM). Given <i>N ≥ 3</i> common points
+    with coordinates in both systems, we solve for a 2D conformal (4-parameter) or 3D Helmert
+    (7-parameter) transformation by least squares.
+  </p>
+
+  <div class="grid">
+    <div class="card"><h4>Known control</h4><p>Coordinates in the target grid / CRS.</p></div>
+    <div class="card"><h4>Observed control</h4><p>Coordinates measured by GNSS in the working system.</p></div>
+    <div class="card"><h4>Transformation</h4><p>Parameters linking the two systems.</p></div>
+    <div class="card"><h4>Residual check</h4><p>Differences after applying the transformation.</p></div>
+  </div>
+
+  <h3>3.1 Least-squares 4-parameter calibration</h3>
+  <p class="topic-brief">
+    Stack the E and N observation equations for every common point, form the normal equations
+    AᵀA and AᵀL by hand, then solve the 4×4 system with Gaussian elimination and partial pivoting —
+    the same pattern reused in the georeferencing and GPS code.
+  </p>
+  <p>
+    Mojo has no NumPy, so we form the normal equations AᵀA x = AᵀL explicitly and solve the
+    4×4 system by Gaussian elimination. The four unknowns are the two translations plus the
+    linearised terms a and b; scale and rotation are recovered from a and b in the final step.
+  </p>
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — calibration.mojo</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> sqrt, atan2, abs
+
+<span class="kw">comptime</span> PI: <span class="typ">Float64</span> = <span class="num">3.14159265358979323846</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Point2D</span>:
+    <span class="kw">var</span> e: <span class="typ">Float64</span>
+    <span class="kw">var</span> n: <span class="typ">Float64</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">CalibResult</span>:
+    <span class="kw">var</span> a: <span class="typ">Float64</span>
+    <span class="kw">var</span> b: <span class="typ">Float64</span>
+    <span class="kw">var</span> tE: <span class="typ">Float64</span>
+    <span class="kw">var</span> tN: <span class="typ">Float64</span>
+    <span class="kw">var</span> scale: <span class="typ">Float64</span>
+    <span class="kw">var</span> rot_deg: <span class="typ">Float64</span>
+
+<span class="com"># Solve a 4x4 linear system (normal equations) by Gaussian elimination.</span>
+<span class="com"># A is 4x4, L is the right-hand side; returns the solution vector.</span>
+<span class="kw">def</span> <span class="fn">solve4x4</span>(A: <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]], L: <span class="typ">List</span>[<span class="typ">Float64</span>]) -&gt; <span class="typ">List</span>[<span class="typ">Float64</span>]:
+    <span class="kw">var</span> n: <span class="typ">Int</span> = <span class="num">4</span>
+    <span class="com"># build the augmented matrix [A | L]</span>
+    <span class="kw">var</span> M = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+            row.<span class="fn">append</span>(A[i][j])
+        row.<span class="fn">append</span>(L[i])
+        M.<span class="fn">append</span>(row)
+
+    <span class="com"># forward elimination</span>
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="com"># partial pivoting keeps the elimination stable</span>
+        <span class="kw">var</span> pivot = k
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(k + <span class="num">1</span>, n):
+            <span class="kw">if</span> <span class="fn">abs</span>(M[i][k]) &gt; <span class="fn">abs</span>(M[pivot][k]):
+                pivot = i
+        <span class="kw">if</span> pivot != k:
+            <span class="kw">var</span> tmp = M[k]
+            M[k] = M[pivot]
+            M[pivot] = tmp
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(k + <span class="num">1</span>, n):
+            <span class="kw">var</span> factor = M[i][k] / M[k][k]
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(k, n + <span class="num">1</span>):
+                M[i][j] = M[i][j] - factor * M[k][j]
+
+    <span class="com"># back substitution</span>
+    <span class="kw">var</span> x = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n):
+        x.<span class="fn">append</span>(<span class="num">0.0</span>)
+    <span class="kw">for</span> ii <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> i = n - <span class="num">1</span> - ii
+        <span class="kw">var</span> s: <span class="typ">Float64</span> = M[i][n]
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="num">1</span>, n):
+            s = s - M[i][j] * x[j]
+        x[i] = s / M[i][i]
+    <span class="kw">return</span> x
+
+<span class="kw">def</span> <span class="fn">calibrate_2d</span>(local_pts: <span class="typ">List</span>[<span class="typ">Point2D</span>],
+                global_pts: <span class="typ">List</span>[<span class="typ">Point2D</span>]) -&gt; <span class="typ">CalibResult</span>:
+    <span class="kw">var</span> n = <span class="fn">len</span>(local_pts)
+    <span class="kw">var</span> ATA = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">var</span> ATL = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+            row.<span class="fn">append</span>(<span class="num">0.0</span>)
+        ATA.<span class="fn">append</span>(row)
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+        ATL.<span class="fn">append</span>(<span class="num">0.0</span>)
+
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> E = local_pts[i].e
+        <span class="kw">var</span> N = local_pts[i].n
+        <span class="kw">var</span> r1: <span class="typ">List</span>[<span class="typ">Float64</span>] = [E, -N, <span class="num">1.0</span>, <span class="num">0.0</span>]   <span class="com"># -&gt; global E</span>
+        <span class="kw">var</span> r2: <span class="typ">List</span>[<span class="typ">Float64</span>] = [N,  E, <span class="num">0.0</span>, <span class="num">1.0</span>]   <span class="com"># -&gt; global N</span>
+        <span class="kw">var</span> l1 = global_pts[i].e
+        <span class="kw">var</span> l2 = global_pts[i].n
+
+        <span class="com"># accumulate A^T A and A^T L from the two observation rows</span>
+        <span class="kw">for</span> p <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+            <span class="kw">for</span> q <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+                ATA[p][q] += r1[p]*r1[q] + r2[p]*r2[q]
+            ATL[p] += r1[p]*l1 + r2[p]*l2
+
+    <span class="kw">var</span> x = <span class="fn">solve4x4</span>(ATA, ATL)
+    <span class="kw">var</span> a = x[<span class="num">0</span>]
+    <span class="kw">var</span> b = x[<span class="num">1</span>]
+    <span class="kw">return</span> <span class="fn">CalibResult</span>(
+        a=a, b=b, tE=x[<span class="num">2</span>], tN=x[<span class="num">3</span>],
+        scale=<span class="fn">sqrt</span>(a*a + b*b),
+        rot_deg=<span class="fn">atan2</span>(b, a) * <span class="num">180.0</span> / PI
+    )
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> local_pts: <span class="typ">List</span>[<span class="typ">Point2D</span>] = [
+        <span class="fn">Point2D</span>(<span class="num">100.000</span>, <span class="num">200.000</span>),
+        <span class="fn">Point2D</span>(<span class="num">1250.500</span>, <span class="num">180.200</span>),
+        <span class="fn">Point2D</span>(<span class="num">700.300</span>, <span class="num">1450.800</span>)
+    ]
+    <span class="kw">var</span> global_pts: <span class="typ">List</span>[<span class="typ">Point2D</span>] = [
+        <span class="fn">Point2D</span>(<span class="num">540123.456</span>, <span class="num">6234567.890</span>),
+        <span class="fn">Point2D</span>(<span class="num">541273.812</span>, <span class="num">6234542.104</span>),
+        <span class="fn">Point2D</span>(<span class="num">540719.331</span>, <span class="num">6235835.021</span>)
+    ]
+    <span class="kw">var</span> r = <span class="fn">calibrate_2d</span>(local_pts, global_pts)
+    <span class="fn">print</span>(<span class="str">"a ="</span>, r.a, <span class="str">" b ="</span>, r.b)
+    <span class="fn">print</span>(<span class="str">"tE ="</span>, r.tE, <span class="str">" tN ="</span>, r.tN)
+    <span class="fn">print</span>(<span class="str">"Scale ="</span>, r.scale, <span class="str">" Rot (deg) ="</span>, r.rot_deg)
+</code></pre>
+  </div>
+
+  <h3>3.2 Vertical localisation</h3>
+  <p class="topic-brief">
+    Treat height separately unless you are deliberately running a rigorous 3D model — a constant
+    offset, then a tilted plane, then a geoid-based correction as the site demands.
+  </p>
+  <p>
+    Horizontal localisation and height transformation should be treated separately unless a
+    rigorous 3D model is intended. A simple height datum relationship is
+    <i>H<sub>target</sub> = H<sub>site</sub> + ΔH</i>; for more complex work fit a plane,
+    polynomial surface, geoid-based correction or an appropriate vertical datum transformation
+    from control.
+  </p>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x</span>
+<pre><code><span class="kw">def</span> <span class="fn">corrected_height</span>(E: <span class="typ">Float64</span>, N: <span class="typ">Float64</span>,
+                    a: <span class="typ">Float64</span>, b: <span class="typ">Float64</span>, c: <span class="typ">Float64</span>) -&gt; <span class="typ">Float64</span>:
+    <span class="com"># a + bE + cN: fitted tilt plane applied to a queried position.</span>
+    <span class="com"># a, b, c come from the plane fit above (intercept + two gradients).</span>
+    <span class="kw">return</span> a + b*E + c*N
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> h = <span class="fn">corrected_height</span>(<span class="num">200.0</span>, <span class="num">300.0</span>, <span class="num">499.86</span>, <span class="num">0.0010</span>, <span class="num">0.0008</span>)
+    <span class="fn">print</span>(h)
+</code></pre>
+  </div>
+
+  <div class="note">
+    <b>Quality control:</b> never judge a site calibration only by the fitted control points.
+    Reserve one or more independent points and report horizontal and vertical residuals. Watch
+    for outliers, wrong point identification, antenna-height mistakes, multipath and incorrect
+    CRS/datum assumptions.
+  </div>
+</section>
+
+<!-- ========================================================= -->
+<section id="georef">
+  <h2>4. Georeferencing</h2>
+
+  <div class="brief">
+    <span class="brief-label">Brief</span>
+    <p>
+      Georeferencing gives real-world coordinates to data that has none — raster pixels, scanned
+      plans, DXF drawings and legacy local-grid files. This chapter builds the <b>6-parameter
+      affine</b> model behind world files, fits it from ground control points in Mojo,
+      and closes with the practical CAD/GIS pipeline and its documentation requirements.
+    </p>
+  </div>
+
+  <p>
+    <b>Georeferencing</b> assigns real-world coordinates to raster pixels, CAD drawings, scanned
+    plans, legacy survey files and local-coordinate datasets. The most common model is the
+    <b>6-parameter affine transform</b> used in world files (.tfw, .jgw, .pgw, …):
+  </p>
+  <div class="formula">
+    X<sub>world</sub> = A · col + B · row + C<br>
+    Y<sub>world</sub> = D · col + E · row + F
+  </div>
+  <p>
+    where <i>A</i> is pixel width, <i>E</i> is (negative) pixel height, <i>B</i> and <i>D</i>
+    are rotation terms (zero for north-up imagery), and <i>C</i>, <i>F</i> are the world
+    coordinates of the upper-left pixel centre.
+  </p>
+
+  <h3>4.1 Transformation hierarchy</h3>
+  <p class="topic-brief">
+    A ladder of models ordered by how much distortion they can absorb — climb only as far as the
+    source data actually requires.
+  </p>
+  <table>
+    <tbody><tr><th>Model</th><th>Minimum control</th><th>When useful</th></tr>
+    <tr><td>Translation</td><td>One point</td><td>Known origin offset only</td></tr>
+    <tr><td>Similarity</td><td>Two points with adequate geometry</td><td>Shift + rotation + uniform scale</td></tr>
+    <tr><td>Affine</td><td>Three non-collinear points</td><td>Different X/Y scale and shear</td></tr>
+    <tr><td>Polynomial / rubber-sheet</td><td>More control points</td><td>Non-uniform historical distortions</td></tr>
+  </tbody></table>
+
+  <h3>4.2 Affine fit from ground control points</h3>
+  <p class="topic-brief">
+    Six unknowns, two equations per GCP: stack them, accumulate a 6×6 normal matrix and a
+    right-hand side, then solve the augmented 6×7 system in place — no linear-algebra library
+    required — and write the coefficients straight out in world-file line order.
+  </p>
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — georef.mojo</span>
+<pre><code><span class="com"># 6-parameter affine from GCPs via 6x6 normal equations</span>
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">GCP</span>:
+    <span class="kw">var</span> col: <span class="typ">Float64</span>
+    <span class="kw">var</span> row: <span class="typ">Float64</span>
+    <span class="kw">var</span> X:   <span class="typ">Float64</span>
+    <span class="kw">var</span> Y:   <span class="typ">Float64</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Affine6</span>:
+    <span class="kw">var</span> A: <span class="typ">Float64</span>   <span class="com"># pixel width</span>
+    <span class="kw">var</span> B: <span class="typ">Float64</span>   <span class="com"># row rotation</span>
+    <span class="kw">var</span> C: <span class="typ">Float64</span>   <span class="com"># X of upper-left centre</span>
+    <span class="kw">var</span> D: <span class="typ">Float64</span>   <span class="com"># col rotation</span>
+    <span class="kw">var</span> E: <span class="typ">Float64</span>   <span class="com"># pixel height (negative)</span>
+    <span class="kw">var</span> F: <span class="typ">Float64</span>   <span class="com"># Y of upper-left centre</span>
+
+<span class="com"># Solve an augmented 6x7 system M by Gauss elimination (last col = RHS).</span>
+<span class="com"># `mut` marks the argument as mutated in place — Mojo arguments are</span>
+<span class="com"># immutable by default in 1.0.</span>
+<span class="kw">def</span> <span class="fn">solve6x6</span>(<span class="kw">mut</span> M: <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]) -&gt; <span class="typ">List</span>[<span class="typ">Float64</span>]:
+    <span class="kw">var</span> n: <span class="typ">Int</span> = <span class="num">6</span>
+    <span class="com"># forward elimination</span>
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(k + <span class="num">1</span>, n):
+            <span class="kw">var</span> f = M[i][k] / M[k][k]
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(k, n + <span class="num">1</span>):
+                M[i][j] = M[i][j] - f * M[k][j]
+    <span class="com"># back substitution</span>
+    <span class="kw">var</span> x = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n):
+        x.<span class="fn">append</span>(<span class="num">0.0</span>)
+    <span class="kw">for</span> ii <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> i = n - <span class="num">1</span> - ii
+        <span class="kw">var</span> s: <span class="typ">Float64</span> = M[i][n]
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="num">1</span>, n):
+            s = s - M[i][j] * x[j]
+        x[i] = s / M[i][i]
+    <span class="kw">return</span> x
+
+<span class="kw">def</span> <span class="fn">fit_affine</span>(gcps: <span class="typ">List</span>[<span class="typ">GCP</span>]) -&gt; <span class="typ">Affine6</span>:
+    <span class="com"># Build normal equations for 6 unknowns (augmented 6x7)</span>
+    <span class="kw">var</span> M = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">6</span>):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">7</span>):
+            row.<span class="fn">append</span>(<span class="num">0.0</span>)
+        M.<span class="fn">append</span>(row)
+
+    <span class="kw">for</span> g <span class="kw">in</span> gcps:
+        <span class="com"># X equation: [c, r, 1, 0, 0, 0 | X]</span>
+        <span class="com"># one row per coordinate equation, augmented with the RHS value</span>
+        <span class="kw">var</span> r1: <span class="typ">List</span>[<span class="typ">Float64</span>] = [g.col, g.row, <span class="num">1.0</span>, <span class="num">0.0</span>, <span class="num">0.0</span>, <span class="num">0.0</span>, g.X]
+        <span class="com"># Y equation: [0, 0, 0, c, r, 1 | Y]</span>
+        <span class="kw">var</span> r2: <span class="typ">List</span>[<span class="typ">Float64</span>] = [<span class="num">0.0</span>, <span class="num">0.0</span>, <span class="num">0.0</span>, g.col, g.row, <span class="num">1.0</span>, g.Y]
+        <span class="kw">for</span> p <span class="kw">in</span> <span class="fn">range</span>(<span class="num">6</span>):
+            <span class="kw">for</span> q <span class="kw">in</span> <span class="fn">range</span>(<span class="num">6</span>):
+                M[p][q] += r1[p]*r1[q] + r2[p]*r2[q]
+            M[p][<span class="num">6</span>] += r1[p]*r1[<span class="num">6</span>] + r2[p]*r2[<span class="num">6</span>]
+
+    <span class="kw">var</span> x = <span class="fn">solve6x6</span>(M)
+    <span class="kw">return</span> <span class="fn">Affine6</span>(A=x[<span class="num">0</span>], B=x[<span class="num">1</span>], C=x[<span class="num">2</span>], D=x[<span class="num">3</span>], E=x[<span class="num">4</span>], F=x[<span class="num">5</span>])
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> gcps: <span class="typ">List</span>[<span class="typ">GCP</span>] = [
+        <span class="fn">GCP</span>(    <span class="num">0.0</span>,    <span class="num">0.0</span>, <span class="num">540000.0</span>, <span class="num">6235000.0</span>),
+        <span class="fn">GCP</span>(<span class="num">10000.0</span>,    <span class="num">0.0</span>, <span class="num">540100.0</span>, <span class="num">6235000.0</span>),
+        <span class="fn">GCP</span>(    <span class="num">0.0</span>, <span class="num">8000.0</span>, <span class="num">540000.0</span>, <span class="num">6234920.0</span>),
+        <span class="fn">GCP</span>(<span class="num">10000.0</span>, <span class="num">8000.0</span>, <span class="num">540100.0</span>, <span class="num">6234920.0</span>)
+    ]
+    <span class="kw">var</span> a = <span class="fn">fit_affine</span>(gcps)
+    <span class="fn">print</span>(<span class="str">"Affine params:"</span>, a.A, a.B, a.C, a.D, a.E, a.F)
+</code></pre>
+  </div>
+
+  <h3>4.3 Georeferencing a CAD/DXF or GeoPackage — practical pipeline</h3>
+  <p class="topic-brief">
+    The office procedure: know the source CRS, choose identifiable control, fit the simplest
+    adequate model, check it on independent points, then transform everything and record what
+    you did.
+  </p>
+  <ol>
+    <li>Identify the source coordinate system and units.</li>
+    <li>Select clearly identifiable control points.</li>
+    <li>Measure/obtain their coordinates in the target CRS.</li>
+    <li>Choose the simplest transformation that adequately models the differences.</li>
+    <li>Fit the transformation.</li>
+    <li>Inspect residuals at all control points.</li>
+    <li>Check independent points.</li>
+    <li>Transform the complete dataset.</li>
+    <li>Write CRS metadata and transformation parameters into the project record.</li>
+  </ol>
+
+  <h3>4.4 Point transformation utility</h3>
+  <p class="topic-brief">
+    A small reusable routine that applies the fitted similarity parameters to an arbitrary list of
+    points — the last step of any georeferencing job.
+  </p>
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> cos, sin, radians
+
+<span class="kw">def</span> <span class="fn">transform_points</span>(points: <span class="typ">List</span>[<span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>]],
+                    tx: <span class="typ">Float64</span>, ty: <span class="typ">Float64</span>,
+                    s: <span class="typ">Float64</span>, theta_deg: <span class="typ">Float64</span>)
+                    -&gt; <span class="typ">List</span>[<span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>]]:
+    <span class="kw">var</span> result = <span class="typ">List</span>[<span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>]]()
+    <span class="kw">var</span> t = <span class="fn">radians</span>(theta_deg)
+
+    <span class="kw">for</span> p <span class="kw">in</span> points:
+        <span class="kw">var</span> E = p[<span class="num">0</span>]
+        <span class="kw">var</span> N = p[<span class="num">1</span>]
+        <span class="kw">var</span> x = tx + s*(E*<span class="fn">cos</span>(t) - N*<span class="fn">sin</span>(t))
+        <span class="kw">var</span> y = ty + s*(E*<span class="fn">sin</span>(t) + N*<span class="fn">cos</span>(t))
+        result.<span class="fn">append</span>((x, y))
+
+    <span class="kw">return</span> result
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> pts: <span class="typ">List</span>[<span class="typ">Tuple</span>[<span class="typ">Float64</span>, <span class="typ">Float64</span>]] = [(<span class="num">100.0</span>, <span class="num">200.0</span>), (<span class="num">120.0</span>, <span class="num">240.0</span>), (<span class="num">150.0</span>, <span class="num">210.0</span>)]
+    <span class="fn">print</span>(<span class="fn">transform_points</span>(pts, <span class="num">1000.0</span>, <span class="num">2000.0</span>, <span class="num">1.0001</span>, <span class="num">0.02</span>))
+</code></pre>
+  </div>
+
+  <div class="note">
+    <b>Mojo 1.x syntax used in this tutorial:</b> functions are declared with
+    <code>def</code>;
+    <code>comptime</code> declares compile-time constants;
+    all local bindings use <code>var</code>; structs use
+    <code>@fieldwise_init</code> to auto-generate the constructor (which takes
+    <code>out self</code> when written manually); arguments are immutable by default and marked
+    <code>mut</code> when the function modifies them in place; and standard-library imports use
+    the <code>std.</code> prefix (e.g. <code>from std.math import sqrt</code>). Tuple types are
+    written <code>Tuple[Float64, Float64]</code>. Verify against
+    <a href="https://mojolang.org/docs/manual/functions/" style="color:var(--accent)">the current
+    manual</a>, as the language is still evolving.
+  </div>
+</section>
+<!-- ========================================================= -->
+<section id="gps">
+  <h2>5. GPS / GNSS Theory in Surveying</h2>
+
+  <div class="brief">
+    <span class="brief-label">Brief</span>
+    <p>
+      From the pseudorange equation to a working position fix: this chapter covers what a GNSS
+      receiver actually measures, how the non-linear range equations are linearised and solved
+      iteratively for <b>(X, Y, Z, clock bias)</b>, how satellite geometry maps into <b>DOP</b>,
+      and why careful survey practice turns a metre-level code solution into a centimetre-level
+      carrier-phase result.
+    </p>
+  </div>
+
+  <h3>5.1 What GPS/GNSS actually measures</h3>
+  <p class="topic-brief">
+    Four observables and data types — code, phase, orbit and a known reference point — are the raw
+    material of every positioning technique from autonomous to RTK.
+  </p>
+  <p>
+    GPS is one constellation within GNSS. A receiver estimates its position primarily from
+    signals transmitted by satellites whose orbits and clock information are encoded in the
+    navigation message.
+  </p>
+  <div class="grid">
+    <div class="card"><h4>Pseudorange</h4><p>Code-based travel time × c, contaminated by receiver clock error and atmospheric/other errors.</p></div>
+    <div class="card"><h4>Carrier phase</h4><p>Very precise phase measurement, but with an unknown integer ambiguity.</p></div>
+    <div class="card"><h4>Ephemeris</h4><p>Satellite orbit information used to compute the satellite position at the observation epoch.</p></div>
+    <div class="card"><h4>Reference station</h4><p>Known-position station used to estimate common errors for differential or RTK positioning.</p></div>
+  </div>
+
+  <h3>5.2 The pseudorange equation</h3>
+  <p class="topic-brief">
+    Four unknowns, one equation per satellite: the range model is non-linear, so it is expanded
+    about an approximate position and iterated to convergence.
+  </p>
+  <div class="formula">
+    P = ρ + c(δt<sub>receiver</sub> − δt<sub>satellite</sub>) + I + T + ε
+  </div>
+  <p>
+    where ρ is geometric range, c the speed of light, I the ionospheric delay, T the
+    tropospheric delay and ε the remaining effects/noise. With <i>N ≥ 4</i> satellites we solve
+    the non-linear system for the 4 unknowns <i>(X, Y, Z, c·δt)</i> by linearisation
+    (Taylor expansion) and least-squares iteration: <i>ΔP = H·Δx + ε</i>, where H contains the
+    unit direction vectors from receiver to satellites.
+  </p>
+
+
+  <h3>5.3 Iterative least-squares GPS fix</h3>
+  <p class="topic-brief">
+    The same Newton-style iteration in dependency-free Mojo: build the Jacobian each epoch, form
+    the 4×4 normal equations, solve, update and test for convergence.
+  </p>
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — gps.mojo</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> sqrt
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Sat</span>:
+    <span class="kw">var</span> x: <span class="typ">Float64</span>
+    <span class="kw">var</span> y: <span class="typ">Float64</span>
+    <span class="kw">var</span> z: <span class="typ">Float64</span>
+
+<span class="dec">@fieldwise_init</span>
+<span class="kw">struct</span> <span class="typ">Fix</span>:
+    <span class="kw">var</span> x: <span class="typ">Float64</span>
+    <span class="kw">var</span> y: <span class="typ">Float64</span>
+    <span class="kw">var</span> z: <span class="typ">Float64</span>
+    <span class="kw">var</span> clock_bias_m: <span class="typ">Float64</span>
+
+<span class="com"># Solve 4x4 augmented normal equations by Gauss elimination (in place)</span>
+<span class="kw">def</span> <span class="fn">solve4x4</span>(<span class="kw">mut</span> M: <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]) -&gt; <span class="typ">List</span>[<span class="typ">Float64</span>]:
+    <span class="kw">var</span> n: <span class="typ">Int</span> = <span class="num">4</span>
+    <span class="com"># forward elimination</span>
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(k + <span class="num">1</span>, n):
+            <span class="kw">var</span> f = M[i][k] / M[k][k]
+            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(k, n + <span class="num">1</span>):
+                M[i][j] = M[i][j] - f * M[k][j]
+    <span class="com"># back substitution</span>
+    <span class="kw">var</span> x = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n):
+        x.<span class="fn">append</span>(<span class="num">0.0</span>)
+    <span class="kw">for</span> ii <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> i = n - <span class="num">1</span> - ii
+        <span class="kw">var</span> s: <span class="typ">Float64</span> = M[i][n]
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i + <span class="num">1</span>, n):
+            s = s - M[i][j] * x[j]
+        x[i] = s / M[i][i]
+    <span class="kw">return</span> x
+
+<span class="kw">def</span> <span class="fn">gps_fix</span>(sats: <span class="typ">List</span>[<span class="typ">Sat</span>], pr: <span class="typ">List</span>[<span class="typ">Float64</span>],
+           tol: <span class="typ">Float64</span> = <span class="num">1e-4</span>, max_iter: <span class="typ">Int</span> = <span class="num">10</span>) -&gt; <span class="typ">Fix</span>:
+    <span class="kw">var</span> n = <span class="fn">len</span>(sats)
+    <span class="kw">var</span> x: <span class="typ">Float64</span> = <span class="num">0.0</span>
+    <span class="kw">var</span> y: <span class="typ">Float64</span> = <span class="num">0.0</span>
+    <span class="kw">var</span> z: <span class="typ">Float64</span> = <span class="num">0.0</span>
+    <span class="kw">var</span> dt: <span class="typ">Float64</span> = <span class="num">0.0</span>
+
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(max_iter):
+        <span class="com"># Geometric ranges &amp; Jacobian rows</span>
+        <span class="kw">var</span> H = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+        <span class="kw">var</span> b = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+            <span class="kw">var</span> dx = sats[i].x - x
+            <span class="kw">var</span> dy = sats[i].y - y
+            <span class="kw">var</span> dz = sats[i].z - z
+            <span class="kw">var</span> r  = <span class="fn">sqrt</span>(dx*dx + dy*dy + dz*dz)
+            <span class="kw">var</span> row: <span class="typ">List</span>[<span class="typ">Float64</span>] = [-dx/r, -dy/r, -dz/r, <span class="num">1.0</span>]
+            H.<span class="fn">append</span>(row)
+            b.<span class="fn">append</span>(pr[i] - (r + dt))
+
+        <span class="com"># Normal equations: H^T H dx = H^T b (augmented 4x5)</span>
+        <span class="kw">var</span> M = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+            <span class="kw">var</span> mrow = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+            <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+                mrow.<span class="fn">append</span>(<span class="num">0.0</span>)
+            M.<span class="fn">append</span>(mrow)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+            <span class="kw">for</span> p <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+                <span class="kw">for</span> q <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+                    M[p][q] += H[i][p] * H[i][q]
+                M[p][<span class="num">4</span>] += H[i][p] * b[i]
+
+        <span class="com"># Newton-style update: linearise, solve, apply correction</span>
+        <span class="kw">var</span> delta = <span class="fn">solve4x4</span>(M)
+        x  += delta[<span class="num">0</span>]
+        y  += delta[<span class="num">1</span>]
+        z  += delta[<span class="num">2</span>]
+        dt += delta[<span class="num">3</span>]
+
+        <span class="com"># convergence check on the positional part of the correction</span>
+        <span class="kw">var</span> step = <span class="fn">sqrt</span>(delta[<span class="num">0</span>]*delta[<span class="num">0</span>] + delta[<span class="num">1</span>]*delta[<span class="num">1</span>] + delta[<span class="num">2</span>]*delta[<span class="num">2</span>])
+        <span class="kw">if</span> step &lt; tol:
+            <span class="kw">break</span>
+
+    <span class="kw">return</span> <span class="fn">Fix</span>(x=x, y=y, z=z, clock_bias_m=dt)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">var</span> sats: <span class="typ">List</span>[<span class="typ">Sat</span>] = [
+        <span class="fn">Sat</span>( <span class="num">1.5e7</span>,  <span class="num">0.0</span>,    <span class="num">2.0e7</span>),
+        <span class="fn">Sat</span>( <span class="num">0.0</span>,    <span class="num">1.5e7</span>,  <span class="num">2.0e7</span>),
+        <span class="fn">Sat</span>(-<span class="num">1.5e7</span>,  <span class="num">0.0</span>,    <span class="num">2.0e7</span>),
+        <span class="fn">Sat</span>( <span class="num">0.0</span>,   -<span class="num">1.5e7</span>,  <span class="num">2.0e7</span>)
+    ]
+    <span class="kw">var</span> tx: <span class="typ">Float64</span> = <span class="num">1000.0</span>
+    <span class="kw">var</span> ty: <span class="typ">Float64</span> = <span class="num">2000.0</span>
+    <span class="kw">var</span> tz: <span class="typ">Float64</span> = <span class="num">6370000.0</span>
+    <span class="kw">var</span> true_bias: <span class="typ">Float64</span> = <span class="num">50.0</span>
+
+    <span class="com"># simulate consistent pseudoranges from the true position</span>
+    <span class="kw">var</span> pr = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+        <span class="kw">var</span> dx = sats[i].x - tx
+        <span class="kw">var</span> dy = sats[i].y - ty
+        <span class="kw">var</span> dz = sats[i].z - tz
+        pr.<span class="fn">append</span>(<span class="fn">sqrt</span>(dx*dx + dy*dy + dz*dz) + true_bias)
+
+    <span class="kw">var</span> sol = <span class="fn">gps_fix</span>(sats, pr)
+    <span class="fn">print</span>(<span class="str">"ECEF fix:"</span>, sol.x, sol.y, sol.z, <span class="str">"dt ="</span>, sol.clock_bias_m, <span class="str">"m"</span>)
+</code></pre>
+  </div>
+
+  <h3>5.4 Dilution of Precision (DOP)</h3>
+  <p class="topic-brief">
+    One 4×4 inverse summarises the whole sky: Q = (GᵀG)⁻¹ turns unit measurement noise into
+    position noise, and its diagonal and trace give the DOP family.
+  </p>
+  <p>
+    DOP expresses how satellite geometry amplifies measurement uncertainty. Lower is better;
+    common measures are GDOP, PDOP, HDOP and VDOP:
+  </p>
+  <div class="formula">
+    Q = (HᵀH)<sup>−1</sup> &nbsp;⇒&nbsp; PDOP = √(Q₁₁+Q₂₂+Q₃₃), &nbsp; TDOP = √Q₄₄, &nbsp; GDOP = √tr(Q)
+  </div>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x — dop.mojo</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> sqrt, abs
+
+<span class="com"># Invert a 4x4 matrix by Gauss-Jordan elimination with partial pivoting.</span>
+<span class="com"># The matrix is extended with the identity to the right; after full</span>
+<span class="com"># reduction the right half holds the inverse.</span>
+<span class="kw">def</span> <span class="fn">inv4x4</span>(<span class="kw">mut</span> M: <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]) -&gt; <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]:
+    <span class="kw">var</span> n: <span class="typ">Int</span> = <span class="num">4</span>
+    <span class="kw">var</span> A = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+            row.<span class="fn">append</span>(M[i][j])
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+            row.<span class="fn">append</span>(<span class="num">1.0</span> <span class="kw">if</span> i == j <span class="kw">else</span> <span class="num">0.0</span>)
+        A.<span class="fn">append</span>(row)
+
+    <span class="kw">for</span> col <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="com"># partial pivoting: strongest pivot keeps the division stable</span>
+        <span class="kw">var</span> pivot = col
+        <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(col + <span class="num">1</span>, n):
+            <span class="kw">if</span> <span class="fn">abs</span>(A[r][col]) &gt; <span class="fn">abs</span>(A[pivot][col]):
+                pivot = r
+        <span class="kw">var</span> tmp = A[col]
+        A[col] = A[pivot]
+        A[pivot] = tmp
+
+        <span class="com"># normalise the pivot row</span>
+        <span class="kw">var</span> pval = A[col][col]
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(col, <span class="num">2</span> * n):
+            A[col][j] = A[col][j] / pval
+
+        <span class="com"># eliminate this column from every other row</span>
+        <span class="kw">for</span> r <span class="kw">in</span> <span class="fn">range</span>(n):
+            <span class="kw">if</span> r != col:
+                <span class="kw">var</span> factor = A[r][col]
+                <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(col, <span class="num">2</span> * n):
+                    A[r][j] = A[r][j] - factor * A[col][j]
+
+    <span class="com"># extract the right half — the inverse</span>
+    <span class="kw">var</span> inv = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n, <span class="num">2</span> * n):
+            row.<span class="fn">append</span>(A[i][j])
+        inv.<span class="fn">append</span>(row)
+    <span class="kw">return</span> inv
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="com"># Unit line-of-sight geometry: each row is a satellite direction</span>
+    <span class="com"># vectors, each extended with a receiver-clock column of 1.0.</span>
+    <span class="kw">var</span> G: <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]] = [
+        [ <span class="num">0.7</span>,  <span class="num">0.2</span>, <span class="num">0.68</span>, <span class="num">1.0</span>],
+        [-<span class="num">0.4</span>,  <span class="num">0.8</span>, <span class="num">0.45</span>, <span class="num">1.0</span>],
+        [ <span class="num">0.1</span>, -<span class="num">0.9</span>, <span class="num">0.42</span>, <span class="num">1.0</span>],
+        [-<span class="num">0.8</span>, -<span class="num">0.2</span>, <span class="num">0.56</span>, <span class="num">1.0</span>],
+    ]
+
+    <span class="com"># Cofactor matrix Q = (G^T G)^-1, formed explicitly (4x4)</span>
+    <span class="kw">var</span> GtG = <span class="typ">List</span>[<span class="typ">List</span>[<span class="typ">Float64</span>]]()
+    <span class="kw">for</span> p <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+        <span class="kw">var</span> row = <span class="typ">List</span>[<span class="typ">Float64</span>]()
+        <span class="kw">for</span> q <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+            <span class="kw">var</span> acc: <span class="typ">Float64</span> = <span class="num">0.0</span>
+            <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):
+                acc += G[i][p] * G[i][q]
+            row.<span class="fn">append</span>(acc)
+        GtG.<span class="fn">append</span>(row)
+
+    <span class="kw">var</span> Q = <span class="fn">inv4x4</span>(GtG)
+    <span class="kw">var</span> pdop = <span class="fn">sqrt</span>(Q[<span class="num">0</span>][<span class="num">0</span>] + Q[<span class="num">1</span>][<span class="num">1</span>] + Q[<span class="num">2</span>][<span class="num">2</span>])
+    <span class="kw">var</span> tdop = <span class="fn">sqrt</span>(Q[<span class="num">3</span>][<span class="num">3</span>])
+    <span class="kw">var</span> gdop = <span class="fn">sqrt</span>(Q[<span class="num">0</span>][<span class="num">0</span>] + Q[<span class="num">1</span>][<span class="num">1</span>] + Q[<span class="num">2</span>][<span class="num">2</span>] + Q[<span class="num">3</span>][<span class="num">3</span>])
+
+    <span class="fn">print</span>(<span class="str">"PDOP ="</span>, pdop)
+    <span class="fn">print</span>(<span class="str">"TDOP ="</span>, tdop)
+    <span class="fn">print</span>(<span class="str">"GDOP ="</span>, gdop)
+</code></pre>
+  </div>
+
+  <h3>5.5 Error sources and why surveying GNSS can be centimetric</h3>
+  <p class="topic-brief">
+    Metre-level to centimetre-level: the error budget, and the field and processing practices
+    that shrink it.
+  </p>
+  <p>
+    High-precision surveying uses carrier-phase observations, differential processing, precise
+    satellite products and carefully controlled field procedures. RTK uses corrections from a
+    reference station or network so that errors common to rover and reference are reduced;
+    <b>double differencing</b> between receivers and satellites eliminates most clock errors.
+  </p>
+  <table>
+    <tbody><tr><th>Error / source</th><th>Effect</th><th>Typical mitigation</th></tr>
+    <tr><td>Satellite clock/orbit</td><td>Range error</td><td>Broadcast/precise products, differential methods</td></tr>
+    <tr><td>Ionosphere</td><td>Signal delay</td><td>Dual frequency (Klobuchar model), differential methods</td></tr>
+    <tr><td>Troposphere</td><td>Signal delay</td><td>Saastamoinen / Hopfield models, differential processing</td></tr>
+    <tr><td>Multipath</td><td>Biased observations</td><td>Good site selection, antenna design</td></tr>
+    <tr><td>Receiver noise</td><td>Measurement scatter</td><td>Quality receiver/antenna, longer observations</td></tr>
+    <tr><td>Cycle slips</td><td>Carrier-phase discontinuity</td><td>Tracking/quality control and reinitialisation</td></tr>
+    <tr><td>Wrong antenna height</td><td>Vertical/horizontal error</td><td>Careful field measurement and conventions</td></tr>
+    <tr><td>Wrong CRS/datum</td><td>Systematic coordinate offset</td><td>Correct CRS metadata and transformation</td></tr>
+  </tbody></table>
+
+  <div class="note">
+    <b>Key surveying notes:</b>
+    <ul>
+      <li>Real GPS applies ionospheric (Klobuchar / dual-frequency) and tropospheric
+        (Saastamoinen, Hopfield) corrections to the pseudoranges before solving.</li>
+      <li>For centimetre-level accuracy, surveyors use carrier-phase observations and resolve
+        integer ambiguities (L1/L2) — the basis of RTK and PPP.</li>
+      <li>Satellite ECEF positions are computed from broadcast ephemerides (Keplerian elements +
+        perturbation corrections) for the time of transmission.</li>
+    </ul>
+  </div>
+</section>
+<!-- ========================================================= -->
+<section id="workflow">
+  <h2>6. Integrated Surveying Workflow &amp; Quality Control</h2>
+
+  <div class="brief">
+    <span class="brief-label">Brief</span>
+    <p>
+      Frames, transformations, calibration, georeferencing and GNSS theory become trustworthy only
+      when they are combined into one controlled workflow. This chapter lays out the
+      <b>eight-step field-to-office pipeline</b>, the residual and <b>RMSE</b> calculations that
+      verify it, and the documentation habits that make every coordinate in the deliverable
+      traceable back to observations.
+    </p>
+  </div>
+
+  <p class="topic-brief">
+    Each step feeds the next; a weakness anywhere — poor control geometry, a skipped check, an
+    undocumented transformation — surfaces later as a coordinate that cannot be defended.
+  </p>
+
+  <div class="grid">
+    <div class="card"><span class="tag">01</span><h4>Reconnaissance</h4><p>Existing control, monument condition, GNSS visibility, multipath risk, source drawings.</p></div>
+    <div class="card"><span class="tag">02</span><h4>Observe control</h4><p>GNSS occupations with correct antenna-height and metadata procedures.</p></div>
+    <div class="card"><span class="tag">03</span><h4>Establish reference</h4><p>Process observations; obtain coordinates in the required reference frame.</p></div>
+    <div class="card"><span class="tag">04</span><h4>Transform</h4><p>Apply the correct datum / projection transformation — the rigorous TM/UTM projection is developed in <a href="karney_krueger_equations.html" style="color:var(--accent);">Part 2</a>.</p></div>
+    <div class="card"><span class="tag">05</span><h4>Localise</h4><p>Fit the site transformation between GNSS/reference and the working grid.</p></div>
+    <div class="card"><span class="tag">06</span><h4>Georeference</h4><p>Transform CAD, DXF, raster or legacy GIS data into the agreed CRS.</p></div>
+    <div class="card"><span class="tag">07</span><h4>Check</h4><p>Independent check points; residuals, RMSE and maximum error.</p></div>
+    <div class="card"><span class="tag">08</span><h4>Document</h4><p>CRS, datum, epoch, units, control points, parameters, residuals, software versions.</p></div>
+  </div>
+
+  <h3>6.1 Residual calculations</h3>
+  <p class="topic-brief">
+    The arithmetic of trust: residuals per point, horizontal error per point, RMSE over the whole
+    check set — and the maximum as the single worst-case number you must be able to explain.
+  </p>
+  <div class="formula">
+    v<sub>E</sub> = E<sub>observed</sub> − E<sub>computed</sub><br>
+    v<sub>N</sub> = N<sub>observed</sub> − N<sub>computed</sub><br>
+    Horizontal error = √(v<sub>E</sub>² + v<sub>N</sub>²) &nbsp;&nbsp; RMSE = √(Σ eᵢ² / n)
+  </div>
+
+
+  <div class="code-block">
+    <span class="lang-tag lang-mojo">MOJO 1.x</span>
+<pre><code><span class="kw">from</span> std.math <span class="kw">import</span> sqrt
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="com"># Small, dependency-light residual calculation on three check points</span>
+    <span class="kw">var</span> ve1 = <span class="num">0.010</span>;  <span class="kw">var</span> vn1 = <span class="num">0.020</span>
+    <span class="kw">var</span> ve2 = <span class="num">0.030</span>;  <span class="kw">var</span> vn2 = <span class="num">0.010</span>
+    <span class="kw">var</span> ve3 = <span class="num">0.000</span>;  <span class="kw">var</span> vn3 = <span class="num">0.040</span>
+
+    <span class="com"># per-point horizontal error = sqrt(vE^2 + vN^2)</span>
+    <span class="kw">var</span> e1 = <span class="fn">sqrt</span>(ve1*ve1 + vn1*vn1)
+    <span class="kw">var</span> e2 = <span class="fn">sqrt</span>(ve2*ve2 + vn2*vn2)
+    <span class="kw">var</span> e3 = <span class="fn">sqrt</span>(ve3*ve3 + vn3*vn3)
+
+    <span class="com"># RMSE over the check set</span>
+    <span class="kw">var</span> rmse = <span class="fn">sqrt</span>((e1*e1 + e2*e2 + e3*e3) / <span class="num">3.0</span>)
+
+    <span class="fn">print</span>(<span class="str">"Errors:"</span>, e1, e2, e3)
+    <span class="fn">print</span>(<span class="str">"RMSE:"</span>, rmse)
+</code></pre>
+  </div>
+
+  <div class="note">
+    <b>Reporting rule of thumb:</b> state the RMSE, the maximum residual and the point where it
+    occurred. A single large maximum with a small RMSE usually means a gross error (misidentified
+    point, wrong antenna height) rather than a poor transformation — investigate before averaging
+    it away.
+  </div>
+</section>
+
+<!-- ========================================================= -->
+<div class="continue" id="part2">
+  <div>
+    <span class="continue-label">The course continues · Part 2</span>
+    <h3 style="color:#eaf4fc;">The Karney-Krüger Equations — Transverse Mercator, Done Right</h3>
+    <p>
+      Part 1 closed the loop from GNSS observations to quality-controlled coordinates, and
+      deliberately treated the projection as one row in a table. Part 2 opens that row up: the
+      n-series expansion, conformal latitude, forward and inverse (Newton) transformations,
+      Clenshaw summation, Southern African grid constants (UTM 36S, LO belts) — with the same
+      Mojo 1.x treatment throughout.
+    </p>
+  </div>
+  <a class="continue-btn" href="karney_krueger_equations.html">Continue to Part 2 →</a>
+</div>
+
+</main>
+
+<footer>
+  <div style="max-width:560px;margin:0 auto;">
+    <div style="font-weight:700;color:#bde0fe;letter-spacing:.06em;">GNSS SURVEYING — PART 1</div>
+    <p style="margin:10px 0 0;">Part 1 of a two-part course ·
+      <a href="karney_krueger_equations.html" style="color:var(--accent);">Part 2 — The Karney-Krüger Equations (Transverse Mercator / UTM)</a><br>
+      Practice the underlying survey mathematics in
+      <a href="geo_computations.html" style="color:var(--accent);">Geomatics Computations &amp; Adjustment Mathematics</a><br>
+      Mojo 1.x · September 2026<br>
+    Educational material. CRSs, datum transformations, geoid models and survey tolerances must be
+    selected for the specific survey jurisdiction, equipment and project specification.</p>
+  </div>
+</footer>
+
+</body></html>

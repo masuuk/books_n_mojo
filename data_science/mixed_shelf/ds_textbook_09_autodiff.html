@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_09_autodiff_metaprogramming.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 9 — Autodiff and Compile-Time Metaprogramming · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 09 / 13</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_09_autodiff.html#intro" data-t="intro" title="Introduction"></a>
+  <a href="ds_textbook_09_autodiff.html#autodiff" data-t="autodiff" title="Automatic Differentiation"></a>
+  <a href="ds_textbook_09_autodiff.html#comptime" data-t="comptime" title="Compile-Time Metaprogramming"></a>
+  <a href="ds_textbook_09_autodiff.html#materialize" data-t="materialize" title="Materialization"></a>
+  <a href="ds_textbook_09_autodiff.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_09_autodiff.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+
+  <div class="kicker">Part IV — Advanced Mojo · Chapter 9</div>
+  <h1>📐 Autodiff and Compile-Time Metaprogramming</h1>
+  <p class="dek">Harness Mojo's automatic differentiation and comptime evaluation to write code that transforms itself at compile time — producing specialized, zero-overhead implementations for every data type and shape.</p>
+
+  <section id="intro">
+    <p>Two features separate Mojo from every other language in the ML space: <b>reverse-mode automatic differentiation</b> built into the type system, and <b>comptime metaprogramming</b> that lets you generate specialized code at compile time. Together, they let you write generic algorithms that compile down to the same hand-tuned code you'd write by hand for each specific use case.</p>
+    <p>If you've used JAX's <code class="inline">grad</code> or PyTorch's autograd, you know autodiff. Mojo's version is different: it's not a runtime wrapper that traces a computation graph. It's a compiler pass that inserts gradient computation directly into the generated code, eliminating the graph overhead entirely. And comptime means you can generate different code for different tensor shapes, types, or hardware targets — all without runtime branching.</p>
+  </section>
+
+  <section id="autodiff">
+    <h2>Automatic differentiation in Mojo</h2>
+    <p>Mojo supports reverse-mode autodiff through the <code class="inline">grad</code> function and the <code class="inline">@differentiable</code> decorator. When you mark a function as differentiable, Mojo's compiler automatically generates the backward pass that computes gradients with respect to function arguments. No manual gradient coding needed.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="auto"><span class="sw"></span>autodiff.mojo</div>
+      </div>
+      <div class="panes" data-group="auto">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — built-in autodiff</span>
+<span class="tok-kw">from</span> math <span class="tok-kw">import</span> exp, log
+
+<span class="tok-kw">@differentiable</span>
+<span class="tok-kw">def</span> <span class="tok-fn">quadratic</span>(x: Float64) -&gt; Float64:
+    <span class="tok-kw">return</span> x * x + <span class="tok-num">2.0</span> * x + <span class="tok-num">1.0</span>
+
+<span class="tok-com"># Compute the derivative at x = 3.0</span>
+<span class="tok-kw">var</span> df = grad(quadratic)
+<span class="tok-kw">var</span> slope = df(<span class="tok-num">3.0</span>)   <span class="tok-com"># 2*3 + 2 = 8.0</span>
+print(slope)            <span class="tok-com"># 8.0</span>
+
+<span class="tok-com"># Multi-variable differentiation</span>
+<span class="tok-kw">@differentiable</span>
+<span class="tok-kw">def</span> <span class="tok-fn">loss_fn</span>(w: Float64, b: Float64) -&gt; Float64:
+    <span class="tok-kw">var</span> pred = w * <span class="tok-num">3.0</span> + b
+    <span class="tok-kw">return</span> (pred - <span class="tok-num">5.0</span>) ** <span class="tok-num">2</span>
+
+<span class="tok-kw">var</span> grad_fn = grad(loss_fn)
+<span class="tok-kw">var</span> (dw, db) = grad_fn(<span class="tok-num">1.0</span>, <span class="tok-num">0.0</span>)
+print(<span class="tok-str">f"dW = {dw}, db = {db}"</span>)
+<span class="tok-com"># dW = -12.0, db = -4.0</span>
+
+<span class="tok-com"># Composing differentiable functions</span>
+<span class="tok-kw">@differentiable</span>
+<span class="tok-kw">def</span> <span class="tok-fn">sigmoid</span>(x: Float64) -&gt; Float64:
+    <span class="tok-kw">return</span> <span class="tok-num">1.0</span> / (<span class="tok-num">1.0</span> + exp(-x))
+
+<span class="tok-kw">@differentiable</span>
+<span class="tok-kw">def</span> <span class="tok-fn">bce</span>(pred: Float64, target: Float64) -&gt; Float64:
+    <span class="tok-kw">var</span> p = sigmoid(pred)
+    <span class="tok-kw">return</span> -(target * log(p) + (<span class="tok-num">1.0</span> - target) * log(<span class="tok-num">1.0</span> - p))
+
+<span class="tok-kw">var</span> grad_bce = grad(bce)
+<span class="tok-kw">var</span> gradient = grad_bce(<span class="tok-num">0.5</span>, <span class="tok-num">1.0</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">JAX spells the same two functions <code class="inline">jax.grad(quadratic)</code> and <code class="inline">jax.grad(loss_fn, argnums=(0, 1))</code> — the delta is not the API, it is <i>when</i> the derivative is worked out.</p>
+
+    <h3>How Mojo's autodiff works</h3>
+    <p>When you write <code class="inline">@differentiable</code>, Mojo's compiler does two things:</p>
+    <ul>
+      <li><b>Forward pass:</b> The original function compiles normally — there's zero overhead when you don't call <code class="inline">grad</code>.</li>
+      <li><b>Backward pass:</b> When you call <code class="inline">grad(fn)</code>, the compiler generates a second function that computes the derivative of every intermediate expression using the chain rule. This happens at compile time, not at runtime.</li>
+    </ul>
+    <p>Compare this with JAX, which traces Python execution into a jaxpr graph at runtime, then compiles that graph. Mojo's approach has no tracing overhead and no graph representation — the gradient code is directly embedded in the binary.</p>
+
+    <div class="callout">
+      <span class="lbl">💡 Why this matters for ML</span>
+      <p>In Chapter 8, you wrote a 120-line backward pass by hand. With <code class="inline">@differentiable</code>, that entire backward pass is generated automatically — and it's often faster because the compiler can inline and optimize the gradient expressions.</p>
+    </div>
+
+    <h3>Vectorized autodiff with SIMD</h3>
+    <p>Mojo's autodiff works with <code class="inline">SIMD</code> types, which means you can differentiate vector-valued functions that operate on entire tensors at once. The compiler generates SIMD-width gradient instructions, processing 4, 8, or 16 elements in parallel per instruction.</p>
+
+    <div class="code-block">
+      <div class="head">vectorized autodiff</div>
+      <pre><span class="tok-kw">from</span> math <span class="tok-kw">import</span> exp
+
+<span class="tok-kw">@differentiable</span>
+<span class="tok-kw">def</span> <span class="tok-fn">vector_relu</span>[N: Int](x: <span class="tok-ty">SIMD</span>[float32, N]) -&gt; <span class="tok-ty">SIMD</span>[float32, N]:
+    <span class="tok-kw">return</span> max(x, <span class="tok-num">0.0</span>)
+
+<span class="tok-kw">@differentiable</span>
+<span class="tok-kw">def</span> <span class="tok-fn">softmax</span>[N: Int](x: <span class="tok-ty">SIMD</span>[float32, N]) -&gt; <span class="tok-ty">SIMD</span>[float32, N]:
+    <span class="tok-kw">var</span> exp_x = exp(x)
+    <span class="tok-kw">return</span> exp_x / exp_x.reduce_add()
+
+<span class="tok-com"># grad computes the Jacobian for vector inputs</span>
+<span class="tok-kw">var</span> inputs = <span class="tok-ty">SIMD</span>[float32, <span class="tok-num">8</span>](<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">0.0</span>,
+                        <span class="tok-num">-1.0</span>, <span class="tok-num">0.5</span>, <span class="tok-num">4.0</span>, <span class="tok-num">-2.0</span>)
+<span class="tok-kw">var</span> grad_relu = grad(vector_relu)
+<span class="tok-kw">var</span> grad_input = grad_relu(inputs)
+<span class="tok-com"># grad_input = SIMD[1,1,1,0,0,1,1,0]</span></pre>
+    </div>
+  </section>
+
+  <section id="comptime">
+    <h2>Compile-time metaprogramming with comptime</h2>
+    <p>Mojo's <code class="inline">comptime</code> keyword lets you execute code at compile time. This is different from C++'s <code class="inline">constexpr</code> (limited to simple expressions) or Zig's <code class="inline">comptime</code> (similar but less integrated with the type system). In Mojo, <code class="inline">comptime</code> can run arbitrary code including loops, function calls, and type manipulation.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="cptime"><span class="sw"></span>comptime.mojo</div>
+      </div>
+      <div class="panes" data-group="cptime">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — comptime generates specialized code</span>
+
+<span class="tok-com"># Compile-time loop unrolling</span>
+<span class="tok-kw">def</span> <span class="tok-fn">dot_product</span>[N: Int](a: <span class="tok-ty">SIMD</span>[float32, N],
+                          b: <span class="tok-ty">SIMD</span>[float32, N]) -&gt; Float32:
+    <span class="tok-kw">var</span> result: Float32 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">comptime</span>:
+        <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(N):
+            result += a[i] * b[i]
+    <span class="tok-kw">return</span> result
+
+<span class="tok-com"># Compile-time type dispatch</span>
+<span class="tok-kw">def</span> <span class="tok-fn">to_string</span>[T: DType](val: <span class="tok-ty">SIMD</span>[T, <span class="tok-num">1</span>]) -&gt; String:
+    <span class="tok-kw">comptime</span>:
+        <span class="tok-kw">if</span> T == DType.float32:
+            <span class="tok-kw">return</span> <span class="tok-str">f"Float32({val})"</span>
+        <span class="tok-kw">elif</span> T == DType.int32:
+            <span class="tok-kw">return</span> <span class="tok-str">f"Int32({val})"</span>
+        <span class="tok-kw">else</span>:
+            <span class="tok-kw">return</span> <span class="tok-str">f"Unknown({val})"</span>
+
+<span class="tok-com"># Compile-time table generation</span>
+<span class="tok-kw">struct</span> <span class="tok-ty">LookupTable</span>[N: Int]:
+    <span class="tok-kw">var</span> values: <span class="tok-ty">SIMD</span>[float64, N]
+
+    <span class="tok-kw">def</span> <span class="tok-fn">__init__</span>(<span class="tok-kw">out</span> self):
+        <span class="tok-kw">comptime</span>:
+            <span class="tok-kw">var</span> table = <span class="tok-ty">SIMD</span>[float64, N]()
+            <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(N):
+                table[i] = Float64(i) * <span class="tok-num">0.1</span>
+            self.values = table
+
+<span class="tok-kw">var</span> lut4 = <span class="tok-ty">LookupTable</span>[<span class="tok-num">4</span>]()
+<span class="tok-kw">var</span> lut16 = <span class="tok-ty">LookupTable</span>[<span class="tok-num">16</span>]()
+<span class="tok-com"># lut4.values is literally [0.0, 0.1, 0.2, 0.3]</span>
+<span class="tok-com"># lut16 is [0.0, 0.1, ..., 1.5] computed at compile time</span></pre></div>
+      </div>
+    </div>
+
+    <p class="cap">Python's nearest neighbours are <code class="inline">np.dot(a, b)</code> and a runtime <code class="inline">if dtype == "float32"</code> chain that compares dtype <i>strings</i>. Both re-run on every call, and neither unrolls a loop or emits a specialised version of anything.</p>
+
+    <h3>Parameterized types and compile-time loops</h3>
+    <p>The <code class="inline">[N: Int]</code> syntax defines a <b>parameter</b> — a value that's fixed at compile time. When you call <code class="inline">dot_product[4](a, b)</code>, the compiler generates a version with the loop fully unrolled for exactly 4 iterations. Call it with <code class="inline">[16]</code> and you get a different, specialized version.</p>
+    <p>This is how Mojo achieves zero-cost generics: there's no runtime dispatch, no vtable lookups, no boxing. Each combination of parameters produces a unique, fully-optimized function.</p>
+
+    <div class="callout">
+      <span class="lbl">When to use comptime</span>
+      <p>Use <code class="inline">comptime</code> when you know a value at compile time but need to use it in a context that requires a runtime value (like a loop bound or array size). The compiler evaluates the <code class="inline">comptime</code> block and replaces it with the result — like a macro, but type-safe and hygienic.</p>
+    </div>
+  </section>
+
+  <section id="materialize">
+    <h2>Materialization: compile-time type transformations</h2>
+    <p>Materialization in Mojo refers to the process where the compiler converts abstract type information into concrete machine code. When you write a parameterized function, the compiler generates different code for each combination of type parameters — this is called <b>monomorphization</b>. Mojo takes this further with <code class="inline">alias</code> and <code class="inline">type</code> declarations that are resolved at compile time.</p>
+
+    <div class="code-block">
+      <div class="head">materialization patterns</div>
+      <pre><span class="tok-com"># alias creates compile-time constants</span>
+<span class="tok-kw">comptime</span> BATCH_SIZE = <span class="tok-num">64</span>
+<span class="tok-kw">comptime</span> N_FEATURES = <span class="tok-num">784</span>
+<span class="tok-kw">comptime</span> DTYPE = DType.float32
+
+<span class="tok-com"># Parameterized struct — one compilation per DType</span>
+<span class="tok-kw">struct</span> <span class="tok-ty">Tensor</span>[dt: DType, rows: Int, cols: Int]:
+    <span class="tok-kw">var</span> data: <span class="tok-ty">SIMD</span>[dt, rows * cols]
+
+    <span class="tok-kw">def</span> <span class="tok-fn">matmul</span>(self, other: <span class="tok-ty">Tensor</span>[dt, cols, Int(<span class="tok-num">1</span>)])
+            -&gt; <span class="tok-ty">Tensor</span>[dt, rows, Int(<span class="tok-num">1</span>)]:
+        <span class="tok-kw">var</span> result = <span class="tok-ty">Tensor</span>[dt, rows, Int(<span class="tok-num">1</span>)]()
+        <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(rows):
+            <span class="tok-kw">var</span> sum: <span class="tok-ty">SIMD</span>[dt, <span class="tok-num">1</span>] = <span class="tok-num">0.0</span>
+            <span class="tok-kw">for</span> j <span class="tok-kw">in</span> range(cols):
+                sum += self.data[i * cols + j] * other.data[j]
+            result.data[i] = sum
+        <span class="tok-kw">return</span> result
+
+<span class="tok-com"># Compile-time if for type-specific optimization</span>
+<span class="tok-kw">def</span> <span class="tok-fn">fast_exp</span>[T: DType](x: <span class="tok-ty">SIMD</span>[T, <span class="tok-num">1</span>]) -&gt; <span class="tok-ty">SIMD</span>[T, <span class="tok-num">1</span>]:
+    <span class="tok-kw">comptime</span>:
+        <span class="tok-kw">if</span> T == DType.float32:
+            <span class="tok-kw">return</span> <span class="tok-ty">Intrinsic</span>.<span class="tok-fn">exp_f32</span>(x)
+        <span class="tok-kw">elif</span> T == DType.float64:
+            <span class="tok-kw">return</span> <span class="tok-ty">Intrinsic</span>.<span class="tok-fn">exp_f64</span>(x)
+        <span class="tok-kw">else</span>:
+            <span class="tok-kw">return</span> <span class="tok-fn">generic_exp</span>(x)</pre>
+    </div>
+
+    <p>Each instantiation of <code class="inline">Tensor</code> with different parameters produces a completely separate type in the compiled binary. There's no runtime overhead — the compiler eliminates all branches that don't apply to the current type instantiation.</p>
+
+    <table>
+      <thead><tr><th>Feature</th><th>Mojo</th><th>Python</th></tr></thead>
+      <tbody>
+        <tr><td>Compile-time loops</td><td><code class="inline">comptime:</code></td><td>Not available</td></tr>
+        <tr><td>Type specialization</td><td>Parameterized types</td><td>Not available</td></tr>
+        <tr><td>Automatic gradients</td><td><code class="inline">@differentiable</code></td><td>JAX/PyTorch</td></tr>
+        <tr><td>SIMD integration</td><td>Native <code class="inline">SIMD</code> type</td><td>NumPy (opaque)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">How does Mojo's autodiff differ from JAX's autodiff?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Mojo uses forward-mode while JAX uses reverse-mode</button>
+        <button class="opt" data-correct="true">Mojo's autodiff is a compiler pass with no runtime tracing; JAX traces a computation graph at runtime</button>
+        <button class="opt" data-correct="false">They are identical in implementation</button>
+        <button class="opt" data-correct="false">Mojo requires manual gradient specification</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What happens when you call <code>grad(f)(x)</code> on a function marked <code>@differentiable</code>?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">It runs the function forward and estimates the gradient numerically</button>
+        <button class="opt" data-correct="false">It returns the function value, not a gradient</button>
+        <button class="opt" data-correct="true">The compiler generates a backward function at compile time and calls it</button>
+        <button class="opt" data-correct="false">It raises an error — gradients must be computed manually</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is the purpose of the <code>comptime</code> keyword?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">It marks a variable as constant at runtime</button>
+        <button class="opt" data-correct="false">It forces the compiler to optimize a specific function</button>
+        <button class="opt" data-correct="true">It executes code during compilation to generate specialized code</button>
+        <button class="opt" data-correct="false">It enables parallel execution of code blocks</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Write a <code class="inline">@differentiable</code> function that computes <code class="inline">f(x) = sin(x) * cos(x)</code> and verify that <code class="inline">grad(f)(pi/4)</code> equals the expected analytical derivative using the product rule.</li>
+        <li>Create a <code class="inline">comptime</code>-generated lookup table of powers of 2 (from 2^0 to 2^15) stored as a <code class="inline">SIMD[int32, 16]</code>. Verify that the values match what you'd compute at runtime.</li>
+        <li>Write a parameterized matrix multiplication function that uses <code class="inline">comptime</code> to unroll the inner loop when the inner dimension is known at compile time. Compare performance with and without unrolling for small matrices (4x4, 8x8).</li>
+        <li>Implement a <code class="inline">@differentiable</code> two-layer network (reusing the architecture from Chapter 8) and use <code class="inline">grad</code> to verify that the auto-generated gradients match the manual backward pass you wrote previously.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_08_neural_network.html">← Chapter 8: Neural Network from Scratch</a>
+    <a class="navbtn" href="ds_textbook_10_gpu.html">Chapter 10: GPU Kernels →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '\u2713 Correct.'
+        : '\u2717 Not quite \u2014 the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

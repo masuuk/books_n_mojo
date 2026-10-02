@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision-Aware Machine Learning — Equations &amp; Code</title>
+<style>
+  :root{
+    --bg:#0e1117; --bg2:#161b22; --bg3:#1c2230; --panel:#0f1420;
+    --fg:#e6edf3; --mut:#ffd98f; --acc:#58a6ff; --acc2:#79c0ff;
+    --acc3:#d2a8ff; --grn:#3fb950; --ylw:#d29922; --red:#f85149;
+    --line:#30363d; --code:#0d1117;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--fg); line-height:1.7; font-size:16px;
+  }
+  ::selection{background:#264f78; color:#fff;}
+  header{
+    position:sticky; top:0; z-index:60;
+    background:rgba(22,27,34,.88); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line); padding:0 20px;
+  }
+  header .inner{max-width:1180px; margin:0 auto; height:50px; display:flex; align-items:center; gap:14px;}
+  header .brand{display:flex; align-items:center; gap:10px; min-width:0;}
+  header .logo{width:26px; height:26px; border-radius:7px; flex:0 0 26px;
+    display:flex; align-items:center; justify-content:center; font-size:.82rem; line-height:1;
+    background:linear-gradient(135deg,rgba(88,166,255,.16),rgba(210,168,255,.12));
+    border:1px solid rgba(88,166,255,.35); box-shadow:0 0 12px rgba(88,166,255,.12);}
+  header h1{font-size:1.02rem; font-weight:650; margin:0; color:var(--fg);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.005em;}
+  header .kicker{margin-left:auto; font-size:.72rem; color:var(--mut); white-space:nowrap; letter-spacing:.03em;}
+  header .kicker span + span::before{content:"·"; margin:0 8px; color:var(--acc2); opacity:.55;}
+  .wrap{display:flex; gap:18px; max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+  nav.toc{
+    width:var(--tocw,280px); flex:0 0 var(--tocw,280px); position:sticky; top:64px; align-self:flex-start;
+    max-height:calc(100vh - 104px); overflow:auto; color:var(--mut); font-size:.9rem;
+    border-right:1px solid var(--line); padding-right:16px;
+  }
+  nav.toc::-webkit-scrollbar{width:8px;}
+  nav.toc::-webkit-scrollbar-thumb{background:var(--bg3); border-radius:4px;}
+  nav.toc::-webkit-scrollbar-track{background:transparent;}
+  nav.toc .toc-title{font-weight:700; color:var(--fg); text-transform:uppercase; letter-spacing:.06em;
+    font-size:.75rem; margin-bottom:0; color:var(--acc2);}
+  .toc-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .toc-toggle{background:var(--bg2); border:1px solid var(--line); color:var(--mut); border-radius:6px;
+    cursor:pointer; font-size:.72rem; line-height:1; padding:5px 7px; transition:.15s;}
+  .toc-toggle:hover{color:var(--acc); border-color:var(--acc);}
+  .toc-resize{flex:0 0 10px; align-self:stretch; margin:0 -9px; cursor:col-resize; border-radius:4px; z-index:5;}
+  .toc-resize:hover,.toc-resize.on{background:rgba(88,166,255,.14);}
+  body.toc-collapsed nav.toc, body.toc-collapsed .toc-resize{display:none;}
+  .toc-open{display:none; position:fixed; left:0; top:96px; z-index:70;
+    background:var(--panel); border:1px solid var(--line); border-left:none; border-radius:0 8px 8px 0;
+    color:var(--acc2); cursor:pointer; font-size:.68rem; letter-spacing:.12em; padding:14px 7px;
+    writing-mode:vertical-rl; text-orientation:mixed; box-shadow:2px 0 14px rgba(0,0,0,.3);}
+  .toc-open:hover{background:var(--bg2); color:var(--acc);}
+  body.toc-collapsed .toc-open{display:block;}
+  nav.toc a{display:block; color:var(--mut); text-decoration:none; padding:5px 10px; border-radius:6px;
+    transition:.15s; border-left:2px solid transparent;}
+  nav.toc a:hover{color:var(--acc2); background:var(--bg2);}
+  nav.toc a.lvl2{padding-left:24px; font-size:.84rem;}
+  nav.toc a.active{color:var(--acc); border-left-color:var(--acc); background:var(--bg2);}
+  nav.toc a.xlink{margin-top:12px; border:1px dashed var(--line); border-radius:8px; padding:8px 10px; color:var(--acc3);}
+  main{flex:1; min-width:0;}
+  section{scroll-margin-top:78px; margin-bottom:52px;}
+  h2{font-size:1.62rem; color:var(--acc2); margin-bottom:6px; padding-top:8px; border-bottom:1px solid var(--line); padding-bottom:12px;}
+  h3{font-size:1.22rem; color:var(--acc); margin:26px 0 10px;}
+  h4{font-size:1.02rem; color:var(--grn); margin:18px 0 6px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0 10px 26px;}
+  li{margin:5px 0;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin:14px 0; box-shadow:0 1px 0 rgba(255,255,255,.03);}
+  .note{background:rgba(210,153,34,.08); border-left:4px solid var(--ylw); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .warn{background:rgba(248,81,73,.08); border-left:4px solid var(--red); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .good{background:rgba(63,185,80,.08); border-left:4px solid var(--grn); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  code{font-family:"Cascadia Code",Consolas,Menlo,monospace; font-size:.88em; background:var(--bg3);
+    padding:2px 6px; border-radius:5px; color:var(--acc2);}
+  pre{background:var(--code); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; margin:14px 0;}
+  pre code{background:none; padding:0; color:#c9d1d9; font-size:.86rem; line-height:1.55; display:block;}
+  .tok-k{color:#ff7b72;} .tok-s{color:#a5d6ff;} .tok-c{color:#8b949e; font-style:italic;}
+  .tok-n{color:#79c0ff;} .tok-f{color:#d2a8ff;} .tok-num{color:#79c0ff;}
+  /* language label above each code block */
+  pre.mojo{border-left:3px solid #4fc1ff; background:rgba(79,193,255,.05);}
+  pre.mojo::before{
+    display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    font-family:"Cascadia Code",Consolas,Menlo,monospace;margin-bottom:8px;color:var(--mut);
+    content:"mojo 1.x";color:#4fc1ff;
+  }
+  .math{font-family:Georgia,serif; font-style:italic; font-size:1.02em; color:var(--acc3);}
+  .eq{
+    background:rgba(210,168,255,.06); border:1px dashed rgba(210,168,255,.35); border-radius:10px;
+    padding:14px 20px; margin:14px 0; font-family:Georgia,serif; font-size:1.04rem; color:var(--fg);
+    overflow-x:auto; line-height:1.9; font-style:italic;
+  }
+  .pill{display:inline-block; font-size:.72rem; padding:2px 10px; border-radius:999px; margin:0 4px; border:1px solid var(--line);}
+  .pill.bl{color:var(--acc); background:rgba(88,166,255,.1);}
+  .pill.grn{color:var(--grn); background:rgba(63,185,80,.1);}
+  footer{border-top:1px solid var(--line); padding:28px 20px; text-align:center; color:var(--mut); font-size:.85rem; max-width:1180px; margin:0 auto;}
+  .toc-mobile{display:none;}
+  @media(max-width:900px){
+    nav.toc{display:none;}
+    .toc-mobile{display:block; margin-bottom:20px;}
+    .toc-mobile details{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px;}
+    .toc-mobile summary{cursor:pointer; font-weight:700; color:var(--acc2);}
+    .toc-mobile a{display:block; color:var(--mut); padding:4px 8px; text-decoration:none; font-size:.9rem;}
+    header{padding:0 14px;}
+    header h1{font-size:.92rem;}
+    header .kicker{display:none;}
+    .toc-open{display:none!important;}
+    .toc-resize{display:none!important;}
+  }
+</style>
+</head>
+<body>
+<nav style="position:sticky;top:0;z-index:999;display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#16324f;padding:10px 20px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:0.88rem;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+  <a href="../index.html" style="color:#fff;font-weight:700;text-decoration:none;">📚 TutMe</a>
+  <a href="../operations_research_mojo/index.html" style="color:#9fd3ff;text-decoration:none;">🧩 Applications lessons</a>
+  <a href="data_science.html" style="color:#9fd3ff;text-decoration:none;">📖 Data Science Textbook</a>
+  <a href="perceptrons_and_activation.html" style="color:#9fd3ff;text-decoration:none;">🧠 Perceptrons &amp; Activations</a>
+  <a href="neural_network.html" style="color:#9fd3ff;text-decoration:none;">🧮 NN from Scratch</a>
+  <a href="mlp_xor.html" style="color:#9fd3ff;text-decoration:none;">🧪 ML Lab · Neural Nets</a>
+  <a href="nn_mojo.html" style="color:#9fd3ff;text-decoration:none;">🧮 3-4-1 NN · Mojo &amp; NumPy</a>
+  <a href="fine_tuning_llms.html" style="color:#9fd3ff;text-decoration:none;">🤖 Fine-Tuning LLMs</a>
+  <a href="ai_agents_python_vs_mojo.html" style="color:#9fd3ff;text-decoration:none;">💬 AI Agents · Python vs Mojo</a>
+  <a href="../index.html" style="color:#9fd3ff;text-decoration:none;">🏠 Home</a>
+</nav>
+
+<header>
+  <div class="inner">
+    <div class="brand">
+      <span class="logo">📉</span>
+      <h1>Decision-Aware Machine Learning</h1>
+    </div>
+    <div class="kicker"><span>Equations &amp; Code</span><span>Predict-then-Optimize</span><span>SPO+</span><span>Newsvendor</span><span>Mojo 1.x</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc-mobile">
+  <details>
+    <summary>Contents</summary>
+    <a href="#objective">1. The Objective, Formally</a>
+    <a href="#newsvendor">2. Newsvendor &amp; the Critical Fractile</a>
+    <a href="#threshold">3. Cost-Optimal Classification Threshold</a>
+    <a href="#reweight">4. Impact Reweighting</a>
+    <a href="#spo">5. The SPO+ Loss</a>
+    <a href="#perturbed">6. Perturbed-Optimizer Gradients</a>
+    <a href="#saa">7. SAA &amp; In-Sample Optimism</a>
+    <a href="#evaluate">8. Decision-Aware Evaluation</a>
+    <a href="#llms">9. Cost-Weighted LLM Fine-Tuning</a>
+    <a href="#check">10. Self-Check</a>
+  </details>
+</nav>
+
+<!-- ===================== TABLE OF CONTENTS ===================== -->
+<nav class="toc" id="toc">
+  <div class="toc-head">
+    <div class="toc-title">Contents</div>
+    <button class="toc-toggle" id="tocToggle" type="button" title="Hide sidebar">«</button>
+  </div>
+  <a href="#objective">1. The Objective, Formally</a>
+  <a href="#newsvendor">2. Newsvendor &amp; the Critical Fractile</a>
+  <a href="#threshold">3. Cost-Optimal Classification Threshold</a>
+  <a href="#reweight">4. Impact Reweighting</a>
+  <a href="#spo">5. The SPO+ Loss</a>
+  <a href="#perturbed">6. Perturbed-Optimizer Gradients</a>
+  <a href="#saa">7. SAA &amp; In-Sample Optimism</a>
+  <a href="#evaluate">8. Decision-Aware Evaluation</a>
+  <a href="#llms">9. Cost-Weighted LLM Fine-Tuning</a>
+  <a href="#check">10. Self-Check</a>
+  <a href="fine_tuning_llms.html" class="xlink">↪ Companion tutorial: Fine-Tuning LLMs with LoRA &amp; QLoRA</a>
+</nav>
+<span class="toc-resize" id="tocResize" title="Drag to resize · double-click to reset"></span>
+<button class="toc-open" id="tocOpen" type="button" title="Show sidebar">☰ Contents</button>
+
+<main>
+
+<!-- ===================== OBJECTIVE ===================== -->
+<section id="objective">
+  <h2>1. The Objective, Formally</h2>
+  <p>Every page below is a variation on one setup: features <span class="math">x</span>, an uncertain
+  quantity <span class="math">y</span>, a predictor <span class="math">f<sub>θ</sub>(x) = ŷ</span>,
+  and an optimizer that turns the prediction into a decision. Learn these four equations; everything
+  else is code.</p>
+
+  <div class="eq">
+    (1) pipeline:&nbsp; d(ŷ) = arg min<sub>d ∈ D</sub> c(d; ŷ)<br>
+    (2) task loss:&nbsp; ℓ<sub>task</sub>(ŷ, y) = c( d(ŷ); y ) &nbsp;&nbsp;— piecewise-constant in ŷ<br>
+    (3) regret vs perfect information:&nbsp; Regret(θ) = E[ c(d(f<sub>θ</sub>(x)); y) − c(d(y); y) ]<br>
+    (4) surrogate training objective:&nbsp; min<sub>θ</sub> (1/n) Σ ℓ<sub>surrogate</sub>(f<sub>θ</sub>(x<sub>i</sub>), y<sub>i</sub>) + λ·R(θ)
+  </div>
+
+  <p>Equation (2) is why this field exists: <span class="math">d(·)</span> is an <em>arg min</em>, so
+  the task loss is piecewise-constant — its gradient is zero almost everywhere and uninformative at
+  the jumps. You cannot backprop through it directly. Sections 2–4 avoid the problem by
+  <em>changing the target</em> (quantile, threshold, weights); Sections 5–6 fix it by
+  <em>surrogate losses</em> that have real gradients.</p>
+
+  <div class="note"><strong>The one intuition:</strong> a prediction error only costs money when it
+  changes <span class="math">d(ŷ)</span>. Decision-aware learning spends model capacity exactly on
+  those errors — in deployment (Sierra Leone medicines) this meant weighting under-stocked facilities
+  8–10× in the loss, and raised actual medicine consumption by 19%.</div>
+</section>
+
+<!-- ===================== NEWSVENDOR ===================== -->
+<section id="newsvendor">
+  <h2>2. Newsvendor &amp; the Critical Fractile</h2>
+  <p>The hello-world of decision-aware ML. Order <span class="math">q</span> before seeing demand
+  <span class="math">D</span>; overage costs <span class="math">c<sub>o</sub></span> per unsold unit,
+  underage costs <span class="math">c<sub>u</sub></span> per unmet one.</p>
+
+  <div class="eq">
+    E[cost(q, D)] = c<sub>o</sub>·E[(q − D)<sup>+</sup>] + c<sub>u</sub>·E[(D − q)<sup>+</sup>]&nbsp;&nbsp;where&nbsp; (t)<sup>+</sup> = max(t, 0)<br>
+    first-order condition:&nbsp; P(D ≤ q*) = c<sub>u</sub> / (c<sub>u</sub> + c<sub>o</sub>)<br>
+    ∴ q* = F<sup>−1</sup>( c<sub>u</sub> / (c<sub>u</sub> + c<sub>o</sub>) ) &nbsp;&nbsp;— the critical fractile quantile
+  </div>
+
+  <p>Decision-awareness in one closed form: the costs do not change the forecast — they change
+  <strong>which quantile of the forecast you act on</strong>. An MSE model predicts the mean and
+  answers the wrong question whenever <span class="math">c<sub>u</sub> ≠ c<sub>o</sub></span>.</p>
+
+
+  <p>The empirical quantile is visibly what it is — <em>sort, index at the fractile</em> — and the
+  whole experiment (sample → quantile → evaluate on a million draws) compiles to one pass with no
+  interpreter in the loop. It runs the experiment twice, so the claim above is a measurement rather
+  than an assertion: <code>q_mse</code> is what an MSE forecast hands you, <code>q_da</code> is what
+  the fractile hands you, and the two expected costs are printed side by side.</p>
+
+  <pre class="mojo"><code><span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+<span class="tok-k">from</span> std.random <span class="tok-k">import</span> random_float64, seed
+<span class="tok-k">from</span> std.math <span class="tok-k">import</span> <span class="tok-f">sqrt</span>, <span class="tok-f">log</span>, <span class="tok-f">cos</span>, <span class="tok-f">exp</span>, PI
+
+<span class="tok-k">def</span> <span class="tok-f">lognormal</span>(mu: Float64, sigma: Float64, n: Int) -&gt; List[Float64]:
+    <span class="tok-k">var</span> xs = List[Float64]()
+    <span class="tok-k">for</span> _ <span class="tok-k">in</span> <span class="tok-f">range</span>(n):                <span class="tok-c"># Box–Muller</span>
+        <span class="tok-k">var</span> u1 = random_float64(<span class="tok-num">1e-12</span>, <span class="tok-num">1.0</span>)
+        <span class="tok-k">var</span> u2 = random_float64(<span class="tok-num">0.0</span>, <span class="tok-num">1.0</span>)
+        <span class="tok-k">var</span> z = <span class="tok-f">sqrt</span>(-<span class="tok-num">2.0</span>*<span class="tok-f">log</span>(u1)) * <span class="tok-f">cos</span>(<span class="tok-num">2.0</span>*PI*u2)
+        xs.append(<span class="tok-f">exp</span>(mu + sigma*z))
+    <span class="tok-k">return</span> xs
+
+<span class="tok-k">def</span> <span class="tok-f">mean_of</span>(xs: List[Float64]) -&gt; Float64:
+    <span class="tok-k">var</span> s: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> x <span class="tok-k">in</span> xs:
+        s += x
+    <span class="tok-k">return</span> s / Float64(<span class="tok-f">len</span>(xs))
+
+<span class="tok-k">def</span> <span class="tok-f">quantile</span>(xs: List[Float64], q: Float64) -&gt; Float64:
+    xs.sort()                          <span class="tok-c"># empirical quantile = sorted index</span>
+    <span class="tok-k">return</span> xs[Int(q * Float64(<span class="tok-f">len</span>(xs)-<span class="tok-num">1</span>) + <span class="tok-num">0.5</span>)]
+
+<span class="tok-k">def</span> <span class="tok-f">cost</span>(q: Float64, d: Float64, c_u: Float64,
+         c_o: Float64) -&gt; Float64:
+    <span class="tok-k">return</span> c_o*<span class="tok-f">max</span>(q-d, <span class="tok-num">0.0</span>) + c_u*<span class="tok-f">max</span>(d-q, <span class="tok-num">0.0</span>)
+
+<span class="tok-k">def</span> <span class="tok-f">main</span>():
+    seed(<span class="tok-num">42</span>)
+    <span class="tok-k">var</span> c_u: Float64 = <span class="tok-num">8.0</span>
+    <span class="tok-k">var</span> c_o: Float64 = <span class="tok-num">1.0</span>
+    <span class="tok-k">var</span> fr = c_u / (c_u + c_o)
+    <span class="tok-k">var</span> hist = lognormal(<span class="tok-num">3.0</span>, <span class="tok-num">0.6</span>, <span class="tok-num">200</span>)
+    <span class="tok-k">var</span> q_da = quantile(hist, fr)      <span class="tok-c"># cost-aware order: the quantile</span>
+    <span class="tok-k">var</span> q_mse = mean_of(hist)          <span class="tok-c"># wrong target: the mean an MSE model gives</span>
+    <span class="tok-k">var</span> test = lognormal(<span class="tok-num">3.0</span>, <span class="tok-num">0.6</span>, <span class="tok-num">1_000_000</span>)
+    <span class="tok-k">var</span> tot_da: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">var</span> tot_mse: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> d <span class="tok-k">in</span> test:
+        tot_da  += cost(q_da,  d, c_u, c_o)
+        tot_mse += cost(q_mse, d, c_u, c_o)
+    <span class="tok-f">print</span>(<span class="tok-s">"mean order    :"</span>, tot_mse / <span class="tok-num">1e6</span>)   <span class="tok-c"># what an MSE forecast pays</span>
+    <span class="tok-f">print</span>(<span class="tok-s">"quantile order:"</span>, tot_da  / <span class="tok-num">1e6</span>)   <span class="tok-c"># quantile wins big</span></code></pre>
+</section>
+
+<!-- ===================== THRESHOLD ===================== -->
+<section id="threshold">
+  <h2>3. Cost-Optimal Classification Threshold</h2>
+  <p>Same idea for classifiers: with asymmetric error costs, the operating threshold is not 0.5 —
+  it falls out of the cost ratio. For a binary problem with predicted probability
+  <span class="math">p = P(y=1|x)</span>:</p>
+
+  <div class="eq">
+    predict positive iff&nbsp; p · c<sub>FN</sub> &gt; (1 − p) · c<sub>FP</sub><br>
+    ⟹&nbsp; threshold&nbsp; τ* = c<sub>FP</sub> / (c<sub>FP</sub> + c<sub>FN</sub>)<br>
+    expected cost of decision (1,0):&nbsp; (1−p)·c<sub>FP</sub> &nbsp;·&nbsp; decision (0,1):&nbsp; p·c<sub>FN</sub> &nbsp;— pick the smaller
+  </div>
+
+  <p>Triage example: sending a severe patient home costs 8, escalating a mild one costs 1.5, so
+  <span class="math">τ* = 1.5 / 9.5 ≈ 0.158</span> — escalate anyone with &gt;16% severe risk.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+
+<span class="tok-k">def</span> <span class="tok-f">threshold</span>(c_fp: Float64, c_fn: Float64) -&gt; Float64:
+    <span class="tok-k">return</span> c_fp / (c_fp + c_fn)
+
+<span class="tok-k">def</span> <span class="tok-f">decide</span>(p: List[Float64], tau: Float64) -&gt; List[Int]:
+    <span class="tok-k">var</span> out = List[Int](capacity=len(p))
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(len(p)):
+        out[i] = <span class="tok-num">1</span> <span class="tok-k">if</span> p[i] &gt; tau <span class="tok-k">else</span> <span class="tok-num">0</span>
+    <span class="tok-k">return</span> out
+
+<span class="tok-k">def</span> <span class="tok-f">decision_cost</span>(C: List[Float64],       <span class="tok-c"># flattened 2×2</span>
+                    y: List[Int], d: List[Int]) -&gt; Float64:
+    <span class="tok-k">var</span> total: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(len(y)):
+        total += C[y[i]*<span class="tok-num">2</span> + d[i]]       <span class="tok-c"># C[y, d]</span>
+    <span class="tok-k">return</span> total / Float64(len(y))</code></pre>
+</section>
+
+<!-- ===================== REWEIGHT ===================== -->
+<section id="reweight">
+  <h2>4. Impact Reweighting</h2>
+  <p>The simplest decision-aware training change, and what was actually deployed for medicine
+  allocation: keep the off-the-shelf model, weight the loss by decision impact. It is the
+  first-order Taylor approximation of the decision loss (Chung et al., ML4H 2022):</p>
+
+  <div class="eq">
+    ℓ<sub>weighted</sub>(θ) = (1/n) Σ<sub>i</sub> w<sub>i</sub> · ( f<sub>θ</sub>(x<sub>i</sub>) − y<sub>i</sub> )² &nbsp;&nbsp;with&nbsp; w<sub>i</sub> ∝ ∂(decision cost) / ∂(prediction error at i)
+  </div>
+
+  <p>For stock allocation the impact weight is the unmet-demand exposure: facilities likely to run
+  out of stock get up-weighted, exactly the Sierra Leone design.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> tensor <span class="tok-k">import</span> Tensor
+
+<span class="tok-k">def</span> <span class="tok-f">decision_weights</span>(hist: Tensor[DType.float64],
+                     stock: Tensor[DType.float64],
+                     c_u: Float64) -&gt; Tensor[DType.float64]:
+    <span class="tok-k">var</span> n = hist.num_elements()
+    <span class="tok-k">var</span> impact = Tensor[DType.float64](n)
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+        <span class="tok-k">var</span> cover = stock[i] / (hist[i] + <span class="tok-num">1e-9</span>)
+        cover = min(max(cover, <span class="tok-num">0.0</span>), <span class="tok-num">1.0</span>)   <span class="tok-c"># clip to [0,1]</span>
+        impact[i] = c_u * (<span class="tok-num">1.0</span> - cover)
+    <span class="tok-k">return</span> impact / impact.reduce_add()   <span class="tok-c"># weights sum to 1</span>
+
+<span class="tok-c"># weights computed in Mojo, consumed in Python:</span>
+<span class="tok-c">#   model.fit(x, y, sample_weight=weights.to_numpy())</span></code></pre>
+
+  <div class="note">The weighting kernel is pure arithmetic over contiguous memory — that is Mojo's
+  half of the job. Training stays in the Python ecosystem via the interop bridge.</div>
+</section>
+
+<!-- ===================== SPO+ ===================== -->
+<section id="spo">
+  <h2>5. The SPO+ Loss</h2>
+  <p>Impact reweighting is a first-order fix. The <strong>SPO+ loss</strong> (Elmachtoub &amp;
+  Grigas, "Smart Predict, then Optimize") is a genuine convex surrogate for the regret, valid for
+  linear objectives <span class="math">c(d; y) = yᵀd</span> over a polyhedral feasible set:</p>
+
+  <div class="eq">
+    ℓ<sub>SPO+</sub>(ŷ, y) = max<sub>d ∈ D</sub> [ yᵀd − 2ŷᵀd ] + min<sub>d ∈ D</sub> yᵀd<br><br>
+    = c(d(−y); y) − 2·c(d(ŷ); y) + c(d(y); y) &nbsp;&nbsp;(worst-case − twice-your − optimal)<br><br>
+    ℓ<sub>SPO+</sub> ≥ Regret(ŷ, y) &nbsp;always;&nbsp; convex in ŷ;&nbsp; exact surrogation for the LP case
+  </div>
+
+  <p>Read it as: <em>take the decision that is worst under the true costs but attractive under your
+  forecast, and charge yourself its true cost, credited by what your forecast's decision and the
+  oracle decision would have cost.</em> Convex in <span class="math">ŷ</span> — so it plugs into
+  gradient training. Canonical example: shortest path with predicted edge costs.</p>
+
+
+  <pre class="mojo"><code><span class="tok-c"># SPO+ for the 1-D allocation case: D = [0, q_max], c(d; y) = -y*d</span>
+<span class="tok-c"># (buy d units, earn y per unit). d(c) = q_max if c &gt; 0 else 0.</span>
+
+<span class="tok-k">def</span> <span class="tok-f">d_of</span>(c: Float64, q_max: Float64) -&gt; Float64:
+    <span class="tok-k">return</span> q_max <span class="tok-k">if</span> c &gt; <span class="tok-num">0.0</span> <span class="tok-k">else</span> <span class="tok-num">0.0</span>
+
+<span class="tok-k">def</span> <span class="tok-f">spo_plus_1d</span>(y: Float64, y_hat: Float64,
+                    q_max: Float64) -&gt; Float64:
+    <span class="tok-k">var</span> c_your = -(y * d_of(y_hat, q_max))     <span class="tok-c"># c(d(y_hat); y)</span>
+    <span class="tok-k">var</span> c_orac = -(y * d_of(y,      q_max))     <span class="tok-c"># c(d(y); y)</span>
+    <span class="tok-c"># worst-case over D = {0, q_max}: pick the max of the two corners</span>
+    <span class="tok-k">var</span> g0 = y*<span class="tok-num">0.0</span>  - <span class="tok-num">2.0</span>*y_hat*<span class="tok-num">0.0</span>
+    <span class="tok-k">var</span> g1 = y*q_max - <span class="tok-num">2.0</span>*y_hat*q_max
+    <span class="tok-k">return</span> max(g0, g1) - <span class="tok-num">2.0</span>*c_your + c_orac
+
+<span class="tok-c"># piecewise-linear in y_hat → subgradient exists everywhere;</span>
+<span class="tok-c"># train with a subgradient step per sample.</span></code></pre>
+
+  <p class="note"><strong>Alternatives at a glance:</strong> <strong>DSL</strong> smooths the
+  decision loss with a bandwidth <span class="math">h → 0</span> (robust under misspecification);
+  <strong>perturbed optimizers</strong> (next section) randomize instead. SPO+ needs the LP
+  structure; perturbation needs only a solver you can call <span class="math">k</span> times.</p>
+</section>
+
+<!-- ===================== PERTURBED ===================== -->
+<section id="perturbed">
+  <h2>6. Perturbed-Optimizer Gradients</h2>
+  <p>General recipe when you cannot write the arg min analytically: add random noise, average,
+  differentiate the average. Randomized smoothing of the optimizer gives a differentiable map with
+  a Monte-Carlo gradient estimator:</p>
+
+  <div class="eq">
+    d̃<sub>ε,μ</sub>(ŷ) = E<sub>Z</sub>[ d(ŷ + εZ) ],&nbsp; Z ~ N(0, Σ)<br><br>
+    ∇<sub>ŷ</sub> d̃ ≈ (1/k) Σ<sub>j</sub> d(ŷ + εZ<sub>j</sub>) · Z<sub>j</sub>ᵀ / ε &nbsp;&nbsp;(used inside the chain rule for ∇<sub>θ</sub>)
+  </div>
+
+  <p>Cost <span class="math">k</span> optimizer solves per training step — a throughput problem,
+  i.e. exactly the workload where the Mojo version of the inner loop pays for itself. The smoothed
+  decision <span class="math">d̃ = (1/k) Σ d<sub>j</sub></span> comes out of the very same loop: keep
+  a running sum alongside the gradient and it is the action you report, while the gradient is the
+  thing you train on.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+<span class="tok-k">from</span> std.random <span class="tok-k">import</span> normal_float64, seed
+<span class="tok-k">from</span> std.math <span class="tok-k">import</span> sqrt
+
+<span class="tok-k">def</span> <span class="tok-f">perturbed_grad</span>(y_hat: List[Float64],
+                     solve: SolverFn, eps: Float64,
+                     k: Int) -&gt; List[Float64]:
+    <span class="tok-k">var</span> n = len(y_hat)
+    <span class="tok-k">var</span> grad = List[Float64](n, <span class="tok-num">0.0</span>)
+    <span class="tok-k">for</span> j <span class="tok-k">in</span> range(k):
+        <span class="tok-k">var</span> z = List[Float64](n)
+        <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+            z[i] = normal_float64()
+        <span class="tok-k">var</span> noisy = List[Float64](n)
+        <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+            noisy[i] = y_hat[i] + eps * z[i]
+        <span class="tok-k">var</span> d_j = solve(noisy)         <span class="tok-c"># one optimizer solve</span>
+        <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+            grad[i] += d_j[i] * z[i] / eps
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+        grad[i] /= Float64(k)
+    <span class="tok-k">return</span> grad
+
+<span class="tok-c"># k solves per step × millions of steps — batch them and the</span>
+<span class="tok-c"># compiled loop is the difference between a day and an hour.</span></code></pre>
+</section>
+
+<!-- ===================== SAA ===================== -->
+<section id="saa">
+  <h2>7. SAA &amp; In-Sample Optimism</h2>
+  <p>Sample Average Approximation — OR's workhorse — plus the bias that breaks it in the
+  small-data regime, and the correction:</p>
+
+  <div class="eq">
+    SAA:&nbsp; min<sub>d</sub> E[c(d; Z)] &nbsp;→&nbsp; min<sub>d</sub> (1/n) Σ<sub>i</sub> c(d; Z<sub>i</sub>)<br><br>
+    optimism:&nbsp; E[ in-sample objective ] &lt; true objective,&nbsp; bias ≈ p/n &nbsp;(p ≈ effective # of fit parameters)<br>
+    cross-validation does <em>not</em> remove it — every fold re-optimises on training data (non-vanishing bias)<br><br>
+    VGC debiasing:&nbsp; Ĉ<sub>out</sub> = Ĉ<sub>in</sub> + (∂ Ĉ<sub>in</sub> / ∂ Zᵢ)ᵀ Σ<sub>Z</sub> (∂ Ĉ<sub>in</sub> / ∂ Zᵢ) · (1/n) &nbsp;— smooth in policy parameters, usable for <em>selection</em>, not just evaluation
+  </div>
+
+
+  <pre class="mojo"><code><span class="tok-c"># 1) see the optimism yourself: SAA newsvendor on tiny samples.</span>
+<span class="tok-c">#    (reuses quantile(), cost() and lognormal() from Section 2)</span>
+<span class="tok-k">def</span> <span class="tok-f">main</span>():
+    seed(<span class="tok-num">0</span>)
+    <span class="tok-k">var</span> c_u: Float64 = <span class="tok-num">8.0</span>
+    <span class="tok-k">var</span> c_o: Float64 = <span class="tok-num">1.0</span>
+    <span class="tok-k">var</span> n = <span class="tok-num">30</span>                         <span class="tok-c"># n = 30 only</span>
+    <span class="tok-k">var</span> reps = <span class="tok-num">500</span>
+    <span class="tok-k">var</span> in_sample: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">var</span> out_sample: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> _ <span class="tok-k">in</span> <span class="tok-f">range</span>(reps):
+        <span class="tok-k">var</span> train = lognormal(<span class="tok-num">3.0</span>, <span class="tok-num">0.6</span>, n)
+        <span class="tok-k">var</span> q = quantile(train, c_u / (c_u + c_o))
+        <span class="tok-k">var</span> c_in: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-k">for</span> d <span class="tok-k">in</span> train:
+            c_in += cost(q, d, c_u, c_o)
+        in_sample += c_in / Float64(n)     <span class="tok-c"># looks great…</span>
+        <span class="tok-k">var</span> test = lognormal(<span class="tok-num">3.0</span>, <span class="tok-num">0.6</span>, <span class="tok-num">10_000</span>)
+        <span class="tok-k">var</span> c_out: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-k">for</span> d <span class="tok-k">in</span> test:
+            c_out += cost(q, d, c_u, c_o)
+        out_sample += c_out / <span class="tok-num">10_000.0</span>     <span class="tok-c"># …but this is the truth</span>
+    in_sample /= Float64(reps)
+    out_sample /= Float64(reps)
+    <span class="tok-f">print</span>(<span class="tok-s">"in-sample    :"</span>, in_sample)
+    <span class="tok-f">print</span>(<span class="tok-s">"out-of-sample:"</span>, out_sample)
+    <span class="tok-f">print</span>(<span class="tok-s">"gap (the bias):"</span>, out_sample - in_sample)
+
+<span class="tok-c"># 2) VGC-style bootstrap debias, 1-D newsvendor:</span>
+<span class="tok-c">#    perturb the sample, re-solve, measure sensitivity.</span>
+<span class="tok-k">def</span> <span class="tok-f">vgc_debias</span>(samples: List[Float64],
+               c_u: Float64, c_o: Float64,
+               delta: Float64) -&gt; Float64:
+    <span class="tok-k">var</span> q0 = quantile(samples, c_u/(c_u+c_o))
+    <span class="tok-k">var</span> n = <span class="tok-f">len</span>(samples)
+    <span class="tok-k">var</span> bias: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> <span class="tok-f">range</span>(n):
+        samples[i] += delta              <span class="tok-c"># perturb one sample</span>
+        <span class="tok-k">var</span> q1 = quantile(samples, c_u/(c_u+c_o))
+        samples[i] -= delta              <span class="tok-c"># restore</span>
+        <span class="tok-c"># dC/dZ_i ≈ Δobjective / Δsample; accumulate squared sensitivities</span>
+        bias += (cost(q1, samples[i], c_u, c_o)
+               - cost(q0, samples[i], c_u, c_o)) ** <span class="tok-num">2</span>
+    <span class="tok-k">return</span> bias * delta / Float64(n) / <span class="tok-num">2.0</span>
+
+<span class="tok-c"># debiased estimate = in-sample cost + vgc_debias(...)</span></code></pre>
+
+  <p class="warn"><strong>Small-data, large-scale regime:</strong> ~37 monthly observations per
+  facility, thousands of facility–product pairs. Every estimate is noisy; every optimizer overfits
+  its sample. The toolkit: multi-task pooling, catalytic priors toward a population baseline,
+  impact weighting (Section 4), and VGC debiasing before you trust any comparison.</p>
+</section>
+
+<!-- ===================== EVALUATE ===================== -->
+<section id="evaluate">
+  <h2>8. Decision-Aware Evaluation</h2>
+  <p>One loop, three numbers — mean decision cost, per-component cost, and worst-group cost
+  (equity). AUC never appears.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">def</span> <span class="tok-f">mean_decision_cost</span>(C: Tensor[DType.float64],
+                          y: List[Int],
+                          d: List[Int]) -&gt; Float64:
+    <span class="tok-k">var</span> total: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(len(y)):
+        total += C[y[i], d[i]]
+    <span class="tok-k">return</span> total / Float64(len(y))
+
+<span class="tok-c"># worst-group: same loop over per-group index lists, keep the max.</span>
+<span class="tok-c"># One compiled pass = mean + components + equity for a million rows.</span></code></pre>
+</section>
+
+<!-- ===================== LLMS ===================== -->
+<section id="llms">
+  <h2>9. Cost-Weighted LLM Fine-Tuning</h2>
+  <p>When the decision-maker is a fine-tuned LLM, decision-awareness means the <em>loss weights and
+  the reward</em> carry the cost matrix — not the token loss. Mechanics (LoRA/QLoRA) are in the
+  <a href="fine_tuning_llms.html" style="color:var(--acc2);">companion tutorial</a>.</p>
+
+  <div class="eq">
+    weighted SFT loss:&nbsp; L(θ) = − Σ<sub>i</sub> w<sub>i</sub> · log P<sub>θ</sub>(response<sub>i</sub> | prompt<sub>i</sub>) &nbsp;&nbsp;with&nbsp; w<sub>i</sub> = expected decision impact of example i<br><br>
+    RLHF/DPO reward:&nbsp; r(output) = − E[ decision cost of the action parsed from output ]
+  </div>
+
+
+  <pre class="mojo"><code><span class="tok-k">def</span> <span class="tok-f">example_weight</span>(p_severe: Float64,
+                     c_fp: Float64, c_fn: Float64) -&gt; Float64:
+    <span class="tok-k">return</span> p_severe*c_fn + (<span class="tok-num">1.0</span> - p_severe)*c_fp
+
+<span class="tok-c"># weights for 1M training rows: one compiled pass, shipped to the</span>
+<span class="tok-c"># Python trainer as a NumPy array across the interop bridge.</span></code></pre>
+</section>
+
+<!-- ===================== SELF-CHECK ===================== -->
+<section id="check">
+  <h2>10. Self-Check</h2>
+  <div class="card">
+    <ol>
+      <li>Derive the critical fractile <span class="math">q* = F<sup>−1</sup>(c<sub>u</sub>/(c<sub>u</sub>+c<sub>o</sub>))</span> from the first-order condition of the newsvendor cost. Why does an MSE forecast order the wrong quantity?</li>
+      <li>With <span class="math">c<sub>FP</sub>=1.5, c<sub>FN</sub>=8</span>, compute the optimal threshold and verify it against the code in Section 3.</li>
+      <li>Explain, using equation (2) of Section 1, why you cannot backprop through an arg min — and name the two escape routes used in Sections 5 and 6.</li>
+      <li>Write the SPO+ loss for the 1-D buy/sell allocation and check the Mojo implementation against the formula.</li>
+      <li>Run the SAA optimism experiment (Section 7) at n = 30, 100, 1000. How does the in-sample/out-of-sample gap shrink? Does 10-fold CV close it?</li>
+      <li>Port the impact-reweighting kernel to Mojo for your own problem and time it against the NumPy version at n = 10⁶.</li>
+    </ol>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer>
+<p>Decision-Aware ML, code-first: newsvendor · thresholds · reweighting · SPO+ · perturbed optimizers · SAA/VGC — in Mojo 1.x. Companion: <a href="fine_tuning_llms.html" style="color:var(--acc2);">Fine-Tuning LLMs</a>.</p>
+</footer>
+
+<script>
+  const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  const map = new Map();
+  links.forEach(l => map.set(l.getAttribute('href').slice(1), l));
+  const secs = [...document.querySelectorAll('main section[id], main h3[id]')];
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && map.has(e.target.id)){
+        links.forEach(l => l.classList.remove('active'));
+        map.get(e.target.id).classList.add('active');
+      }
+    });
+  }, {rootMargin:'-20% 0px -70% 0px'});
+  secs.forEach(s => io.observe(s));
+
+  (function(){
+    const KEY='tutme-toc-da';
+    let st={};
+    try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+    const root=document.documentElement;
+    const btn=document.getElementById('tocToggle'), tab=document.getElementById('tocOpen'), rs=document.getElementById('tocResize');
+    if(st.w)root.style.setProperty('--tocw',st.w+'px');
+    if(st.collapsed)document.body.classList.add('toc-collapsed');
+    const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({collapsed:document.body.classList.contains('toc-collapsed'),w:st.w}))}catch(e){}};
+    if(btn)btn.addEventListener('click',()=>{document.body.classList.add('toc-collapsed');save();});
+    if(tab)tab.addEventListener('click',()=>{document.body.classList.remove('toc-collapsed');save();});
+    if(rs){
+      let drag=false;
+      rs.addEventListener('mousedown',e=>{drag=true;rs.classList.add('on');document.body.style.cursor='col-resize';document.body.style.userSelect='none';e.preventDefault();});
+      rs.addEventListener('dblclick',()=>{st.w=null;root.style.removeProperty('--tocw');save();});
+      addEventListener('mousemove',e=>{if(!drag)return;st.w=Math.max(180,Math.min(420,e.clientX-25));root.style.setProperty('--tocw',st.w+'px');});
+      addEventListener('mouseup',()=>{if(drag){drag=false;rs.classList.remove('on');document.body.style.cursor='';document.body.style.userSelect='';save();}});
+    }
+  })();
+</script>
+
+</body>
+</html>

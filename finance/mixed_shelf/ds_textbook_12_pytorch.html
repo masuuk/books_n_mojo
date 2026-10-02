@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_12_pytorch_onnx_max.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 12 — Interfacing with PyTorch, ONNX, and the MAX Engine · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{
+  --bg:#0c0906; --bg-1:#120c08; --bg-2:#191009;
+  --paper:#fdf8ea; --paper-dim:#e8dcc0; --paper-faint:#c9b898;
+  --ember-1:#ff7a1a; --ember-2:#ffb238; --ember-3:#c2360c;
+  --line:rgba(244,234,215,0.24); --line-strong:rgba(244,234,215,0.48);
+  --good:#9fe6a8; --bad:#e88b8b;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7;}
+::selection{background:var(--ember-1);color:#1a0d04;}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s;}
+nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px;}
+.brand:hover{color:var(--paper);}
+.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em;}
+.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem;}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem;}
+.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem;}
+h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line);}
+h2:first-of-type{border-top:none;}
+h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper);}
+p{color:var(--paper-dim);margin:0 0 1.1rem;}
+p b, li b{color:var(--paper);}
+a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4);}
+ul,ol{color:var(--paper-dim);padding-left:1.3rem;}
+li{margin-bottom:0.5rem;}
+code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line);}
+.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0;}
+.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block;}
+.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem;}
+.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03);}
+.callout.beta .lbl{color:var(--paper-faint);}
+.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto;}
+.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s;}
+.tab .sw{width:7px;height:7px;border-radius:50%;flex:none;}
+.tab[data-lang="mojo"] .sw{background:var(--ember-2);}
+.tab.active{color:var(--paper);background:var(--bg);}
+.tab:hover{color:var(--paper);}
+.pane{display:none;padding:1.3rem 1.5rem;}
+.pane.active{display:block;}
+pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto;}
+.tok-kw{color:var(--ember-2);} .tok-str{color:#9fd9a0;} .tok-com{color:var(--paper-faint);font-style:italic;}
+.tok-fn{color:#7fc8e8;} .tok-num{color:#e8b774;} .tok-ty{color:#d3a4e8;}
+.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem;}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem;}
+.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint);}
+.code-block pre{padding:1.2rem 1.4rem;}
+table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem;}
+th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim);}
+th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500;}
+td:first-child, th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem;}
+.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0;}
+.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem;}
+.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem;}
+.opts{display:flex;flex-direction:column;gap:0.6rem;}
+.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s, background .15s, color .15s;}
+.opt:hover{border-color:var(--ember-2);color:var(--paper);}
+.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good);}
+.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad);}
+.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace;}
+.feedback.show{display:block;}
+.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--ember-2);transform:scale(1.3);}
+@media (max-width:900px){.mini-toc{display:none;}}
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap;}
+.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s;}
+.navbtn:hover{border-color:var(--ember-2);color:var(--paper);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0;}
+.exercises ol{margin:0;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<nav>
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a>
+  <span class="chnum">Chapter 12 / 13</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</nav>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_textbook_12_pytorch.html#pytorch-interop" data-t="pytorch-interop" title="Using PyTorch from Mojo"></a>
+  <a href="ds_textbook_12_pytorch.html#onnx" data-t="onnx" title="ONNX Export and Inference"></a>
+  <a href="ds_textbook_12_pytorch.html#max-engine" data-t="max-engine" title="MAX Engine"></a>
+  <a href="ds_textbook_12_pytorch.html#optimization" data-t="optimization" title="Model Optimization and Quantization"></a>
+  <a href="ds_textbook_12_pytorch.html#quiz" data-t="quiz" title="Check your understanding"></a>
+  <a href="ds_textbook_12_pytorch.html#exercises" data-t="exercises" title="Exercises"></a>
+</div>
+
+<div class="wrap">
+  <div class="kicker">Part III — Production · Chapter 12</div>
+  <h1>🔌 Interfacing with PyTorch, ONNX, and the MAX Engine</h1>
+  <p class="dek">You don't have to throw away your PyTorch models to use Mojo. This chapter shows how Mojo interops with PyTorch directly, how to export models via ONNX, and how the MAX Engine takes inference from Python-speed to native-speed.</p>
+
+  <section id="pytorch-interop">
+    <h2>Using PyTorch from Mojo</h2>
+    <p>Mojo's Python interoperability layer lets you import and call any Python module directly from Mojo code. This means you can train a model in PyTorch, save it, and then run inference from Mojo without rewriting your model architecture. The <code class="inline">Python.import_module</code> function gives you full access to the Python ecosystem.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="pytorch"><span class="sw"></span>pytorch_inference.mojo</div>
+      </div>
+      <div class="panes" data-group="pytorch">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> python import Python
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-com"># Import PyTorch directly from Mojo</span>
+    <span class="tok-kw">var</span> torch = Python.import_module(<span class="tok-str">"torch"</span>)
+    <span class="tok-kw">var</span> nn = Python.import_module(<span class="tok-str">"torch.nn"</span>)
+
+    <span class="tok-com"># Define a simple model</span>
+    <span class="tok-kw">var</span> model = nn.Linear(<span class="tok-num">128</span>, <span class="tok-num">10</span>)
+    model.eval()  <span class="tok-com"># set to inference mode</span>
+
+    <span class="tok-com"># Create input tensor from Mojo data</span>
+    <span class="tok-kw">var</span> input_tensor = torch.randn([<span class="tok-num">1</span>, <span class="tok-num">128</span>])
+
+    <span class="tok-com"># Run inference</span>
+    torch.no_grad()
+    <span class="tok-kw">var</span> output = model(input_tensor)
+    <span class="tok-kw">var</span> prediction = torch.argmax(output, dim=<span class="tok-num">1</span>)
+
+    print(<span class="tok-str">f"Prediction class: {prediction}"</span>)
+
+    <span class="tok-com"># Convert output back to Mojo types</span>
+    <span class="tok-kw">var</span> scores = output.detach().numpy()
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(<span class="tok-num">10</span>):
+        print(<span class="tok-str">f"  Class {i}: {scores[0][i]:.4f}"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The pure-Python spelling of that same block is <code class="inline">import torch</code> / <code class="inline">import torch.nn as nn</code> at module scope, with <code class="inline">with torch.no_grad():</code> wrapping the forward pass. The Mojo pane reaches the identical module through <code class="inline">Python.import_module("torch")</code> and gets gradient suppression from a bare <code class="inline">torch.no_grad()</code> call rather than a context manager.</p>
+
+    <p>The Python interop layer is not a toy — it's a fully functional FFI bridge. You can:</p>
+
+    <ul>
+      <li><b>Call any Python function</b> with automatic type conversion between Mojo and Python types</li>
+      <li><b>Pass Mojo data structures</b> to Python and get results back without serialization</li>
+      <li><b>Use Python's GIL safely</b> — Mojo manages the GIL release/acquire cycle automatically when you call into Python</li>
+      <li><b>Access Python objects as Mojo values</b> — the <code class="inline">PythonObject</code> type wraps any Python reference with proper lifetime management</li>
+    </ul>
+
+    <div class="callout">
+      <span class="lbl">When to use Python interop vs native Mojo</span>
+      <p>Use Python interop for <b>model training</b> (PyTorch's autograd and ecosystem are unmatched), <b>visualization</b> (matplotlib, seaborn), and <b>data loading</b> (pandas, huggingface datasets). Use native Mojo for <b>inference pipelines</b>, <b>data preprocessing at scale</b>, and <b>production serving</b> where every millisecond counts.</p>
+    </div>
+  </section>
+
+  <section id="onnx">
+    <h2>ONNX export and inference</h2>
+    <p>ONNX (Open Neural Network Exchange) is the lingua franca of model deployment. It's a standardized format that describes computation graphs in a way that any runtime can understand. The workflow is straightforward: train in PyTorch, export to ONNX, and run inference in the MAX Engine or any other ONNX runtime.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="onnx"><span class="sw"></span>inference_onnx.mojo</div>
+      </div>
+      <div class="panes" data-group="onnx">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Run inference in Mojo via MAX Engine</span>
+<span class="tok-kw">from</span> max.engine <span class="tok-kw">import</span> InferenceSession
+<span class="tok-kw">from</span> math import exp
+
+<span class="tok-kw">def</span> <span class="tok-fn">softmax</span>(logits: List[Float64]) -&gt; List[Float64]:
+    <span class="tok-kw">var</span> max_val = logits[<span class="tok-num">0</span>]
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> logits:
+        <span class="tok-kw">if</span> v &gt; max_val:
+            max_val = v
+    <span class="tok-kw">var</span> result = List[Float64](capacity=len(logits))
+    <span class="tok-kw">var</span> sum_exp: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> logits:
+        sum_exp += exp(v - max_val)
+    <span class="tok-kw">for</span> v <span class="tok-kw">in</span> logits:
+        result.append(exp(v - max_val) / sum_exp)
+    <span class="tok-kw">return</span> result
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-com"># Load the ONNX model into MAX Engine</span>
+    <span class="tok-kw">var</span> session = InferenceSession(<span class="tok-str">"classifier.onnx"</span>)
+
+    <span class="tok-com"># Prepare input (e.g., a flattened 28x28 image)</span>
+    <span class="tok-kw">var</span> input_data = List[Float64](capacity=<span class="tok-num">784</span>)
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(<span class="tok-num">784</span>):
+        input_data.append(Float64(i) / <span class="tok-num">784.0</span>)
+
+    <span class="tok-com"># Run inference</span>
+    <span class="tok-kw">var</span> output = session.execute(input_data)
+    <span class="tok-kw">var</span> probs = softmax(output)
+
+    <span class="tok-com"># Find the predicted class</span>
+    <span class="tok-kw">var</span> best_idx = <span class="tok-num">0</span>
+    <span class="tok-kw">var</span> best_prob = probs[<span class="tok-num">0</span>]
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(<span class="tok-num">1</span>, len(probs)):
+        <span class="tok-kw">if</span> probs[i] &gt; best_prob:
+            best_prob = probs[i]
+            best_idx = i
+
+    print(<span class="tok-str">f"Predicted class: {best_idx} (p={best_prob:.4f})"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The export half of that workflow still happens in Python: a <code class="inline">nn.Module</code> subclass whose <code class="inline">forward</code> wraps an <code class="inline">nn.Sequential(Linear(784, 256), ReLU, Dropout(0.2), Linear(256, 128), ReLU, Linear(128, 10))</code>, then <code class="inline">torch.onnx.export(model, dummy, "classifier.onnx", dynamic_axes={"input": {0: "batch"}}, opset_version=17)</code>. The <code class="inline">dynamic_axes</code> entry is what lets the Mojo pane vary the batch dimension later, and <code class="inline">opset_version=17</code> is the contract the MAX Engine has to honour when it reads the file.</p>
+
+    <p>The ONNX format captures not just the model weights but the entire computation graph — every matrix multiply, activation, and reshape operation is encoded in a versioned, cross-platform format. This means you can train on GPU in PyTorch and run inference on CPU, mobile, or edge devices without any code changes.</p>
+
+    <table>
+      <thead>
+        <tr><th>Format</th><th>Pros</th><th>Cons</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>PyTorch (.pt)</td><td>Full PyTorch ecosystem, checkpoint support</td><td>Requires PyTorch runtime, Python-dependent</td></tr>
+        <tr><td>ONNX (.onnx)</td><td>Runtime-agnostic, optimized for inference</td><td>Limited training support, opset versioning</td></tr>
+        <tr><td>SavedModel (TF)</td><td>TensorFlow Serving integration</td><td>Heavy dependency chain, limited non-TF use</td></tr>
+        <tr><td>MAX (.max)</td><td>Native Mojo, best performance</td><td>MAX-specific, less ecosystem tooling</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="max-engine">
+    <h2>The MAX Engine for production inference</h2>
+    <p>The MAX Engine is Mojo's native inference runtime. It takes ONNX models (and other formats) and runs them with aggressive compiler optimizations — operator fusion, memory planning, and SIMD vectorization that no Python runtime can match. For data science teams deploying models, this is the path to inference latency that actually meets SLAs.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="max"><span class="sw"></span>max_serving.mojo</div>
+      </div>
+      <div class="panes" data-group="max">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> max.engine <span class="tok-kw">import</span> InferenceSession, Model
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-com"># Load model with hardware-specific optimizations</span>
+    <span class="tok-kw">var</span> session = InferenceSession(
+        <span class="tok-str">"classifier.onnx"</span>,
+        dtype=DType.float32,
+    )
+
+    <span class="tok-com"># Warmup — first inference compiles the graph</span>
+    _ = session.execute(List[Float64](capacity=<span class="tok-num">784</span>))
+
+    <span class="tok-com"># Benchmark inference latency</span>
+    <span class="tok-kw">var</span> total_time: Float64 = <span class="tok-num">0.0</span>
+    <span class="tok-kw">var</span> iterations = <span class="tok-num">1000</span>
+
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(iterations):
+        <span class="tok-kw">var</span> start = now()
+        <span class="tok-kw">var</span> _ = session.execute(input_data)
+        total_time += (now() - start)
+
+    <span class="tok-kw">var</span> avg_ms = (total_time / iterations) * <span class="tok-num">1000</span>
+    print(<span class="tok-str">f"Average latency: {avg_ms:.2f}ms"</span>)
+    print(<span class="tok-str">f"Throughput: {<span class="tok-num">1000</span>/avg_ms:.0f} inferences/sec"</span>)
+
+    <span class="tok-com"># Batch inference for throughput</span>
+    <span class="tok-kw">var</span> batch_size = <span class="tok-num">32</span>
+    <span class="tok-kw">var</span> batch = List[List[Float64]](capacity=batch_size)
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(batch_size):
+        batch.append(create_input(i))
+
+    <span class="tok-kw">var</span> batch_output = session.execute_batch(batch)
+    print(<span class="tok-str">f"Batch of {batch_size} completed"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The same loop in Python runs through <code class="inline">onnxruntime</code>: <code class="inline">ort.InferenceSession("classifier.onnx", providers=["CPUExecutionProvider"])</code>, a warmup <code class="inline">session.run(None, {"input": input_data})</code>, and <code class="inline">time.perf_counter()</code> around the loop. Identical iteration count, identical <code class="inline">avg_ms</code> formula — and the number the 3-10x figure in the callout below is measured against.</p>
+
+    <p>The MAX Engine automatically selects the best execution strategy for your hardware — AVX-512 on modern x86, NEON on ARM, and GPU acceleration when available. This happens at compile time, not at runtime, so there's no overhead from hardware detection.</p>
+
+    <div class="callout">
+      <span class="lbl">⚡ Performance reality check</span>
+      <p>In benchmarks, the MAX Engine typically delivers <b>3-10x lower latency</b> than ONNX Runtime on CPU and <b>2-5x lower latency</b> than PyTorch's native inference. The gap widens with batch size because Mojo's memory model avoids the allocation overhead that Python-based runtimes incur per batch.</p>
+    </div>
+  </section>
+
+  <section id="optimization">
+    <h2>Model optimization and quantization</h2>
+    <p>Raw model export isn't enough for production. The MAX Engine provides built-in optimization passes that reduce model size, improve inference speed, and maintain accuracy. Quantization is the most impactful: it converts floating-point weights to lower-precision integers, shrinking the model and speeding up computation with minimal accuracy loss.</p>
+
+    <div class="demo">
+      <div class="tabbar">
+        <div class="tab active" data-lang="mojo" data-group="opt"><span class="sw"></span>optimize_model.mojo</div>
+      </div>
+      <div class="panes" data-group="opt">
+        <div class="pane active" data-lang="mojo"><pre><span class="tok-kw">from</span> max.engine <span class="tok-kw">import</span> InferenceSession
+<span class="tok-kw">from</span> max.engine.optimization <span class="tok-kw">import</span> (
+    quantize_int8,
+    quantize_int4,
+    fuse_operators,
+    optimize_memory,
+)
+
+<span class="tok-kw">def</span> <span class="tok-fn">main</span>():
+    <span class="tok-com"># Load model</span>
+    <span class="tok-kw">var</span> session = InferenceSession(<span class="tok-str">"classifier.onnx"</span>)
+
+    <span class="tok-com"># Apply optimization pipeline</span>
+    <span class="tok-kw">var</span> optimized = session.optimize([
+        fuse_operators(),       <span class="tok-com"># combine MatMul + Add + ReLU</span>
+        optimize_memory(),      <span class="tok-com"># minimize peak allocation</span>
+        quantize_int8(),        <span class="tok-com"># INT8 weight quantization</span>
+    ])
+
+    <span class="tok-com"># Compare model sizes</span>
+    <span class="tok-kw">var</span> original_size = session.model_size()
+    <span class="tok-kw">var</span> optimized_size = optimized.model_size()
+    <span class="tok-kw">var</span> reduction = (<span class="tok-num">1</span> - optimized_size / original_size) * <span class="tok-num">100</span>
+
+    print(<span class="tok-str">f"Original:  {original_size / <span class="tok-num">1_000_000</span>:.1f} MB"</span>)
+    print(<span class="tok-str">f"Optimized: {optimized_size / <span class="tok-num">1_000_000</span>:.1f} MB"</span>)
+    print(<span class="tok-str">f"Reduction: {reduction:.0f}%"</span>)
+
+    <span class="tok-com"># Benchmark the optimized model</span>
+    <span class="tok-kw">var</span> original_time = benchmark_inference(session, input_data)
+    <span class="tok-kw">var</span> optimized_time = benchmark_inference(optimized, input_data)
+
+    print(<span class="tok-str">f"Speedup: {original_time / optimized_time:.1f}x"</span>)
+
+    <span class="tok-com"># INT4 for edge deployment (more aggressive)</span>
+    <span class="tok-kw">var</span> edge_model = session.optimize([quantize_int4()])
+    print(<span class="tok-str">f"INT4 size: {edge_model.model_size() / <span class="tok-num">1_000_000</span>:.1f} MB"</span>)</pre></div>
+      </div>
+    </div>
+
+    <p class="cap">The Python equivalent is <code class="inline">onnxruntime.quantization.quantize_dynamic(model_input="classifier.onnx", model_output="classifier_int8.onnx", weight_type=QuantType.QInt8)</code>, which writes a second file and measures the win with <code class="inline">os.path.getsize(...)</code> on both paths — a post-hoc, file-level diff. The pipeline above fuses and re-plans in memory instead, so there is no second artifact to ship.</p>
+
+    <h3>Optimization strategies by use case</h3>
+    <table>
+      <thead>
+        <tr><th>Use case</th><th>Strategy</th><th>Accuracy impact</th><th>Speed gain</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Cloud API serving</td><td>INT8 quantization + operator fusion</td><td>&lt;0.5% loss</td><td>2-3x</td></tr>
+        <tr><td>Edge / mobile</td><td>INT4 quantization + memory optimization</td><td>1-2% loss</td><td>3-5x</td></tr>
+        <tr><td>Batch processing</td><td>Operator fusion + batched execution</td><td>None</td><td>4-8x</td></tr>
+        <tr><td>Real-time inference</td><td>INT8 + SIMD + memory planning</td><td>&lt;0.5% loss</td><td>5-10x</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="lbl">When NOT to quantize</span>
+      <p>If your model outputs probabilities that feed into downstream decisions (rather than discrete classifications), quantization noise can cascade. Always validate with your actual production data, not just benchmark datasets. The MAX Engine provides built-in accuracy validation — use it.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check your understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What is the primary purpose of the ONNX format in the Mojo ecosystem?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">It replaces PyTorch for model training</button>
+        <button class="opt" data-correct="true">It provides a runtime-agnostic model format for cross-platform inference</button>
+        <button class="opt" data-correct="false">It's a Mojo-specific serialization format</button>
+        <button class="opt" data-correct="false">It automatically optimizes models for GPU execution</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">✅ Quick check</div>
+      <div class="qtext">What happens during the first inference call to the MAX Engine?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">The model weights are loaded from disk</button>
+        <button class="opt" data-correct="false">The ONNX graph is validated for correctness</button>
+        <button class="opt" data-correct="true">The computation graph is compiled and optimized for the target hardware</button>
+        <button class="opt" data-correct="false">Quantization is applied automatically</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Train a simple classifier in PyTorch on the MNIST dataset. Export it to ONNX and verify the export by loading it back in PyTorch with <code class="inline">onnx.load</code> and checking the graph with <code class="inline">onnx.checker.check_model</code>.</li>
+        <li>Write a Mojo script that loads an ONNX model via the MAX Engine and measures inference latency for batch sizes of 1, 8, 32, and 128. Create a table showing how latency scales with batch size.</li>
+        <li>Apply INT8 quantization to your ONNX model and compare the accuracy on a test set before and after quantization. What is the accuracy delta? Is it within your SLA tolerance?</li>
+        <li>Build a Mojo program that reads a CSV of feature vectors, runs them through an ONNX model in batch mode, and writes predictions to a new CSV. Measure the throughput in rows per second.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_textbook_11_packaging.html">← Chapter 11: Packaging, Testing, and Shipping</a>
+    <a class="navbtn" href="ds_textbook_13_performance.html">Chapter 13: Memory Ownership &amp; Borrowing in Mojo →</a>
+  </div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  progress.style.width = scrolled + '%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active', p.dataset.lang===lang));
+  });
+});
+
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id, feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const already = group.querySelector('.correct, .wrong');
+      if(already) return;
+      const correct = btn.dataset.correct === 'true';
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '✓ Correct.'
+        : '✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+</script>
+
+</body></html>

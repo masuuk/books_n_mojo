@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fine-Tuning LLMs — LoRA &amp; QLoRA, Equations &amp; Code</title>
+<style>
+  :root{
+    --bg:#0e1117; --bg2:#161b22; --bg3:#1c2230; --panel:#0f1420;
+    --fg:#e6edf3; --mut:#ffd98f; --acc:#3fb950; --acc2:#7ee787;
+    --acc3:#56d364; --grn:#3fb950; --ylw:#d29922; --red:#f85149;
+    --line:#30363d; --code:#0d1117;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--fg); line-height:1.7; font-size:16px;
+  }
+  ::selection{background:#264f78; color:#fff;}
+  header{
+    position:sticky; top:0; z-index:60;
+    background:rgba(22,27,34,.88); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line); padding:0 20px;
+  }
+  header .inner{max-width:1180px; margin:0 auto; height:50px; display:flex; align-items:center; gap:14px;}
+  header .brand{display:flex; align-items:center; gap:10px; min-width:0;}
+  header .logo{width:26px; height:26px; border-radius:7px; flex:0 0 26px;
+    display:flex; align-items:center; justify-content:center; font-size:.82rem; line-height:1;
+    background:linear-gradient(135deg,rgba(63,185,80,.18),rgba(126,231,135,.12));
+    border:1px solid rgba(63,185,80,.4); box-shadow:0 0 12px rgba(63,185,80,.15);}
+  header h1{font-size:1.02rem; font-weight:650; margin:0; color:var(--fg);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.005em;}
+  header .kicker{margin-left:auto; font-size:.72rem; color:var(--mut); white-space:nowrap; letter-spacing:.03em;}
+  header .kicker span + span::before{content:"·"; margin:0 8px; color:var(--acc2); opacity:.55;}
+  .wrap{display:flex; gap:18px; max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+  nav.toc{
+    width:var(--tocw,280px); flex:0 0 var(--tocw,280px); position:sticky; top:64px; align-self:flex-start;
+    max-height:calc(100vh - 104px); overflow:auto; color:var(--mut); font-size:.9rem;
+    border-right:1px solid var(--line); padding-right:16px;
+  }
+  nav.toc::-webkit-scrollbar{width:8px;}
+  nav.toc::-webkit-scrollbar-thumb{background:var(--bg3); border-radius:4px;}
+  nav.toc::-webkit-scrollbar-track{background:transparent;}
+  nav.toc .toc-title{font-weight:700; color:var(--fg); text-transform:uppercase; letter-spacing:.06em;
+    font-size:.75rem; margin-bottom:0; color:var(--acc2);}
+  .toc-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .toc-toggle{background:var(--bg2); border:1px solid var(--line); color:var(--mut); border-radius:6px;
+    cursor:pointer; font-size:.72rem; line-height:1; padding:5px 7px; transition:.15s;}
+  .toc-toggle:hover{color:var(--acc); border-color:var(--acc);}
+  .toc-resize{flex:0 0 10px; align-self:stretch; margin:0 -9px; cursor:col-resize; border-radius:4px; z-index:5;}
+  .toc-resize:hover,.toc-resize.on{background:rgba(63,185,80,.16);}
+  body.toc-collapsed nav.toc, body.toc-collapsed .toc-resize{display:none;}
+  .toc-open{display:none; position:fixed; left:0; top:96px; z-index:70;
+    background:var(--panel); border:1px solid var(--line); border-left:none; border-radius:0 8px 8px 0;
+    color:var(--acc2); cursor:pointer; font-size:.68rem; letter-spacing:.12em; padding:14px 7px;
+    writing-mode:vertical-rl; text-orientation:mixed; box-shadow:2px 0 14px rgba(0,0,0,.3);}
+  .toc-open:hover{background:var(--bg2); color:var(--acc);}
+  body.toc-collapsed .toc-open{display:block;}
+  nav.toc a{display:block; color:var(--mut); text-decoration:none; padding:5px 10px; border-radius:6px;
+    transition:.15s; border-left:2px solid transparent;}
+  nav.toc a:hover{color:var(--acc2); background:var(--bg2);}
+  nav.toc a.lvl2{padding-left:24px; font-size:.84rem;}
+  nav.toc a.active{color:var(--acc); border-left-color:var(--acc); background:var(--bg2);}
+  nav.toc a.xlink{margin-top:12px; border:1px dashed var(--line); border-radius:8px; padding:8px 10px; color:var(--acc3);}
+  main{flex:1; min-width:0;}
+  section{scroll-margin-top:78px; margin-bottom:52px;}
+  h2{font-size:1.62rem; color:var(--acc2); margin-bottom:6px; padding-top:8px; border-bottom:1px solid var(--line); padding-bottom:12px;}
+  h3{font-size:1.22rem; color:var(--acc); margin:26px 0 10px;}
+  h4{font-size:1.02rem; color:var(--grn); margin:18px 0 6px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0 10px 26px;}
+  li{margin:5px 0;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin:14px 0; box-shadow:0 1px 0 rgba(255,255,255,.03);}
+  .note{background:rgba(210,153,34,.08); border-left:4px solid var(--ylw); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .warn{background:rgba(248,81,73,.08); border-left:4px solid var(--red); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .good{background:rgba(63,185,80,.08); border-left:4px solid var(--grn); padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  code{font-family:"Cascadia Code",Consolas,Menlo,monospace; font-size:.88em; background:var(--bg3);
+    padding:2px 6px; border-radius:5px; color:var(--acc2);}
+  pre{background:var(--code); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; margin:14px 0;}
+  pre code{background:none; padding:0; color:#c9d1d9; font-size:.86rem; line-height:1.55; display:block;}
+  .tok-k{color:#ff7b72;} .tok-s{color:#a5d6ff;} .tok-c{color:#8b949e; font-style:italic;}
+  .tok-n{color:#56d364;} .tok-f{color:#7ee787;} .tok-num{color:#56d364;}
+  pre.mojo{border-left:3px solid #4fc1ff; background:rgba(79,193,255,.05);}
+  pre.mojo::before{
+    display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    font-family:"Cascadia Code",Consolas,Menlo,monospace;margin-bottom:8px;color:var(--mut);
+    content:"mojo 1.x";color:#4fc1ff;
+  }
+  .math{font-family:Georgia,serif; font-style:italic; font-size:1.02em; color:var(--acc3);}
+  .eq{
+    background:rgba(126,231,135,.06); border:1px dashed rgba(126,231,135,.35); border-radius:10px;
+    padding:14px 20px; margin:14px 0; font-family:Georgia,serif; font-size:1.04rem; color:var(--fg);
+    overflow-x:auto; line-height:1.9; font-style:italic;
+  }
+  .diagram{background:var(--code); color:#fff4d6; border:1px solid var(--line); border-radius:10px;
+    padding:16px 20px; overflow-x:auto; margin:14px 0; font-family:"Cascadia Code",Consolas,monospace; font-size:.86rem; line-height:1.6;}
+  footer{border-top:1px solid var(--line); padding:28px 20px; text-align:center; color:var(--mut); font-size:.85rem; max-width:1180px; margin:0 auto;}
+  .toc-mobile{display:none;}
+  @media(max-width:900px){
+    nav.toc{display:none;}
+    .toc-mobile{display:block; margin-bottom:20px;}
+    .toc-mobile details{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px;}
+    .toc-mobile summary{cursor:pointer; font-weight:700; color:var(--acc2);}
+    .toc-mobile a{display:block; color:var(--mut); padding:4px 8px; text-decoration:none; font-size:.9rem;}
+    header{padding:0 14px;}
+    header h1{font-size:.92rem;}
+    header .kicker{display:none;}
+    .toc-open{display:none!important;}
+    .toc-resize{display:none!important;}
+  }
+</style>
+</head>
+<body>
+<nav style="position:sticky;top:0;z-index:999;display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#16324f;padding:10px 20px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:0.88rem;box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+  <a href="../index.html" style="color:#fff;font-weight:700;text-decoration:none;">📚 TutMe</a>
+  <a href="../single_source_of_truth%20mojo/index.html" style="color:#9fd3ff;text-decoration:none;">📊 Data Science lessons</a>
+  <a href="data_science.html" style="color:#9fd3ff;text-decoration:none;">📖 Data Science Textbook</a>
+  <a href="perceptrons_and_activation.html" style="color:#9fd3ff;text-decoration:none;">🧠 Perceptrons &amp; Activations</a>
+  <a href="nn_mojo.html" style="color:#9fd3ff;text-decoration:none;">🧮 3-4-1 NN · Mojo &amp; NumPy</a>
+  <a href="time_series_analytics.html" style="color:#9fd3ff;text-decoration:none;">📈 Time Series Analytics</a>
+  <a href="linear_regression.html" style="color:#9fd3ff;text-decoration:none;">📉 Linear Regression</a>
+  <a href="decision_aware_ml.html" style="color:#9fd3ff;text-decoration:none;">🧩 Decision-Aware ML</a>
+  <a href="ai_agents_python_vs_mojo.html" style="color:#9fd3ff;text-decoration:none;">💬 AI Agents · Python vs Mojo</a>
+  <a href="../index.html" style="color:#9fd3ff;text-decoration:none;">🏠 Home</a>
+</nav>
+
+<header>
+  <div class="inner">
+    <div class="brand">
+      <span class="logo">🌱</span>
+      <h1>Fine-Tuning LLMs — LoRA &amp; QLoRA, Equations &amp; Code</h1>
+    </div>
+    <div class="kicker"><span>VRAM Math</span><span>LoRA</span><span>NF4</span><span>Merge &amp; Serve</span><span>Mojo 1.x</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc-mobile">
+  <details>
+    <summary>Contents</summary>
+    <a href="#memory">1. The VRAM Equation</a>
+    <a href="#lora">2. LoRA: The Low-Rank Update</a>
+    <a href="#nf4">3. QLoRA: NF4 Quantization</a>
+    <a href="#merge">4. Merging &amp; Serving</a>
+    <a href="#pipeline">5. The Full Training Pipeline</a>
+    <a href="#decide">6. Prompt vs RAG vs Fine-Tune</a>
+    <a href="#eval">7. Evaluation Metrics</a>
+    <a href="#check">8. Self-Check</a>
+  </details>
+</nav>
+
+<!-- ===================== TABLE OF CONTENTS ===================== -->
+<nav class="toc" id="toc">
+  <div class="toc-head">
+    <div class="toc-title">Contents</div>
+    <button class="toc-toggle" id="tocToggle" type="button" title="Hide sidebar">«</button>
+  </div>
+  <a href="#memory">1. The VRAM Equation</a>
+  <a href="#lora">2. LoRA: The Low-Rank Update</a>
+  <a href="#nf4">3. QLoRA: NF4 Quantization</a>
+  <a href="#merge">4. Merging &amp; Serving</a>
+  <a href="#pipeline">5. The Full Training Pipeline</a>
+  <a href="#decide">6. Prompt vs RAG vs Fine-Tune</a>
+  <a href="#eval">7. Evaluation Metrics</a>
+  <a href="#check">8. Self-Check</a>
+  <a href="decision_aware_ml.html" class="xlink">↪ Companion book: Decision-Aware Machine Learning</a>
+  <a href="ai_agents_python_vs_mojo.html" class="xlink">↪ Companion guide: Building AI Agents · Python vs Mojo</a>
+</nav>
+<span class="toc-resize" id="tocResize" title="Drag to resize · double-click to reset"></span>
+<button class="toc-open" id="tocOpen" type="button" title="Show sidebar">☰ Contents</button>
+
+<main>
+
+<!-- ===================== MEMORY ===================== -->
+<section id="memory">
+  <h2>1. The VRAM Equation</h2>
+  <p>Every fine-tuning decision reduces to one accounting identity. During training you must hold
+  weights, gradients, optimizer states, and activations. For a model with <span class="math">P</span>
+  parameters in mixed-precision training with Adam:</p>
+
+  <div class="eq">
+    full fine-tune:&nbsp; M ≈ P·(2 bytes weights<sub>bf16</sub> + 2 gradients + 8 Adam m,v in fp32) + activations<br>
+    = 12·P bytes + activations &nbsp;&nbsp;⟹&nbsp; 7B params ≈ 84 GB before activations<br><br>
+    LoRA (frozen 16-bit base):&nbsp; M ≈ 2·P + 12·P<sub>lora</sub> + activations &nbsp;&nbsp;(P<sub>lora</sub> ≈ 0.5% of P)<br>
+    QLoRA (frozen 4-bit base):&nbsp; M ≈ 0.5·P + 12·P<sub>lora</sub> + activations &nbsp;&nbsp;⟹&nbsp; 7B ≈ 4–10 GB total
+  </div>
+
+  <p>Why 12 bytes per trainable parameter? One bf16 weight (2) + its bf16 gradient (2) + Adam's two
+  fp32 moments (4+4). Freezing a parameter removes 10 of the 12 bytes — that is PEFT. Quantizing the
+  frozen remainder from 2 bytes to 0.5 (4-bit) shrinks it 4× — that is QLoRA. The QLoRA paper's
+  measurement that makes adapters-on-every-layer nearly free: for a 7B model at batch size 1, LoRA
+  <em>input gradients</em> were ~567 MB while LoRA <em>parameters</em> were ~26 MB — activations,
+  not adapters, dominate.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">def</span> <span class="tok-f">vram_budget</span>(params: Float64,
+                    lora_frac: Float64,
+                    base_bytes: Float64) -&gt; Float64:
+    <span class="tok-c"># trainable params cost 12 B each; frozen cost base_bytes</span>
+    <span class="tok-k">var</span> trainable = lora_frac * params
+    <span class="tok-k">var</span> frozen   = (<span class="tok-num">1.0</span> - lora_frac) * params
+    <span class="tok-k">return</span> <span class="tok-num">12.0</span>*trainable + base_bytes*frozen
+
+<span class="tok-k">def</span> <span class="tok-f">main</span>():
+    <span class="tok-k">var</span> P = <span class="tok-num">7e9</span>
+    <span class="tok-k">print</span>(vram_budget(P, <span class="tok-num">1.0</span>,  <span class="tok-num">2.0</span>)/<span class="tok-num">1e9</span>)  <span class="tok-c"># full FT:  84 GB</span>
+    <span class="tok-k">print</span>(vram_budget(P, <span class="tok-num">0.005</span>, <span class="tok-num">2.0</span>)/<span class="tok-num">1e9</span>)  <span class="tok-c"># LoRA:  ~14.4 GB</span>
+    <span class="tok-k">print</span>(vram_budget(P, <span class="tok-num">0.005</span>, <span class="tok-num">0.5</span>)/<span class="tok-num">1e9</span>)  <span class="tok-c"># QLoRA: ~3.9 GB</span></code></pre>
+</section>
+
+<!-- ===================== LORA ===================== -->
+<section id="lora">
+  <h2>2. LoRA: The Low-Rank Update</h2>
+  <p>Empirical fact: fine-tuning weight deltas are effectively low-rank. So don't learn
+  <span class="math">ΔW ∈ ℝ<sup>h×o</sup></span> — learn a factored one.</p>
+
+  <div class="eq">
+    forward:&nbsp; Y = X·W + s·X·A·B,&nbsp; A ∈ ℝ<sup>r×o</sup>, B ∈ ℝ<sup>h×r</sup>, s = α/r, r ≪ min(h, o)<br><br>
+    trainable params:&nbsp; P<sub>lora</sub> = r·(h + o) &nbsp;vs full&nbsp; h·o &nbsp;&nbsp;⟹&nbsp; fraction = r(h+o)/(h·o) ≈ r/h + r/o<br>
+    init:&nbsp; A ~ N(0, σ²),&nbsp; B = 0 &nbsp;&nbsp;⟹ ΔW = 0 at step 0 (training starts at the base model)
+  </div>
+
+  <p>Example: a 4096×4096 linear layer with r = 16 trains 131k parameters instead of 16.8M —
+  0.8%. The adapter is a few MB, swappable per task, and merges away at deploy time (Section 4).
+  The whole mechanism as pure arithmetic:</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> tensor <span class="tok-k">import</span> Tensor
+<span class="tok-k">from</span> std.random <span class="tok-k">import</span> normal_float64, seed
+
+<span class="tok-c"># the forward pass as pure arithmetic — dtype and shapes are</span>
+<span class="tok-c"># compile-time facts, and the r-inner-product is a tight loop.</span>
+<span class="tok-k">def</span> <span class="tok-f">lora_forward</span>(X: Tensor[DType.float64], W: Tensor[DType.float64],
+                  B: Tensor[DType.float64], A: Tensor[DType.float64],
+                  r: Int, alpha: Float64) -&gt; Tensor[DType.float64]:
+    <span class="tok-k">var</span> n = X.shape()[<span class="tok-num">0</span>]
+    <span class="tok-k">var</span> o = W.shape()[<span class="tok-num">1</span>]
+    <span class="tok-k">var</span> s = alpha / Float64(r)
+    <span class="tok-k">var</span> Y = Tensor[DType.float64](n, o)
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+        <span class="tok-k">for</span> j <span class="tok-k">in</span> range(o):
+            <span class="tok-k">var</span> base = dot_row(X, W, i, j)        <span class="tok-c"># X[i,:]·W[:,j]</span>
+            <span class="tok-k">var</span> delta: Float64 = <span class="tok-num">0.0</span>
+            <span class="tok-k">for</span> k <span class="tok-k">in</span> range(r):               <span class="tok-c"># the low-rank path</span>
+                delta += X[i, k] * B[k, <span class="tok-num">0</span>] * A[<span class="tok-num">0</span>, j]  <span class="tok-c"># (illustrative 1-r)</span>
+            Y[i, j] = base + s * delta
+    <span class="tok-k">return</span> Y
+
+<span class="tok-c"># init rule: B = 0 exactly, A ~ N(0, 0.02²)</span>
+seed(<span class="tok-num">42</span>)
+<span class="tok-k">var</span> a0 = normal_float64(<span class="tok-num">0.0</span>, <span class="tok-num">0.02</span>)</code></pre>
+
+  <p class="note"><strong>Two defaults that matter more than the rest:</strong> target
+  <em>all</em> linear layers (attention + MLP — the difference between matching full fine-tuning
+  and not), and use the shortest sensible sequence length — activations scale linearly in tokens
+  and are the biggest slice of memory. And note what is <em>not</em> trainable: the base
+  <code>W</code> is a constant, so the gradient flows only through <code>A</code> and
+  <code>B</code> — which is exactly why the init rule can afford <code>B = 0</code> without
+  stalling the first step.</p>
+</section>
+
+<!-- ===================== NF4 ===================== -->
+<section id="nf4">
+  <h2>3. QLoRA: NF4 Quantization</h2>
+  <p>QLoRA freezes the base in 4-bit <strong>NormalFloat</strong> and backpropagates through it
+  into the LoRA adapters. Quantization is block-wise affine; NF4 just chooses the 16 breakpoints
+  as the <em>quantiles of a standard normal</em>, so each 4-bit code holds an equal expected
+  share of the (approximately zero-mean Gaussian) weights.</p>
+
+  <div class="eq">
+    quantize (block size b):&nbsp; δ = (max−min)/(2⁴−1),&nbsp; q = clip(round((w − min)/δ), 0, 15)<br>
+    dequantize:&nbsp; ŵ = min + δ·q &nbsp;&nbsp;— stored 4 bits/weight + fp32 (min, δ) per block<br><br>
+    constant overhead:&nbsp; fp32/b=64 = 0.5 bits/param &nbsp;→&nbsp; double quant (fp32→fp8, b=256): 0.127 bits/param<br>
+    saved: 0.373 bits/param ≈ <strong>3 GB on a 65B model</strong><br><br>
+    compute flow:&nbsp; Y<sub>bf16</sub> = X<sub>bf16</sub> · dequant(c₁, c₂, W<sub>NF4</sub>) + X<sub>bf16</sub> · (α/r)·B·A
+  </div>
+
+  <p>Stored 4-bit, computed bf16: weights are dequantized on the fly, and gradients are only ever
+  formed for the 16-bit adapters — never the 4-bit base. That is the entire reason the base can
+  stay quantized during backprop.</p>
+
+  <p>The codebook is the only thing separating NF4 from ordinary int4, and it is one line: the 16
+  codes are the equal-mass quantiles of <span class="math">N(0,1)</span> rescaled to
+  <span class="math">[−1, 1]</span>, so a nearest-code search against that table replaces the
+  uniform grid. The kernel below is the uniform-grid half — block-wise absmax down to 16 codes in
+  one compiled pass — and it is the half that has to be fast, because it runs over every weight at
+  load and again over every block whenever an adapter is swapped. Swapping the grid for the NF4
+  table and measuring the relative-error win is exercise 4.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+<span class="tok-k">from</span> std.math <span class="tok-k">import</span> abs, max
+
+<span class="tok-c"># block-wise absmax quantize to 4-bit codes — the kernel that</span>
+<span class="tok-c"># makes serving-side quantization a single compiled pass.</span>
+<span class="tok-k">def</span> <span class="tok-f">quantize_absmax</span>(w: List[Float64], b: Int,
+                     out_q: List[Int], out_scale: List[Float64]):
+    <span class="tok-k">var</span> n = len(w)
+    <span class="tok-k">var</span> n_blocks = n // b
+    <span class="tok-k">for</span> blk <span class="tok-k">in</span> range(n_blocks):
+        <span class="tok-k">var</span> lo = blk * b
+        <span class="tok-k">var</span> hi = lo + b
+        <span class="tok-k">var</span> am: Float64 = <span class="tok-num">0.0</span>
+        <span class="tok-k">for</span> i <span class="tok-k">in</span> range(lo, hi):
+            am = max(am, abs(w[i]))
+        out_scale[blk] = am                 <span class="tok-c"># fp32 constant per block</span>
+        <span class="tok-k">for</span> i <span class="tok-k">in</span> range(lo, hi):
+            <span class="tok-k">var</span> wn = w[i] / (am + <span class="tok-num">1e-12</span>)      <span class="tok-c"># to [-1,1]</span>
+            out_q[i] = Int((wn + <span class="tok-num">1.0</span>) * <span class="tok-num">7.5</span> + <span class="tok-num">0.5</span>) <span class="tok-c"># 16 codes</span>
+
+<span class="tok-k">def</span> <span class="tok-f">dequant</span>(q: List[Int], scale: Float64) -&gt; Float64:
+    <span class="tok-k">return</span> (Float64(q) / <span class="tok-num">7.5</span> - <span class="tok-num">1.0</span>) * scale</code></pre>
+
+  <p class="good"><strong>Validation numbers:</strong> QLoRA matched 16-bit fine-tuning quality
+  (Guanaco-65B reached 99.3% of ChatGPT's Vicuna score, fine-tuned on a single 48 GB GPU), and a
+  9k-sample curated dataset beat a 450k one — <em>quality beats quantity</em> is an equation-level
+  constraint on your data budget, not advice.</p>
+</section>
+
+<!-- ===================== MERGE & SERVE ===================== -->
+<section id="merge">
+  <h2>4. Merging &amp; Serving</h2>
+  <p>At deploy time the adapter folds into the base — one small matmul per layer, zero inference
+  overhead afterwards. From the Python side the whole fold is one call,
+  <code>model.merge_and_unload()</code>, followed by a <code>save_pretrained</code>; there is just no
+  reason to pay a process boundary to do arithmetic that is already this cheap:</p>
+
+  <div class="eq">
+    W′ = W + (α/r)·B·A &nbsp;&nbsp;— merge once, serve W′ with no adapter path in the graph
+  </div>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> tensor <span class="tok-k">import</span> Tensor
+
+<span class="tok-c"># native merge: ΔW = (α/r)·B·A over Tensors — compiles to SIMD,</span>
+<span class="tok-c"># dtype is a compile-time fact (float16 = the training dtype).</span>
+<span class="tok-k">def</span> <span class="tok-f">merge_lora</span>(W: Tensor[DType.float16],
+                 A: Tensor[DType.float16],
+                 B: Tensor[DType.float16], r: Int,
+                 alpha: Float64) -&gt; Tensor[DType.float16]:
+    <span class="tok-k">var</span> n = W.shape()[<span class="tok-num">0</span>]
+    <span class="tok-k">var</span> m = W.shape()[<span class="tok-num">1</span>]
+    <span class="tok-k">var</span> scale = Float16(alpha / Float64(r))
+    <span class="tok-k">var</span> out = Tensor[DType.float16](n, m)
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> range(n):
+        <span class="tok-k">for</span> j <span class="tok-k">in</span> range(m):
+            <span class="tok-k">var</span> delta: Float16 = <span class="tok-num">0.0</span>
+            <span class="tok-k">for</span> k <span class="tok-k">in</span> range(r):        <span class="tok-c"># low-rank inner product</span>
+                delta += B[i, k] * A[k, j]
+            out[i, j] = W[i, j] + scale * delta
+    <span class="tok-k">return</span> out</code></pre>
+
+  <p>Then serve natively: export the merged model to ONNX and run it on MAX — the first call
+  compiles the graph for your hardware, every call after is a quantization-aware forward pass with
+  no Python process in the serving path:</p>
+
+  <pre class="mojo"><code><span class="tok-k">from</span> max.engine <span class="tok-k">import</span> InferenceSession
+<span class="tok-k">from</span> tensor <span class="tok-k">import</span> Tensor
+
+<span class="tok-k">def</span> <span class="tok-f">serve</span>(prompt_ids: Tensor[DType.int32]) raises:
+    <span class="tok-k">var</span> session = InferenceSession(<span class="tok-s">"phi3-yoda.onnx"</span>,
+                                 dtype=DType.float16)
+    _ = session.execute(prompt_ids)         <span class="tok-c"># first call compiles</span>
+    <span class="tok-k">var</span> tokens = session.execute(prompt_ids)  <span class="tok-c"># warm: native latency</span>
+    <span class="tok-k">return</span> tokens</code></pre>
+</section>
+
+<!-- ===================== PIPELINE ===================== -->
+<section id="pipeline">
+  <h2>5. The Full Training Pipeline</h2>
+  <p>The end-to-end recipe, driven from Mojo. The Hugging Face stack still does the training — its
+  CUDA kernels are unmatched — but the orchestration, the load-time accounting and the handoff to the
+  native merge in Section 4 are all compiled.</p>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> std.python <span class="tok-k">import</span> Python
+
+<span class="tok-c"># The same run driven from Mojo: the HF stack through the bridge, the</span>
+<span class="tok-c"># orchestration compiled, then the adapter merges natively (Section 4).</span>
+<span class="tok-k">var</span> tf   = Python.import_module(<span class="tok-s">"transformers"</span>)
+<span class="tok-k">var</span> peft = Python.import_module(<span class="tok-s">"peft"</span>)
+<span class="tok-k">var</span> trl  = Python.import_module(<span class="tok-s">"trl"</span>)
+<span class="tok-k">var</span> dsn  = Python.import_module(<span class="tok-s">"datasets"</span>)
+
+<span class="tok-k">def</span> <span class="tok-f">main</span>() <span class="tok-k">raises</span>:
+    <span class="tok-c"># 1) 4-bit base</span>
+    <span class="tok-k">var</span> bnb = tf.BitsAndBytesConfig(
+        load_in_4bit=<span class="tok-k">True</span>,
+        bnb_4bit_quant_type=<span class="tok-s">"nf4"</span>,
+        bnb_4bit_use_double_quant=<span class="tok-k">True</span>)
+    <span class="tok-k">var</span> repo = <span class="tok-s">"microsoft/Phi-3-mini-4k-instruct"</span>
+    <span class="tok-k">var</span> model = tf.AutoModelForCausalLM.from_pretrained(
+        repo, device_map=<span class="tok-s">"auto"</span>, quantization_config=bnb)
+
+    <span class="tok-c"># 2) LoRA on ALL linear layers</span>
+    model = peft.prepare_model_for_kbit_training(model)
+    model = peft.get_peft_model(model, peft.LoraConfig(
+        r=<span class="tok-num">8</span>, lora_alpha=<span class="tok-num">16</span>, lora_dropout=<span class="tok-num">0.05</span>,
+        task_type=<span class="tok-s">"CAUSAL_LM"</span>,
+        target_modules=[<span class="tok-s">"o_proj"</span>, <span class="tok-s">"qkv_proj"</span>,
+                        <span class="tok-s">"gate_up_proj"</span>, <span class="tok-s">"down_proj"</span>]))
+
+    <span class="tok-c"># 3) data + tokenizer</span>
+    <span class="tok-k">var</span> data = dsn.load_dataset(<span class="tok-s">"dvgodoy/yoda_sentences"</span>, split=<span class="tok-s">"train"</span>)
+    <span class="tok-k">var</span> tok = tf.AutoTokenizer.from_pretrained(repo)
+    tok.pad_token = tok.unk_token       <span class="tok-c"># keep EOS unmasked</span>
+
+    <span class="tok-c"># 4) train — paged optimizer absorbs long-sequence spikes</span>
+    <span class="tok-k">var</span> trainer = trl.SFTTrainer(
+        model=model, processing_class=tok, train_dataset=data,
+        args=trl.SFTConfig(
+            output_dir=<span class="tok-s">"./phi3-yoda-adapter"</span>,
+            per_device_train_batch_size=<span class="tok-num">16</span>,
+            gradient_checkpointing=<span class="tok-k">True</span>,
+            max_length=<span class="tok-num">64</span>,              <span class="tok-c"># shortest sensible</span>
+            num_train_epochs=<span class="tok-num">10</span>, learning_rate=<span class="tok-num">3e-4</span>,
+            optim=<span class="tok-s">"paged_adamw_8bit"</span>,
+            logging_steps=<span class="tok-num">10</span>, report_to=<span class="tok-s">"none"</span>))
+    trainer.train()
+    trainer.save_model()                <span class="tok-c"># saves only the adapter</span>
+
+    <span class="tok-c"># 5) the number that tells you it worked</span>
+    <span class="tok-k">var</span> counts = model.get_nb_trainable_parameters()   <span class="tok-c"># (trainable, total)</span>
+    <span class="tok-f">print</span>(<span class="tok-s">"trainable %:"</span>, <span class="tok-num">100.0</span> * counts[<span class="tok-num">0</span>] / counts[<span class="tok-num">1</span>])   <span class="tok-c"># ~0.3% — check it!</span>
+    <span class="tok-f">print</span>(<span class="tok-s">"footprint GB:"</span>, model.get_memory_footprint() / <span class="tok-num">1e9</span>)</code></pre>
+
+  <p class="warn"><strong>Version gotchas (trl ≥ 0.20):</strong> <code>max_seq_length</code> was
+  renamed to <code>max_length</code>; <code>bf16</code> defaults to True — guard with
+  <code>torch.cuda.is_bf16_supported()</code> on older GPUs; in trl 0.21 prefer passing
+  <code>peft_config=</code> to SFTTrainer over the pre-applied adapters this block uses.</p>
+</section>
+
+<!-- ===================== DECIDE ===================== -->
+<section id="decide">
+  <h2>6. Prompt vs RAG vs Fine-Tune</h2>
+  <p>Three levers: <strong>prompting</strong> changes the instructions, <strong>RAG</strong>
+  changes the knowledge, <strong>fine-tuning</strong> changes the behaviour. The decision is a
+  flowchart, not a debate:</p>
+
+  <div class="diagram">
+task fails with a plain prompt?
+  │ no ──▶ done: prompting
+  ▼ yes
+does the answer depend on facts the model doesn't know /
+changes daily / lives in private docs?
+  │ yes ──▶ RAG (update the index, never the weights)
+  ▼ no
+need consistent format/style at scale, long prompts to kill,
+or a stable decision policy — AND ≥ 500 curated examples?
+  │ yes ──▶ QLoRA fine-tune
+  ▼ no
+few-shot prompting (3–5 examples in context)
+  ▼ still fails and data is growing ──▶ fine-tune, hybrid with RAG
+  </div>
+
+  <div class="eq">
+    break-even heuristic:&nbsp; fine-tune when&nbsp; (calls/day) × (prompt tokens saved) × ($/token) &gt; (GPU hours) × ($/GPU-hour) + curation cost<br>
+    knowledge rule:&nbsp; RAG for what the model should <em>know</em>;&nbsp; fine-tune for how it should <em>behave</em>
+  </div>
+
+  <p class="note"><strong>Don't fine-tune facts that change.</strong> Weights freeze at training
+  time; an index updates in seconds. Hybrid is the production default: QLoRA for format/tone/tool
+  use, RAG for live facts — you can even fine-tune <em>on</em> retrieved context so the model
+  learns to cite and to refuse when retrieval is empty. If your errors have asymmetric costs,
+  weight the training data by decision impact — see the
+  <a href="decision_aware_ml.html" style="color:var(--acc2);">Decision-Aware ML book</a>.</p>
+</section>
+
+<!-- ===================== EVAL ===================== -->
+<section id="eval">
+  <h2>7. Evaluation Metrics</h2>
+  <p>Define these before training. A loss curve measures confidence, not correctness — a model
+  can plateau and still hallucinate reliably.</p>
+
+  <div class="eq">
+    format validity:&nbsp; V = #(outputs parse as target schema) / n<br>
+    exact match:&nbsp; EM = #(ŷ = y) / n &nbsp;·&nbsp; field recall = #(required fields present) / #required &nbsp;·&nbsp; precision = #(correct fields) / #emitted<br>
+    decision cost (if outputs drive decisions):&nbsp; C̄ = (1/n) Σ c(d(ŷᵢ), yᵢ) &nbsp;— primary metric<br>
+    Elo from pairwise LLM-judged wins:&nbsp; update R<sub>A</sub> ← R<sub>A</sub> + K(S<sub>A</sub> − E<sub>A</sub>),&nbsp; E<sub>A</sub> = 1/(1+10<sup>(R<sub>B</sub>−R<sub>A</sub>)/400</sup>)
+  </div>
+
+
+  <pre class="mojo"><code><span class="tok-k">from</span> std.collections <span class="tok-k">import</span> List
+<span class="tok-k">from</span> std.python <span class="tok-k">import</span> Python
+
+<span class="tok-k">var</span> json = Python.import_module(<span class="tok-s">"json"</span>)
+
+<span class="tok-c"># format validity: does the output parse as the target schema at all?</span>
+<span class="tok-c"># A loss curve cannot tell you this — a model plateaus and still emits</span>
+<span class="tok-c"># text that no parser will accept.</span>
+<span class="tok-k">def</span> <span class="tok-f">parses</span>(o: String) <span class="tok-k">raises</span> -&gt; Bool:
+    <span class="tok-k">try</span>:
+        json.loads(o)
+        <span class="tok-k">return</span> <span class="tok-k">True</span>
+    except:
+        <span class="tok-k">return</span> <span class="tok-k">False</span>
+
+<span class="tok-k">def</span> <span class="tok-f">format_validity</span>(outs: List[String]) -&gt; Float64:
+    <span class="tok-k">var</span> ok = <span class="tok-num">0</span>
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> <span class="tok-f">range</span>(<span class="tok-f">len</span>(outs)):
+        <span class="tok-k">if</span> parses(outs[i]):
+            ok += <span class="tok-num">1</span>
+    <span class="tok-k">return</span> Float64(ok) / Float64(<span class="tok-f">len</span>(outs))
+
+<span class="tok-k">def</span> <span class="tok-f">exact_match</span>(outs: List[String],
+                tgts: List[String]) -&gt; Float64:
+    <span class="tok-k">var</span> hits = <span class="tok-num">0</span>
+    <span class="tok-k">for</span> i <span class="tok-k">in</span> <span class="tok-f">range</span>(<span class="tok-f">len</span>(outs)):
+        <span class="tok-k">if</span> outs[i].strip() == tgts[i].strip():
+            hits += <span class="tok-num">1</span>
+    <span class="tok-k">return</span> Float64(hits) / Float64(<span class="tok-f">len</span>(outs))
+
+<span class="tok-c"># Elo update after one judged match (K = 32, S = 1/0/0.5):</span>
+<span class="tok-k">def</span> <span class="tok-f">elo_update</span>(ra: Float64, rb: Float64,
+               s_a: Float64) -&gt; (Float64, Float64):
+    <span class="tok-k">var</span> ea = <span class="tok-num">1.0</span> / (<span class="tok-num">1.0</span> + <span class="tok-num">10.0</span> ** ((rb - ra) / <span class="tok-num">400.0</span>))
+    <span class="tok-k">var</span> delta = <span class="tok-num">32.0</span> * (s_a - ea)
+    <span class="tok-k">return</span> (ra + delta, rb - delta)
+
+<span class="tok-c"># decision cost is the primary metric when the outputs drive decisions —</span>
+<span class="tok-c"># see decision_aware_ml.html Section 8 for the loop.</span></code></pre>
+
+  <p class="good">Report: one task metric + one regression check + tokens-per-call and VRAM
+  before/after + worst-group cost. GPT-4-as-judge with Elo is fine for iteration; never ship on
+  judge scores alone.</p>
+</section>
+
+<!-- ===================== SELF-CHECK ===================== -->
+<section id="check">
+  <h2>8. Self-Check</h2>
+  <div class="card">
+    <ol>
+      <li>Derive the 12-bytes-per-trainable-parameter rule. Why does freezing remove 10 of them, and why do activations (not adapters) dominate LoRA memory?</li>
+      <li>Compute the LoRA trainable fraction for a 4096×4096 layer at r = 8, 16, 64. What is α if the scaling s must stay at 2.0?</li>
+      <li>Why is B initialized to zero and A random? What would happen with both random?</li>
+      <li>Implement NF4 quantize/dequantize (Section 3) and measure relative error on Gaussian weights vs uniform int4.</li>
+      <li>Show why double quantization saves exactly 32/64 − 8/256 ≈ 0.373 bits per parameter, and verify the ~3 GB figure for a 65B model.</li>
+      <li>Run the Section 5 pipeline end to end; report trainable %, VRAM footprint, exact match, one regression check, and tokens-per-call before/after.</li>
+      <li>Use the Section 6 flowchart on: (a) legal Q&amp;A over a corpus updated daily, (b) strict JSON in a niche schema at 10k calls/day, (c) a one-off summariser.</li>
+    </ol>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer>
+<p>Fine-Tuning LLMs, code-first: VRAM math · LoRA · NF4 · merge &amp; serve · pipeline · decision flowchart · metrics — in Mojo 1.x. Companion: <a href="decision_aware_ml.html" style="color:var(--acc2);">Decision-Aware ML</a>.</p>
+</footer>
+
+<script>
+  const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  const map = new Map();
+  links.forEach(l => map.set(l.getAttribute('href').slice(1), l));
+  const secs = [...document.querySelectorAll('main section[id], main h3[id]')];
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && map.has(e.target.id)){
+        links.forEach(l => l.classList.remove('active'));
+        map.get(e.target.id).classList.add('active');
+      }
+    });
+  }, {rootMargin:'-20% 0px -70% 0px'});
+  secs.forEach(s => io.observe(s));
+
+  (function(){
+    const KEY='tutme-toc-ft';
+    let st={};
+    try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+    const root=document.documentElement;
+    const btn=document.getElementById('tocToggle'), tab=document.getElementById('tocOpen'), rs=document.getElementById('tocResize');
+    if(st.w)root.style.setProperty('--tocw',st.w+'px');
+    if(st.collapsed)document.body.classList.add('toc-collapsed');
+    const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({collapsed:document.body.classList.contains('toc-collapsed'),w:st.w}))}catch(e){}};
+    if(btn)btn.addEventListener('click',()=>{document.body.classList.add('toc-collapsed');save();});
+    if(tab)tab.addEventListener('click',()=>{document.body.classList.remove('toc-collapsed');save();});
+    if(rs){
+      let drag=false;
+      rs.addEventListener('mousedown',e=>{drag=true;rs.classList.add('on');document.body.style.cursor='col-resize';document.body.style.userSelect='none';e.preventDefault();});
+      rs.addEventListener('dblclick',()=>{st.w=null;root.style.removeProperty('--tocw');save();});
+      addEventListener('mousemove',e=>{if(!drag)return;st.w=Math.max(180,Math.min(420,e.clientX-25));root.style.setProperty('--tocw',st.w+'px');});
+      addEventListener('mouseup',()=>{if(drag){drag=false;rs.classList.remove('on');document.body.style.cursor='';document.body.style.userSelect='';save();}});
+    }
+  })();
+</script>
+
+<!-- tutme-hl:runtime -->
+<style>
+/* Mojo runtime syntax highlighting (tutme) - dark default, light variant auto-applied */
+pre .hkw{color:#c792ea}
+pre .hty{color:#ffcb6b}
+pre .hfn{color:#82aaff}
+pre .hstr{color:#c3e88d}
+pre .hnum{color:#f78c6c}
+pre .hcm{color:#676e95;font-style:italic}
+pre .hop{color:#89ddff}
+pre.tutme-light .hkw{color:#6d28d9}
+pre.tutme-light .hty{color:#b45309}
+pre.tutme-light .hfn{color:#1d4ed8}
+pre.tutme-light .hstr{color:#15803d}
+pre.tutme-light .hnum{color:#c2410c}
+pre.tutme-light .hcm{color:#6b7280;font-style:italic}
+pre.tutme-light .hop{color:#0f766e}
+</style>
+<script>
+(function(){
+  if (window.__tutmeHL) return; window.__tutmeHL = true;
+
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var KW='def fn struct trait alias var let return if elif else for while in break continue '+
+    'from import as mut out self yield raise raises try except with match case and or not '+
+    'lambda pass global static public private true false none parameterize is';
+  var TY='Float64 Float32 Float16 Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 '+
+    'String StringRef Bool List Dict Tensor TensorShape SIMD DType Pointer Slice '+
+    'Memory Atomic Scalar Tuple NoneType object Int Index';
+  var kwRe = new RegExp('\\b(?:'+KW.split(' ').join('|')+')\\b','ig');
+  var tyRe = new RegExp('\\b(?:'+TY.split(' ').join('|')+')\\b','g');
+  var RULES = [
+    ['cm', /#[^\n]*/g],
+    ['str', /"""[^]*?"""/g],
+    ['str', /'''[^]*?'''/g],
+    ['str', /"(?:\\.|[^"\\\n])*"/g],
+    ['str', /'(?:\\.|[^'\\\n])*'/g],
+    ['num', /(?:\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?[iu]?|\.\d+)/g],
+    ['kw', kwRe],
+    ['ty', tyRe],
+    ['fn', /([A-Za-z_]\w*)(\s*\()/g],
+    ['op', /(?:\+\+|-{2}|->|=>|==|!=|<=|>=|\+=|-=|\*=|\/=|\/\/|\*\*|::|\|\||&&|\.\.\.|[+\-*/%<>=!@&~|])/g]
+  ];
+
+  function highlight(text){
+    var marks = [];
+    for (var r=0; r<RULES.length; r++){
+      var cls = RULES[r][0], rx = RULES[r][1];
+      rx.lastIndex = 0;
+      var m;
+      while ((m = rx.exec(text)) !== null){
+        if (m[0].length){
+          marks.push([m.index, m.index+m[0].length, cls, m]);
+        }
+        rx.lastIndex = m.index + Math.max(1, m[0].length);
+      }
+    }
+    marks.sort(function(a,b){ return a[0]-b[0] || a[1]-b[1]; });
+    var out = [], i = 0;
+    for (var k=0; k<marks.length; k++){
+      var st = marks[k][0], en = marks[k][1], cls = marks[k][2], mm = marks[k][3];
+      if (st < i) continue;
+      if (st > i) out.push(esc(text.slice(i, st)));
+      if (cls === 'fn'){
+        out.push('<span class="hfn">'+esc(mm[1])+esc(mm[2])+'</span>');
+      } else {
+        out.push('<span class="h'+cls+'">'+esc(text.slice(st, en))+'</span>');
+      }
+      i = en;
+    }
+    out.push(esc(text.slice(i)));
+    return out.join('');
+  }
+
+  function hexLum(h){
+    h = h.slice(1);
+    if (h.length === 3 || h.length === 4) h = h.split('').map(function(x){ return x+x; }).join('');
+    var n = parseInt(h.slice(0,6), 16);
+    return 0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255);
+  }
+
+  function fallbackLum(){
+    try {
+      var s = window.getComputedStyle(document.body);
+      var colors = ((s.backgroundImage || '') + ' ' + (s.backgroundColor || '')).match(/(?:#[0-9a-f]{3,8}|rgba?\([^)]*\))/ig) || [];
+      var i;
+      for (i=0; i<colors.length; i++){
+        var c = colors[i];
+        if (c.charAt(0) === '#'){
+          if (c.length < 7) continue;
+          return hexLum(c);
+        }
+        var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(c);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > 0.3)){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function detectLum(pre){
+    var n = pre;
+    for (var i=0; i<4 && n; i++, n=n.parentElement){
+      var bg;
+      try { bg = window.getComputedStyle(n).backgroundColor; } catch(e){ return null; }
+      var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\)/.exec(bg);
+      if (m){
+        var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+        if (a > 0.3){
+          return 0.299*+m[1] + 0.587*+m[2] + 0.114*+m[3];
+        }
+      }
+    }
+    return fallbackLum();
+  }
+
+  var pres = document.querySelectorAll('pre');
+  for (var p=0; p<pres.length; p++){
+    var pre = pres[p];
+    if (pre.className && /(^|\s)math(\s|$)/.test(pre.className)) continue;
+    var kids = pre.children.length, el = pre;
+    if (kids === 1 && pre.firstElementChild && pre.firstElementChild.tagName === 'CODE'){
+      el = pre.firstElementChild;
+    } else if (kids > 0) {
+      continue;
+    }
+    if (/<[a-z]/i.test(el.innerHTML)) continue;
+    var txt = el.textContent;
+    if (!/(?:def|fn|struct|trait|var|let|import|from|for|while|return|print|Float64|if|class)\b/.test(txt)) continue;
+    var lum = detectLum(pre);
+    if (lum !== null && lum > 170) pre.className = (pre.className ? pre.className + ' ' : '') + 'tutme-light';
+    el.innerHTML = highlight(txt);
+  }
+})();
+</script>
+</body>
+</html>

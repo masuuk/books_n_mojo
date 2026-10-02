@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)tb_03_data_structures_operations.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 3 — Data Structures &amp; Operations · Mojo 1.x Textbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --bg-primary:#0b0d15;--bg-secondary:#12162b;--bg-card:rgba(255,255,255,0.04);
+  --bg-code:rgba(0,0,0,0.4);
+  --text-primary:#ffffff;--text-secondary:#d8def0;--text-muted:#ffd98f;
+  --accent-1:#6c5ce7;--accent-2:#00b4d8;--accent-3:#f77f00;
+  --accent-gradient:linear-gradient(135deg,#6c5ce7,#00b4d8,#f77f00);
+  --border-color:rgba(255,255,255,0.18);--radius:16px;--radius-sm:8px;
+  --transition:0.3s cubic-bezier(0.4,0,0.2,1);--max-width:900px;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.7;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+::selection{background:rgba(108,92,231,0.4);color:#fff;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:var(--bg-primary);}
+::-webkit-scrollbar-thumb{background:var(--accent-1);border-radius:10px;}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent-gradient);z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:64px;background:rgba(11,13,21,0.85);backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;}
+.logo-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;}
+.logo span{color:var(--text-secondary);font-weight:400;}
+.logo .mojo{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.chnum{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent-2);letter-spacing:0.04em;}
+
+.container{max-width:var(--max-width);margin:0 auto;padding:0 24px;}
+.wrap{padding:5rem 0 8rem;}
+
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,180,216,0.12);padding:4px 16px;border-radius:100px;border:1px solid rgba(0,180,216,0.15);margin-bottom:16px;}
+h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.03em;line-height:1.15;margin-bottom:12px;}
+h1 .highlight{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dek{font-size:1.1rem;color:var(--text-secondary);max-width:600px;margin-bottom:40px;line-height:1.8;}
+
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border-color);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.2rem;font-weight:600;margin:2rem 0 0.8rem;color:var(--text-primary);}
+p{color:var(--text-secondary);margin:0 0 1.1rem;line-height:1.8;}
+p strong{color:var(--text-primary);}
+ul,ol{color:var(--text-secondary);padding-left:24px;line-height:1.8;}
+li{margin-bottom:6px;}
+code.inline{font-family:var(--font-mono);font-size:0.85em;background:rgba(108,92,231,0.12);padding:2px 8px;border-radius:6px;color:#c084fc;border:1px solid rgba(108,92,231,0.2);}
+
+.info-box{padding:20px 24px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:20px 0;}
+.info-box strong{color:var(--text-primary);}
+.info-box p{margin-top:4px;color:var(--text-secondary);}
+.tip-box{background:rgba(0,180,216,0.05);border-color:rgba(0,180,216,0.12);}
+.tip-box strong{color:var(--accent-2);}
+.warning-box{background:rgba(247,127,0,0.06);border-color:rgba(247,127,0,0.12);}
+.warning-box strong{color:var(--accent-3);}
+
+.code-tabs{margin:20px 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-color);background:var(--bg-code);}
+.tabs-header{display:flex;gap:2px;padding:8px 12px 0;background:rgba(0,0,0,0.3);border-bottom:1px solid var(--border-color);}
+.tab-btn{padding:8px 18px;font-family:var(--font-mono);font-size:0.75rem;font-weight:500;background:none;border:none;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:var(--transition);position:relative;}
+.tab-btn:hover{color:var(--text-primary);background:rgba(255,255,255,0.04);}
+.tab-btn.active{color:var(--text-primary);background:rgba(255,255,255,0.18);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--accent-gradient);border-radius:4px;}
+.tab-content{display:none;padding:16px 20px;overflow-x:auto;background:rgba(0,0,0,0.2);}
+.tab-content.active{display:block;}
+pre{font-family:var(--font-mono);font-size:0.85rem;line-height:1.8;color:#e2e8f0;margin:0;white-space:pre-wrap;}
+pre .kw{color:#c084fc;}pre .fn{color:#60a5fa;}pre .str{color:#4ade80;}pre .num{color:#fbbf24;}pre .cmt{color:#a8b6d4;font-style:italic;}pre .op{color:#f472b6;}pre .type{color:#34d399;}pre .var{color:#fcd34d;}
+
+.quiz{border:1px solid var(--border-color);border-radius:var(--radius);background:var(--bg-card);padding:24px;margin:28px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent-2);margin-bottom:12px;}
+.qtext{font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:16px;}
+.opts{display:flex;flex-direction:column;gap:8px;}
+.opt{text-align:left;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-family:var(--font-sans);font-size:0.95rem;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);}
+.opt:hover{border-color:var(--accent-1);color:var(--text-primary);}
+.opt.correct{border-color:#4ade80;background:rgba(74,222,128,0.08);color:#4ade80;}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:12px;font-size:0.9rem;color:var(--text-secondary);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border-color);border-radius:var(--radius);padding:20px 24px;background:var(--bg-card);margin:24px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);gap:16px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.85rem;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-color);padding:10px 16px;border-radius:var(--radius-sm);transition:var(--transition);}
+.navbtn:hover{border-color:var(--accent-1);color:var(--text-primary);}
+.navbtn.disabled{opacity:0.4;pointer-events:none;}
+
+.mini-toc{position:fixed;right:2vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30;}
+.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--border-color);display:block;transition:background .2s,transform .2s;}
+.mini-toc a.active{background:var(--accent-2);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+
+@media(max-width:600px){
+  h1{font-size:2rem;}
+  .wrap{padding:3rem 0 5rem;}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="header">
+  <a class="logo" href="../single_source_of_truth%20mojo/index.html">
+    <span class="logo-icon">M</span>
+    <span><span class="mojo">Mojo</span> <span>Textbook</span></span>
+  </a>
+  <span class="chnum">Ch 03 — Data Structures</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_ml_textbook_03_data_structures.html#arrays"></a>
+  <a href="ds_ml_textbook_03_data_structures.html#tensors"></a>
+  <a href="ds_ml_textbook_03_data_structures.html#vectorized"></a>
+  <a href="ds_ml_textbook_03_data_structures.html#operations"></a>
+  <a href="ds_ml_textbook_03_data_structures.html#quiz"></a>
+  <a href="ds_ml_textbook_03_data_structures.html#exercises"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Chapter 3</span>
+  <h1>🧮 Data Structures &amp; <span class="highlight">Operations</span></h1>
+  <p class="dek">Arrays, tensors, and vectorized computations — the building blocks of high-performance numerical programming in Mojo.</p>
+
+  <section id="arrays">
+    <h2>Arrays and Lists</h2>
+    <p>Mojo provides two core sequential containers: <code class="inline">List</code> and <code class="inline">Array</code>. They serve different purposes and have distinct performance characteristics.</p>
+
+    <h3>The <code class="inline">List</code> Type</h3>
+    <p><code class="inline">List</code> is a dynamically-sized, heap-allocated collection — similar to Python's list. It can grow and shrink at runtime, making it ideal for situations where the number of elements isn't known ahead of time.</p>
+
+    <h3>The <code class="inline">Array</code> Type</h3>
+    <p><code class="inline">Array</code> is a fixed-size, stack-allocated collection. Because the compiler knows the size at compile time, it can place the data directly on the stack — no heap allocation, no pointer chasing. This makes <code class="inline">Array</code> significantly faster for small, known-size collections.</p>
+    <p>Python has only one of these: a single dynamically-sized list. A Python tuple is the nearest equivalent to a fixed-size <code class="inline">Array</code>, but it is a layout of pointers to boxed objects, not a contiguous run of unboxed <code class="inline">Float64</code> — which is exactly the difference Mojo's stack-allocated <code class="inline">Array[Float64, 3]</code> makes. In NumPy the same contrast appears as <code class="inline">np.zeros((3,), dtype=np.float32)</code> against a list of Python floats.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch3-arrays-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch3-arrays-mojo">
+        <pre><span class="kw">from</span> collections <span class="kw">import</span> List
+
+<span class="kw">def</span> <span class="fn">array_demo</span>():
+    <span class="cmt"># Dynamic list — can grow and shrink</span>
+    <span class="kw">var</span> scores = List[Float64]()
+    scores.append(<span class="num">9.5</span>)
+    scores.append(<span class="num">8.7</span>)
+    scores.append(<span class="num">7.2</span>)
+    <span class="fn">print</span>(<span class="str">"Scores:"</span>, scores)
+    <span class="fn">print</span>(<span class="str">"Length:"</span>, len(scores))
+
+    <span class="cmt"># Fixed-size array — stack allocated</span>
+    <span class="kw">var</span> coordinates = Array[Float64, <span class="num">3</span>](
+        <span class="num">1.0</span>, <span class="num">2.0</span>, <span class="num">3.0</span>
+    )
+    <span class="fn">print</span>(<span class="str">"x ="</span>, coordinates[<span class="num">0</span>])
+    <span class="fn">print</span>(<span class="str">"y ="</span>, coordinates[<span class="num">1</span>])
+
+    <span class="cmt"># Iterate over a list</span>
+    <span class="kw">for</span> s <span class="kw">in</span> scores:
+        <span class="fn">print</span>(s * <span class="num">10.0</span>)</pre>
+      </div>
+    </div>
+
+    <div class="info-box tip-box">
+      <strong>🚀 Pro Tip:</strong>
+      <p>Use <code class="inline">Array</code> when you know the size at compile time — it avoids heap allocation entirely. Use <code class="inline">List</code> when the size is dynamic. In hot loops over numerical data, <code class="inline">Array</code> can be significantly faster due to cache locality.</p>
+    </div>
+  </section>
+
+  <section id="tensors">
+    <h2>Tensors</h2>
+    <p>Tensors are the fundamental data structure for machine learning and scientific computing. Mojo's <code class="inline">Tensor</code> type is a multidimensional array designed for high-performance numerical work. Unlike a list-of-lists, a tensor stores data in a contiguous block of memory, enabling efficient vectorized operations.</p>
+
+    <p>The <code class="inline">Tensor</code> type is parameterized by its element type (e.g., <code class="inline">Float32</code>, <code class="inline">Float64</code>, <code class="inline">Int32</code>) and supports arbitrary dimensions. Creating a tensor is straightforward — specify the shape as a tuple of integers.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch3-tensor-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch3-tensor-mojo">
+        <pre><span class="kw">from</span> math <span class="kw">import</span> sqrt
+
+<span class="kw">def</span> <span class="fn">tensor_basics</span>():
+    <span class="cmt"># Create a 2x3 tensor of zeros</span>
+    <span class="kw">var</span> t = Tensor[Float32](<span class="num">2</span>, <span class="num">3</span>)
+    <span class="fn">print</span>(<span class="str">"Shape:"</span>, t.shape())
+
+    <span class="cmt"># Create a tensor with specific values</span>
+    <span class="kw">var</span> mat = Tensor[Float32](<span class="num">2</span>, <span class="num">2</span>)
+    mat[<span class="num">0</span>, <span class="num">0</span>] = <span class="num">1.0</span>
+    mat[<span class="num">0</span>, <span class="num">1</span>] = <span class="num">2.0</span>
+    mat[<span class="num">1</span>, <span class="num">0</span>] = <span class="num">3.0</span>
+    mat[<span class="num">1</span>, <span class="num">1</span>] = <span class="num">4.0</span>
+
+    <span class="cmt"># Element access</span>
+    <span class="fn">print</span>(<span class="str">"mat[0,1] ="</span>, mat[<span class="num">0</span>, <span class="num">1</span>])
+
+    <span class="cmt"># Fill with a constant</span>
+    <span class="kw">var</span> ones = Tensor[Float32](<span class="num">3</span>, <span class="num">3</span>)
+    ones.fill(<span class="num">1.0</span>)</pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>💡 Key Insight:</strong>
+      <p>Mojo tensors are stored in row-major (C-style) order by default, just like NumPy arrays. The contiguous memory layout means that iterating over elements in row-major order is cache-friendly and maximizes memory bandwidth.</p>
+      <p>The NumPy spellings map across one-for-one, with the dtype becoming the parameter: <code class="inline">np.zeros((2, 3), dtype=np.float32)</code> is <code class="inline">Tensor[Float32](2, 3)</code>, and the fill helper <code class="inline">np.ones((3, 3), dtype=np.float32)</code> is <code class="inline">Tensor[Float32](3, 3)</code> followed by <code class="inline">.fill(1.0)</code>. Where NumPy infers the shape from a nested list, Mojo wants the dimensions stated up front and the values assigned by index — which is what lets the compiler size the allocation before the program runs.</p>
+    </div>
+  </section>
+
+  <section id="vectorized">
+    <h2>Vectorized Computations</h2>
+    <p>Vectorized operations apply a function to an entire array at once, without explicit Python-style <code class="inline">for</code> loops. In Mojo, these operations compile to SIMD (Single Instruction, Multiple Data) instructions that process multiple elements per CPU cycle.</p>
+
+    <p>When you write element-wise operations on tensors, the Mojo compiler automatically vectorizes them using SIMD. This means a loop that adds two arrays of 1 million elements can execute 4–16 elements at a time (depending on your CPU's SIMD width), giving you near-linear speedups.</p>
+    <p>The initialization loop above is where NumPy would reach for <code class="inline">np.arange(n, dtype=np.float32)</code>. Writing the loop out is the point: it is the one part of the kernel Mojo will not fold away, and it is still compiled to straight-line SIMD. Everything after it — the additions, the multiplies, the scalar broadcast — is a single overloaded operator that the compiler lowers for you.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch3-vec-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch3-vec-mojo">
+        <pre><span class="kw">from</span> tensor <span class="kw">import</span> Tensor
+
+<span class="kw">def</span> <span class="fn">vectorized_demo</span>():
+    <span class="kw">var</span> n = <span class="num">1000</span>
+
+    <span class="cmt"># Create two tensors</span>
+    <span class="kw">var</span> a = Tensor[Float32](n)
+    <span class="kw">var</span> b = Tensor[Float32](n)
+    <span class="kw">var</span> result = Tensor[Float32](n)
+
+    <span class="cmt"># Initialize</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+        a[i] = Float32(i)
+        b[i] = Float32(i) * <span class="num">2.0</span>
+
+    <span class="cmt"># Element-wise addition — auto-vectorized</span>
+    result = a + b
+
+    <span class="cmt"># Element-wise multiplication</span>
+    result = a * b
+
+    <span class="cmt"># Scalar operations broadcast automatically</span>
+    result = a * <span class="num">3.14</span> + <span class="num">1.0</span>
+
+    <span class="fn">print</span>(<span class="str">"result[0] ="</span>, result[<span class="num">0</span>])
+    <span class="fn">print</span>(<span class="str">"result[999] ="</span>, result[<span class="num">999</span>])</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="operations">
+    <h2>Broadcasting and Matrix Multiplication</h2>
+    <p><strong>Broadcasting</strong> lets you apply operations between tensors of different shapes. When you add a scalar to a tensor, or add a 1-D vector to a 2-D matrix, Mojo automatically expands the smaller shape to match — without copying data.</p>
+
+    <p><strong>Matrix multiplication</strong> is the workhorse of linear algebra and deep learning. Mojo provides the <code class="inline">matmul</code> function for this, which dispatches to optimized BLAS routines under the hood.</p>
+
+    <div class="code-tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="ch3-broadcast-mojo">Mojo</button>
+      </div>
+      <div class="tab-content active" id="ch3-broadcast-mojo">
+        <pre><span class="kw">from</span> tensor <span class="kw">import</span> Tensor
+<span class="kw">from</span> math <span class="kw">import</span> sqrt
+
+<span class="kw">def</span> <span class="fn">linear_algebra_demo</span>():
+    <span class="cmt"># Broadcasting: scalar + tensor</span>
+    <span class="kw">var</span> t = Tensor[Float32](<span class="num">3</span>, <span class="num">3</span>)
+    t.fill(<span class="num">2.0</span>)
+    t += <span class="num">1.0</span>           <span class="cmt"># each element becomes 3.0</span>
+
+    <span class="cmt"># Broadcasting: row vector + matrix</span>
+    <span class="kw">var</span> row = Tensor[Float32](<span class="num">3</span>)
+    row[<span class="num">0</span>] = <span class="num">1.0</span>; row[<span class="num">1</span>] = <span class="num">2.0</span>; row[<span class="num">2</span>] = <span class="num">3.0</span>
+
+    <span class="cmt"># Matrix multiplication</span>
+    <span class="kw">var</span> a = Tensor[Float32](<span class="num">2</span>, <span class="num">3</span>)
+    a[<span class="num">0</span>,<span class="num">0</span>] = <span class="num">1.0</span>; a[<span class="num">0</span>,<span class="num">1</span>] = <span class="num">2.0</span>; a[<span class="num">0</span>,<span class="num">2</span>] = <span class="num">3.0</span>
+    a[<span class="num">1</span>,<span class="num">0</span>] = <span class="num">4.0</span>; a[<span class="num">1</span>,<span class="num">1</span>] = <span class="num">5.0</span>; a[<span class="num">1</span>,<span class="num">2</span>] = <span class="num">6.0</span>
+
+    <span class="kw">var</span> b = Tensor[Float32](<span class="num">3</span>, <span class="num">2</span>)
+    b[<span class="num">0</span>,<span class="num">0</span>] = <span class="num">7.0</span>;  b[<span class="num">0</span>,<span class="num">1</span>] = <span class="num">8.0</span>
+    b[<span class="num">1</span>,<span class="num">0</span>] = <span class="num">9.0</span>;  b[<span class="num">1</span>,<span class="num">1</span>] = <span class="num">10.0</span>
+    b[<span class="num">2</span>,<span class="num">0</span>] = <span class="num">11.0</span>; b[<span class="num">2</span>,<span class="num">1</span>] = <span class="num">12.0</span>
+
+    <span class="kw">var</span> c = matmul(a, b)  <span class="cmt"># Result is 2x2</span>
+    <span class="fn">print</span>(<span class="str">"c[0,0] ="</span>, c[<span class="num">0</span>, <span class="num">0</span>])  <span class="cmt"># 58.0</span>
+    <span class="fn">print</span>(<span class="str">"c[1,1] ="</span>, c[<span class="num">1</span>, <span class="num">1</span>])  <span class="cmt"># 154.0</span></pre>
+      </div>
+    </div>
+
+    <div class="info-box warning-box">
+      <strong>⚠️ Important:</strong>
+      <p>Broadcasting rules in Mojo follow NumPy's conventions: dimensions are aligned from the right, and a dimension of size 1 is stretched to match. However, Mojo enforces type consistency — you cannot broadcast between <code class="inline">Float32</code> and <code class="inline">Int32</code> without explicit conversion.</p>
+      <p>Matrix multiplication has two spellings on either side of the interop line. In NumPy it is the <code class="inline">@</code> operator, <code class="inline">c = a @ b</code>, with <code class="inline">np.matmul(a, b)</code> as the spelled-out form; in Mojo it is the <code class="inline">matmul</code> function, <code class="inline">c = matmul(a, b)</code>, which dispatches to the same optimized BLAS routines. Both return the same 2×2 result above, and both spell the constant-fill differently: <code class="inline">np.full((3, 3), 2.0, dtype=np.float32)</code> against <code class="inline">Tensor[Float32](3, 3)</code> plus <code class="inline">.fill(2.0)</code>.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 1</div>
+      <div class="qtext">When should you use <code class="inline">Array</code> instead of <code class="inline">List</code> in Mojo?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">When you need more than 10 elements</button>
+        <button class="opt" data-correct="true">When the size is known at compile time</button>
+        <button class="opt" data-correct="false">When you need to store strings</button>
+        <button class="opt" data-correct="false">There is no difference</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 2</div>
+      <div class="qtext">What is the result of matrix multiplication between a (2,3) matrix and a (3,2) matrix?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">A (3,3) matrix</button>
+        <button class="opt" data-correct="true">A (2,2) matrix</button>
+        <button class="opt" data-correct="false">A (2,3) matrix</button>
+        <button class="opt" data-correct="false">It fails — dimensions don't match</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 3</div>
+      <div class="qtext">What does "broadcasting" mean in the context of tensor operations?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Sending data over the network</button>
+        <button class="opt" data-correct="true">Automatically expanding a smaller tensor's shape to match a larger one</button>
+        <button class="opt" data-correct="false">Converting between data types</button>
+        <button class="opt" data-correct="false">Parallelizing across GPU cores</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Create a 4x4 identity matrix using a Mojo <code class="inline">Tensor</code> and print it to the console.</li>
+        <li>Write a function that computes the dot product of two 1-D tensors of length <code class="inline">n</code>. Use element-wise multiplication and a reduction.</li>
+        <li>Given two matrices A (2x3) and B (3x2), compute the matrix product C = A × B by hand, then verify your answer with a Mojo program.</li>
+        <li>Challenge: Implement a function that transposes a 2-D tensor (swaps rows and columns). Do not use any library function — write the indexing logic yourself.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_ml_textbook_02_getting_started.html">← Chapter 2: Getting Started</a>
+    <a class="navbtn" href="ds_ml_textbook_04_numerical.html">Chapter 4: Numerical Computing →</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const group=this.closest('.code-tabs');
+    group.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    group.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    this.classList.add('active');
+    const target=group.querySelector('#'+this.getAttribute('data-tab'));
+    if(target) target.classList.add('active');
+  });
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,feedbackId){
+  const group=document.getElementById(id);
+  const feedback=document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(group.querySelector('.correct,.wrong')) return;
+      const correct=btn.dataset.correct==='true';
+      btn.classList.add(correct?'correct':'wrong');
+      if(!correct) group.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true') o.classList.add('correct');});
+      feedback.textContent=correct?'✓ Correct.':'✗ Not quite — the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

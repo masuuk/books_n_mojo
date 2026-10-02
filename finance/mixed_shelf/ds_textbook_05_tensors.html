@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)ds_05_tensors_ndarrays.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 5 — Tensors and NDArrays: Mojo's Numeric Core · Mojo for Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+
+<style>
+:root{--bg:#0c0906;--bg-1:#120c08;--bg-2:#191009;--paper:#fdf8ea;--paper-dim:#e8dcc0;--paper-faint:#c9b898;--ember-1:#ff7a1a;--ember-2:#ffb238;--ember-3:#c2360c;--line:rgba(244,234,215,0.24);--line-strong:rgba(244,234,215,0.48);--good:#9fe6a8;--bad:#e88b8b}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--paper);font-family:'Newsreader',serif;font-size:19px;line-height:1.7}::selection{background:var(--ember-1);color:#1a0d04}.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--ember-1),var(--ember-2));z-index:100;width:0%;transition:width .1s}nav{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;background:rgba(12,9,6,0.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}.brand{font-family:'Fraunces',serif;font-weight:700;font-size:1rem;color:var(--paper-dim);text-decoration:none;display:flex;align-items:center;gap:8px}.brand:hover{color:var(--paper)}.chnum{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ember-2);letter-spacing:0.06em}.wrap{max-width:760px;margin:0 auto;padding:5rem 6vw 8rem}.kicker{font-family:'JetBrains Mono',monospace;font-size:0.78rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem}h1{font-family:'Fraunces',serif;font-weight:800;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 1.4rem}.dek{font-style:italic;color:var(--paper-dim);font-size:1.2rem;max-width:52ch;margin-bottom:3rem}h2{font-family:'Fraunces',serif;font-weight:700;font-size:1.7rem;margin:3.2rem 0 1rem;padding-top:0.4rem;border-top:1px solid var(--line)}h2:first-of-type{border-top:none}h3{font-family:'Fraunces',serif;font-weight:600;font-size:1.25rem;margin:2rem 0 0.8rem;color:var(--paper)}p{color:var(--paper-dim);margin:0 0 1.1rem}p b,li b{color:var(--paper)}a.inline{color:var(--ember-2);text-decoration-color:rgba(255,178,56,0.4)}ul,ol{color:var(--paper-dim);padding-left:1.3rem}li{margin-bottom:0.5rem}code.inline{font-family:'JetBrains Mono',monospace;font-size:0.86em;background:rgba(244,234,215,0.06);padding:0.1em 0.4em;border-radius:4px;color:var(--paper);border:1px solid var(--line)}.callout{border-left:3px solid var(--ember-2);background:rgba(255,122,26,0.06);padding:1rem 1.3rem;border-radius:0 6px 6px 0;margin:1.6rem 0}.callout .lbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ember-2);margin-bottom:0.4rem;display:block}.callout p{margin:0;color:var(--paper-dim);font-size:0.98rem}.callout.beta{border-left-color:var(--paper-faint);background:rgba(244,234,215,0.03)}.callout.beta .lbl{color:var(--paper-faint)}.demo{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.6rem 0 2rem;box-shadow:0 20px 60px rgba(0,0,0,0.35)}.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--bg-2);overflow-x:auto}.tab{font-family:'JetBrains Mono',monospace;font-size:0.78rem;padding:0.8rem 1.2rem;cursor:pointer;color:var(--paper-faint);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .15s,background .15s}.tab .sw{width:7px;height:7px;border-radius:50%;flex:none}.tab[data-lang="mojo"] .sw{background:var(--ember-2)}.tab.active{color:var(--paper);background:var(--bg)}.tab:hover{color:var(--paper)}.pane{display:none;padding:1.3rem 1.5rem}.pane.active{display:block}pre{margin:0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;line-height:1.6;color:var(--paper-dim);overflow-x:auto}.tok-kw{color:var(--ember-2)}.tok-str{color:#9fd9a0}.tok-com{color:var(--paper-faint);font-style:italic}.tok-fn{color:#7fc8e8}.tok-num{color:#e8b774}.tok-ty{color:#d3a4e8}.cap{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--paper-faint);margin-top:-1rem;margin-bottom:2rem}.code-block{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);overflow:hidden;margin:1.4rem 0 1.8rem}.code-block .head{display:flex;align-items:center;gap:8px;padding:0.7rem 1.1rem;background:var(--bg-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--paper-faint)}.code-block pre{padding:1.2rem 1.4rem}table{width:100%;border-collapse:collapse;margin:1.6rem 0 2rem;font-size:0.94rem}th,td{text-align:left;padding:0.65rem 0.9rem;border-bottom:1px solid var(--line);color:var(--paper-dim)}th{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);font-weight:500}td:first-child,th:first-child{color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:0.85rem}.quiz{border:1px solid var(--line);border-radius:8px;background:var(--bg-1);padding:1.8rem;margin:2.4rem 0}.quiz .qlbl{font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ember-2);margin-bottom:1rem}.qtext{font-family:'Fraunces',serif;font-size:1.15rem;color:var(--paper);margin-bottom:1.2rem}.opts{display:flex;flex-direction:column;gap:0.6rem}.opt{text-align:left;border:1px solid var(--line-strong);background:transparent;color:var(--paper-dim);font-family:'Newsreader',serif;font-size:1rem;padding:0.75rem 1rem;border-radius:6px;cursor:pointer;transition:border-color .15s,background .15s,color .15s}.opt:hover{border-color:var(--ember-2);color:var(--paper)}.opt.correct{border-color:var(--good);background:rgba(159,230,168,0.08);color:var(--good)}.opt.wrong{border-color:var(--bad);background:rgba(232,139,139,0.08);color:var(--bad)}.feedback{margin-top:1rem;font-size:0.92rem;color:var(--paper-dim);display:none;font-family:'JetBrains Mono',monospace}.feedback.show{display:block}.mini-toc{position:fixed;right:2.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;z-index:30}.mini-toc a{width:8px;height:8px;border-radius:50%;background:var(--line-strong);display:block;transition:background .2s,transform .2s}.mini-toc a.active{background:var(--ember-2);transform:scale(1.3)}@media(max-width:900px){.mini-toc{display:none}}.chapnav{display:flex;justify-content:space-between;margin-top:4rem;padding-top:2rem;border-top:1px solid var(--line);gap:1rem;flex-wrap:wrap}.navbtn{font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--paper-dim);text-decoration:none;border:1px solid var(--line-strong);padding:0.8rem 1.3rem;border-radius:6px;transition:border-color .15s,color .15s}.navbtn:hover{border-color:var(--ember-2);color:var(--paper)}.navbtn.disabled{opacity:0.4;pointer-events:none}.exercises{border:1px solid var(--line);border-radius:8px;padding:1.6rem 1.8rem;background:var(--bg-1);margin:2rem 0}.exercises ol{margin:0}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<nav><a class="brand" href="../single_source_of_truth%20mojo/index.html">← 🔥 Mojo for Data Science</a><span class="chnum">Ch 05 — Tensors &amp; NDArrays</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a></nav>
+<div class="mini-toc" id="miniToc"><a href="ds_textbook_05_tensors.html#creating" data-t="creating" title="Creating Tensors"></a><a href="ds_textbook_05_tensors.html#operations" data-t="operations" title="Element-wise Operations"></a><a href="ds_textbook_05_tensors.html#broadcasting" data-t="broadcasting" title="Broadcasting"></a><a href="ds_textbook_05_tensors.html#matmul" data-t="matmul" title="Matrix Multiplication"></a><a href="ds_textbook_05_tensors.html#quiz" data-t="quiz" title="Check your understanding"></a><a href="ds_textbook_05_tensors.html#exercises" data-t="exercises" title="Exercises"></a></div>
+<div class="wrap">
+<div class="kicker">Part II — Numeric Computing · Chapter 5</div>
+<h1>🧮 Tensors and NDArrays: Mojo's Numeric Core</h1>
+<p class="dek">Mojo's built-in Tensor type replaces NumPy's ndarray with compile-time shape checking, zero-copy slicing, and hardware-native SIMD operations — the foundation of every ML pipeline you will build.</p>
+
+<section id="creating">
+<h2>Creating tensors</h2>
+<p>Mojo's <code class="inline">Tensor</code> is a multidimensional array with a compile-time-known data type. Unlike NumPy's <code class="inline">ndarray</code>, which stores its dtype as a runtime attribute, Mojo's Tensor bakes the dtype into the type itself. This means the compiler can generate optimized code for each specific dtype without runtime dispatch.</p>
+<div class="demo">
+<div class="tabbar">
+<div class="tab active" data-lang="mojo" data-group="create"><span class="sw"></span>tensor_create.mojo</div>
+</div>
+<div class="panes" data-group="create">
+<div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — Tensor is parameterized by dtype</span>
+<span class="tok-kw">from</span> tensor <span class="tok-kw">import</span> Tensor
+
+<span class="tok-com"># 1D tensor of zeros</span>
+<span class="tok-kw">var</span> t1 = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](<span class="tok-num">5</span>)     <span class="tok-com"># shape: (5,)</span>
+
+<span class="tok-com"># 2D tensor (matrix) of zeros</span>
+<span class="tok-kw">var</span> t2 = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](<span class="tok-num">3</span>, <span class="tok-num">4</span>)  <span class="tok-com"># shape: (3, 4)</span>
+
+<span class="tok-com"># 3D tensor (batch of images)</span>
+<span class="tok-kw">var</span> t3 = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](<span class="tok-num">32</span>, <span class="tok-num">224</span>, <span class="tok-num">224</span>)
+
+<span class="tok-com"># From a filled value</span>
+<span class="tok-kw">var</span> ones = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](<span class="tok-num">1.0</span>, <span class="tok-num">4</span>, <span class="tok-num">4</span>)
+
+<span class="tok-com"># From existing data</span>
+<span class="tok-kw">var</span> data = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](
+    [<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>,
+     <span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">7.0</span>, <span class="tok-num">8.0</span>]
+)
+data = data.reshape(<span class="tok-num">2</span>, <span class="tok-num">4</span>)
+
+<span class="tok-com"># Identity matrix</span>
+<span class="tok-kw">var</span> eye = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](eye=<span class="tok-num">4</span>)
+
+<span class="tok-com"># Random tensor</span>
+<span class="tok-kw">var</span> rng = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](random=True, <span class="tok-num">3</span>, <span class="tok-num">3</span>)
+
+<span class="tok-com"># BFloat16 for ML</span>
+<span class="tok-kw">var</span> weights = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">bfloat16</span>](<span class="tok-num">512</span>, <span class="tok-num">256</span>)
+
+<span class="tok-com"># Inspect shape</span>
+print(data.shape)          <span class="tok-com"># (2, 4)</span>
+print(data.num_elements()) <span class="tok-com"># 8</span></pre></div>
+</div>
+</div>
+<p class="cap">Mojo Tensor is similar to NumPy's ndarray API but with compile-time type safety and no Python overhead. Two of the NumPy call shapes disappear: there is no <code class="inline">dtype=</code> argument to thread through every constructor, because the dtype is already part of the type, and <code class="inline">np.random.rand(3, 3).astype(np.float32)</code> collapses into <code class="inline">Tensor[DType.float32](random=True, 3, 3)</code>. Likewise <code class="inline">np.bfloat16</code> is a built-in type rather than something you import, and <code class="inline">data.size</code> is spelled <code class="inline">data.num_elements()</code>.</p>
+<div class="callout"><span class="lbl">✂️ Zero-copy slicing</span><p>Mojo Tensor slices return <b>views</b> into the original data, not copies — just like NumPy. But because Mojo knows the slice dimensions at compile time (when possible), it can eliminate bounds checking and generate tighter loops.</p></div>
+</section>
+
+<section id="operations">
+<h2>Element-wise operations</h2>
+<p>Mojo's Tensor supports all the arithmetic operations you would expect from NumPy — but with a crucial difference: operations are type-checked at compile time and use SIMD instructions when possible.</p>
+<div class="demo">
+<div class="tabbar">
+<div class="tab active" data-lang="mojo" data-group="ops"><span class="sw"></span>tensor_ops.mojo</div>
+</div>
+<div class="panes" data-group="ops">
+<div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — element-wise tensor operations</span>
+<span class="tok-kw">var</span> a = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>]([<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>])
+<span class="tok-kw">var</span> b = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>]([<span class="tok-num">10.0</span>, <span class="tok-num">20.0</span>, <span class="tok-num">30.0</span>, <span class="tok-num">40.0</span>])
+
+<span class="tok-com"># Arithmetic</span>
+<span class="tok-kw">var</span> c = a + b       <span class="tok-com"># [11, 22, 33, 44]</span>
+<span class="tok-kw">var</span> d = b - a       <span class="tok-com"># [9, 18, 27, 36]</span>
+<span class="tok-kw">var</span> e = a * b       <span class="tok-com"># [10, 40, 90, 160]</span>
+<span class="tok-kw">var</span> f = b / a       <span class="tok-com"># [10, 10, 10, 10]</span>
+
+<span class="tok-com"># Scalar broadcast</span>
+<span class="tok-kw">var</span> g = a + <span class="tok-num">100</span>    <span class="tok-com"># [101, 102, 103, 104]</span>
+<span class="tok-kw">var</span> h = a * <span class="tok-num">0.5</span>    <span class="tok-com"># [0.5, 1.0, 1.5, 2.0]</span>
+
+<span class="tok-com"># Math functions</span>
+<span class="tok-kw">var</span> j = sqrt(a)
+<span class="tok-kw">var</span> k = exp(a)
+<span class="tok-kw">var</span> l = log(b)
+<span class="tok-kw">var</span> m = tanh(a)
+
+<span class="tok-com"># Aggregations</span>
+<span class="tok-kw">var</span> total = a.reduce_add()   <span class="tok-com"># 10.0</span>
+<span class="tok-kw">var</span> maximum = a.reduce_max() <span class="tok-com"># 4.0</span>
+
+<span class="tok-com"># In-place operations</span>
+a += b
+a *= <span class="tok-num">2</span></pre></div>
+</div>
+</div>
+<p class="cap">The API is nearly identical to NumPy — the mental model transfers directly. The difference is all under the hood: Mojo compiles these to SIMD kernels. It shows in the names too: <code class="inline">np.sqrt(a)</code>, <code class="inline">np.exp(a)</code> and <code class="inline">np.sum(a)</code> become the bare <code class="inline">sqrt(a)</code>, <code class="inline">exp(a)</code> and <code class="inline">a.reduce_add()</code>, because the dtype already selects the overload and a reduction is a method on the tensor rather than a free function you have to import.</p>
+</section>
+
+<section id="broadcasting">
+<h2>Broadcasting: operations on mismatched shapes</h2>
+<p>Broadcasting is NumPy's most powerful feature — and Mojo inherits it. When you add a matrix and a vector, Mojo automatically expands the vector to match the matrix dimensions, without copying data. The rules are the same as NumPy: dimensions are compatible if they are equal or one of them is 1.</p>
+<div class="code-block">
+<div class="head">broadcasting examples</div>
+<pre><span class="tok-com"># (3, 4) + (4,) → (3, 4) — vector broadcasts across rows</span>
+<span class="tok-kw">var</span> matrix = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](
+    [<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>,
+     <span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">7.0</span>, <span class="tok-num">8.0</span>,
+     <span class="tok-num">9.0</span>, <span class="tok-num">10.0</span>, <span class="tok-num">11.0</span>, <span class="tok-num">12.0</span>]
+).reshape(<span class="tok-num">3</span>, <span class="tok-num">4</span>)
+
+<span class="tok-kw">var</span> bias = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>]([<span class="tok-num">100.0</span>, <span class="tok-num">200.0</span>, <span class="tok-num">300.0</span>, <span class="tok-num">400.0</span>])
+
+<span class="tok-com"># Each row gets the bias added</span>
+<span class="tok-kw">var</span> result = matrix + bias
+<span class="tok-com"># [[101, 202, 303, 404],
+#  [105, 206, 307, 408],
+#  [109, 210, 311, 412]]</span>
+
+<span class="tok-com"># (3, 1) + (1, 4) → (3, 4) — outer expansion</span>
+<span class="tok-kw">var</span> col = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>]([<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>]).reshape(<span class="tok-num">3</span>, <span class="tok-num">1</span>)
+<span class="tok-kw">var</span> row = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>]([<span class="tok-num">10.0</span>, <span class="tok-num">20.0</span>, <span class="tok-num">30.0</span>, <span class="tok-num">40.0</span>]).reshape(<span class="tok-num">1</span>, <span class="tok-num">4</span>)
+<span class="tok-kw">var</span> product = col + row  <span class="tok-com"># (3, 4)</span></pre>
+</div>
+<div class="callout"><span class="lbl">📡 Broadcasting performance</span><p>Broadcasting in NumPy creates a "view" with repeated strides — it does not copy data. Mojo does the same but with an added benefit: the compiler can sometimes detect broadcast patterns at compile time and generate tighter SIMD loops that skip the stride indirection entirely.</p></div>
+</section>
+
+<section id="matmul">
+<h2>Matrix multiplication and linear algebra</h2>
+<p>Matrix multiplication is the workhorse of ML. Every linear layer, attention mechanism, and embedding lookup ultimately reduces to <code class="inline">matmul</code>. Mojo provides multiple ways to do it, from high-level library calls to low-level SIMD kernels.</p>
+<div class="demo">
+<div class="tabbar">
+<div class="tab active" data-lang="mojo" data-group="matmul"><span class="sw"></span>matmul.mojo</div>
+</div>
+<div class="panes" data-group="matmul">
+<div class="pane active" data-lang="mojo"><pre><span class="tok-com"># Mojo — matrix multiplication</span>
+<span class="tok-kw">var</span> A = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](
+    [<span class="tok-num">1.0</span>, <span class="tok-num">2.0</span>, <span class="tok-num">3.0</span>, <span class="tok-num">4.0</span>]
+).reshape(<span class="tok-num">2</span>, <span class="tok-num">2</span>)
+<span class="tok-kw">var</span> B = <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>](
+    [<span class="tok-num">5.0</span>, <span class="tok-num">6.0</span>, <span class="tok-num">7.0</span>, <span class="tok-num">8.0</span>]
+).reshape(<span class="tok-num">2</span>, <span class="tok-num">2</span>)
+
+<span class="tok-com"># Using the matmul function</span>
+<span class="tok-kw">var</span> C = matmul(A, B)
+<span class="tok-com"># [[19, 22],   1*5 + 3*7 = 19, 1*6 + 3*8 = 22
+#  [43, 50]]   2*5 + 4*7 = 43, 2*6 + 4*8 = 50</span>
+
+<span class="tok-com"># SIMD dot product for custom kernels</span>
+<span class="tok-kw">def</span> <span class="tok-fn">simd_dot</span>(
+    a: <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>],
+    b: <span class="tok-ty">Tensor</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>]
+) -&gt; Float32:
+    <span class="tok-kw">comptime</span> width = <span class="tok-num">8</span>
+    <span class="tok-kw">var</span> accum = <span class="tok-ty">SIMD</span>[<span class="tok-ty">DType</span>.<span class="tok-ty">float32</span>, width](<span class="tok-num">0</span>)
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> range(<span class="tok-num">0</span>, len(a), width):
+        accum += a.simd_load[width](i) * b.simd_load[width](i)
+    <span class="tok-kw">return</span> accum.reduce_add()</pre></div>
+</div>
+</div>
+<p class="cap">Mojo gives you three levels of control: high-level matmul, manual tiling for cache efficiency, and raw SIMD for maximum performance. In NumPy the same product is <code class="inline">A @ B</code>, <code class="inline">np.matmul(A, B)</code> or — for the awkward shapes — <code class="inline">np.einsum('ij,jk-&gt;ik', A, B)</code>, and all three delegate to BLAS (OpenBLAS, MKL). <code class="inline">matmul(A, B)</code> is the same call in Mojo, except it is one you can drop down into, which is what <code class="inline">simd_dot</code> above starts doing.</p>
+<div class="callout"><span class="lbl">💡 Why this matters for ML</span><p>In a transformer, the attention mechanism computes <code class="inline">Q @ K^T / sqrt(d_k)</code> — a massive matrix multiply. In Python, this is a single <code class="inline">np.matmul</code> call to BLAS. In Mojo, you can use the same call <b>or</b> write a custom fused kernel that combines the matmul with softmax in a single pass, avoiding the memory traffic of writing intermediate results.</p></div>
+</section>
+
+<section id="quiz">
+<h2>✅ Check your understanding</h2>
+<div class="quiz">
+<div class="qlbl">✅ Quick check</div>
+<div class="qtext">What is the key difference between Mojo's Tensor and NumPy's ndarray?</div>
+<div class="opts" id="quiz1">
+<button class="opt" data-correct="false">Mojo Tensor supports more data types</button>
+<button class="opt" data-correct="true">Mojo Tensor bakes the dtype into the type at compile time, enabling SIMD optimization</button>
+<button class="opt" data-correct="false">Mojo Tensor uses less memory for the same shape</button>
+<button class="opt" data-correct="false">Mojo Tensor has a completely different API than NumPy</button>
+</div>
+<div class="feedback" id="feedback1"></div>
+</div>
+<div class="quiz">
+<div class="qlbl">✅ Quick check</div>
+<div class="qtext">What happens when you add a (3, 4) matrix and a (4,) vector in Mojo?</div>
+<div class="opts" id="quiz2">
+<button class="opt" data-correct="false">It raises a shape mismatch error</button>
+<button class="opt" data-correct="false">It replicates the vector into a (3, 4) matrix by copying data</button>
+<button class="opt" data-correct="true">Broadcasting expands the vector across rows without copying data</button>
+<button class="opt" data-correct="false">It only adds the vector to the first row of the matrix</button>
+</div>
+<div class="feedback" id="feedback2"></div>
+</div>
+<div class="quiz">
+<div class="qlbl">✅ Quick check</div>
+<div class="qtext">Why might you use tiled matrix multiplication instead of the built-in matmul?</div>
+<div class="opts" id="quiz3">
+<button class="opt" data-correct="false">Built-in matmul does not support float32</button>
+<button class="opt" data-correct="true">Tiling improves cache locality for very large matrices that do not fit in L1 cache</button>
+<button class="opt" data-correct="false">Tiled matmul is always faster regardless of matrix size</button>
+<button class="opt" data-correct="false">Built-in matmul does not support broadcasting</button>
+</div>
+<div class="feedback" id="feedback3"></div>
+</div>
+</section>
+
+<section id="exercises">
+<h2>✏️ Exercises</h2>
+<div class="exercises">
+<ol>
+<li>Create a 5x5 tensor of random Float32 values, extract the diagonal elements using slicing, and compute their sum.</li>
+<li>Write a function <code class="inline">softmax</code> that takes a 1D Tensor and returns the softmax (exponential normalization). Use <code class="inline">exp</code> and <code class="inline">reduce_add</code>.</li>
+<li>Implement batch matrix multiplication: given two 3D tensors of shape (B, M, K) and (B, K, N), compute the result (B, M, N) using a loop over the batch dimension and <code class="inline">matmul</code> for each pair.</li>
+<li>Write a function that computes the mean squared error between two tensors of the same shape using element-wise operations and <code class="inline">reduce_add</code>.</li>
+</ol>
+</div>
+</section>
+
+<div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+<a class="navbtn" href="ds_textbook_04_ownership.html">← Chapter 4: Ownership &amp; Borrowing</a>
+<a class="navbtn" href="ds_textbook_06_interop.html">Chapter 6: The Python Interop Bridge →</a>
+</div>
+</div>
+
+<script>
+const progress = document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+  progress.style.width = scrolled+'%';
+});
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const lang = tab.dataset.lang;
+    const group = tab.dataset.group;
+    const bar = tab.closest('.tabbar');
+    bar.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===tab));
+    const panes = document.querySelector('.panes[data-group="'+group+'"]');
+    panes.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.dataset.lang===lang));
+  });
+});
+const sections = [...document.querySelectorAll('section[id]')];
+const dots = document.querySelectorAll('#miniToc a');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+    }
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+function wireQuiz(id,feedbackId){
+  const group = document.getElementById(id);
+  const feedback = document.getElementById(feedbackId);
+  group.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const already = group.querySelector('.correct,.wrong');
+      if(already) return;
+      const correct = btn.dataset.correct==='true';
+      btn.classList.add(correct?'correct':'wrong');
+      if(!correct){
+        group.querySelectorAll('.opt').forEach(o=>{
+          if(o.dataset.correct==='true') o.classList.add('correct');
+        });
+      }
+      feedback.textContent = correct
+        ? '\u2713 Correct.'
+        : '\u2717 Not quite \u2014 the correct answer is highlighted above.';
+      feedback.classList.add('show');
+    });
+  });
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+
+</body></html>

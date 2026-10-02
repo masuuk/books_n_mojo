@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<!-- saved from url=(0064)m10_12_inference_deployment.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 12 — Inference &amp; Deployment · Mojo 1.x</title>
+<style>
+:root{
+  --bg:#0f1115;--surface:#16181d;--surface-hover:#1e2128;
+  --text:#f4f6fc;--text-muted:#ffe4a3;
+  --accent:#6c5ce7;--accent-light:#a29bfe;
+  --success:#00cec9;--warning:#fdcb6e;
+  --code-bg:#111317;--border:#434b59;
+  --radius:12px;--shadow:0 8px 32px rgba(0,0,0,0.4);
+  --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono","Fira Code","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent-light);text-decoration:none;transition:color 0.2s;}
+a:hover{color:var(--accent);}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--success));z-index:100;width:0%;transition:width .1s;}
+
+.header{position:sticky;top:0;z-index:100;height:56px;background:rgba(15,17,21,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1rem;color:var(--text);text-decoration:none;}
+.brand .icon{width:28px;height:28px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.chnum{font-family:var(--font-mono);font-size:0.75rem;color:var(--success);letter-spacing:0.04em;}
+
+.container{max-width:820px;margin:0 auto;padding:0 24px;}
+.wrap{padding:4.5rem 0 7rem;}
+
+.kicker{display:inline-block;background:rgba(108,92,231,0.15);color:var(--accent-light);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;letter-spacing:0.5px;margin-bottom:16px;border:1px solid rgba(108,92,231,0.3);}
+h1{font-size:clamp(2rem,4.5vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:16px;}
+h1 .hl{background:linear-gradient(to right,var(--accent-light),var(--success));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.dek{font-size:1.1rem;color:var(--text-muted);margin-bottom:36px;max-width:580px;line-height:1.7;}
+
+h2{font-size:1.5rem;font-weight:700;margin:3rem 0 1rem;padding-top:1rem;border-top:1px solid var(--border);}
+h2:first-of-type{border-top:none;}
+h3{font-size:1.15rem;font-weight:600;margin:2rem 0 0.8rem;}
+p{color:var(--text-muted);margin:0 0 1rem;line-height:1.8;}
+p strong{color:var(--text);}
+ul,ol{color:var(--text-muted);padding-left:20px;line-height:1.8;}
+li{margin-bottom:4px;}
+code{font-family:var(--font-mono);font-size:0.88em;background:rgba(108,92,231,0.1);padding:2px 6px;border-radius:4px;color:var(--accent-light);}
+
+.info-box{padding:16px 20px;border-radius:var(--radius);background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.12);margin:16px 0;}
+.info-box strong{color:var(--text);}
+.info-box p{margin-top:4px;}
+.tip-box{background:rgba(0,206,201,0.06);border-color:rgba(0,206,201,0.12);}
+.tip-box strong{color:var(--success);}
+
+.code-playground{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin:20px 0;}
+.tabs{display:flex;background:var(--code-bg);border-bottom:1px solid var(--border);}
+.tab{padding:10px 18px;cursor:pointer;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;transition:all 0.2s;font-size:0.9rem;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent-light);border-bottom-color:var(--accent-light);background:rgba(108,92,231,0.08);}
+.code-content{padding:16px 20px;background:var(--code-bg);min-height:200px;position:relative;}
+.code-block{display:none;font-family:var(--font-mono);font-size:0.88rem;line-height:1.7;white-space:pre;overflow-x:auto;}
+.code-block.active{display:block;}
+.kw{color:#c792ea;}.fn{color:#82aaff;}.str{color:#c3e88d;}.num{color:#f78c6c;}.com{color:#546e7a;font-style:italic;}.type{color:#ffcb6b;}.op{color:#89ddff;}
+
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--surface-hover);border:1px solid var(--border);color:var(--text-muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.quiz{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:20px;margin:24px 0;}
+.quiz .qlbl{font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--success);margin-bottom:10px;}
+.qtext{font-size:1.05rem;font-weight:600;margin-bottom:14px;}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{text-align:left;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.92rem;padding:10px 14px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.opt:hover{border-color:var(--accent);color:var(--text);}
+.opt.correct{border-color:var(--success);background:rgba(0,206,201,0.08);color:var(--success);}
+.opt.wrong{border-color:#f87171;background:rgba(248,113,113,0.08);color:#f87171;}
+.feedback{margin-top:10px;font-size:0.88rem;color:var(--text-muted);display:none;font-family:var(--font-mono);}
+.feedback.show{display:block;}
+
+.exercises{border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;background:var(--surface);margin:20px 0;}
+
+.chapnav{display:flex;justify-content:space-between;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.navbtn{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);padding:8px 14px;border-radius:8px;transition:all 0.2s;}
+.navbtn:hover{border-color:var(--accent);color:var(--text);}
+
+.mini-toc{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30;}
+.mini-toc a{width:7px;height:7px;border-radius:50%;background:var(--border);display:block;transition:all .2s;}
+.mini-toc a.active{background:var(--success);transform:scale(1.3);}
+@media(max-width:900px){.mini-toc{display:none;}}
+@media(max-width:600px){h1{font-size:1.8rem;}.wrap{padding:3rem 0 4rem;}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" style="width: 45.8977%;"></div>
+
+<header class="header">
+  <a class="brand" href="../single_source_of_truth%20mojo/index.html"><span class="icon">M</span> Mojo 1.x</a>
+  <span class="chnum">Chapter 12 / 15</span> <a href="../single_source_of_truth%20mojo/index.html" style="font-size:.8em;opacity:.75;text-decoration:underline;margin-left:8px;">← Book 1 · Language Fundamentals</a>
+</header>
+
+<div class="mini-toc" id="miniToc">
+  <a href="ds_advanced_12_inference.html#graph-compilation" class=""></a>
+  <a href="ds_advanced_12_inference.html#quantization" class=""></a>
+  <a href="ds_advanced_12_inference.html#mojoserve" class="active"></a>
+  <a href="ds_advanced_12_inference.html#model-export"></a>
+  <a href="ds_advanced_12_inference.html#quiz"></a>
+  <a href="ds_advanced_12_inference.html#exercises"></a>
+</div>
+
+<div class="wrap">
+<div class="container">
+  <span class="kicker">Part III: Systems</span>
+  <h1>🚀 Inference &amp; <span class="hl">Deployment</span></h1>
+  <p class="dek">Graph compilation, quantization, MojoServe, and model export for production ML systems.</p>
+
+  <section id="graph-compilation">
+    <h2>Graph Compilation</h2>
+    <p>Training frameworks like PyTorch use eager execution — each operation runs immediately. For inference, this overhead adds up. Mojo's graph compiler traces the computation graph, fuses operations, and generates optimized machine code for your target hardware.</p>
+
+    <p>The compiler performs several critical optimizations: operator fusion (combining elementwise ops into a single kernel), constant folding (evaluating expressions at compile time), and dead code elimination (removing unused computations).</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo"><code><span class="kw">from</span> compiler <span class="kw">import</span> compile_model, CompileConfig
+<span class="kw">from</span> inference <span class="kw">import</span> InferenceSession
+
+<span class="com">// Compile a trained model for inference</span>
+<span class="kw">var</span> cfg = CompileConfig(
+    target=Target.CPU,   <span class="com">// or Target.CUDA, Target.METAL</span>
+    precision=Float16,
+    fuse_ops=<span class="num">True</span>,
+    optimize_memory=<span class="num">True</span>
+)
+
+<span class="kw">var</span> compiled = compile_model(
+    model_path=<span class="str">"model.mojomodel"</span>,
+    config=cfg
+)
+
+<span class="com">// Run inference — no Python overhead</span>
+<span class="kw">var</span> session = InferenceSession(compiled)
+<span class="kw">var</span> output = session.run(input_tensor)
+print(output.shape)  <span class="com">// [1, 512, 1024]</span></code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>MLIR-Powered</strong>
+      <p>Mojo's compiler builds on MLIR (Multi-Level Intermediate Representation), the same infrastructure used by TensorFlow and JAX. This means you get hardware-specific optimizations for CPU, GPU, and TPU from a single compilation step.</p>
+    </div>
+
+    <h3>Fusion Patterns</h3>
+    <p>The compiler automatically identifies fusible operations. Common patterns that get fused:</p>
+
+    <ul>
+      <li><strong>LayerNorm + Dropout</strong> — single kernel instead of two</li>
+      <li><strong>Bias + GELU</strong> — eliminates intermediate memory allocation</li>
+      <li><strong>MatMul + Add + Reshape</strong> — fused attention kernel</li>
+    </ul>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo2">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo2"><code><span class="com">// The compiler sees this sequence:</span>
+<span class="kw">var</span> x = matmul(q, k_transposed)
+<span class="kw">var</span> x = x / sqrt(d_k)
+<span class="kw">var</span> x = softmax(x, axis=-<span class="num">1</span>)
+<span class="kw">var</span> x = matmul(x, v)
+
+<span class="com">// And compiles it into a single fused attention kernel</span>
+<span class="com">// No intermediate tensors allocated on the heap</span>
+
+<span class="com">// You can inspect the fusion report:</span>
+compiled.fusion_report()
+<span class="com">// → "Fused 4 ops into 1 kernel (attention)</span>
+<span class="com">//    Memory saved: 3 allocations eliminated</span>
+<span class="com">//    Speedup: 2.3x vs unfused"</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="quantization">
+    <h2>Quantization</h2>
+    <p>Quantization reduces model size and latency by representing weights and activations with lower-precision integers. Mojo provides calibration-based quantization with per-layer precision selection.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo3">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo3"><code><span class="kw">from</span> quantize <span class="kw">import</span> QuantConfig, quantize_model, CalibrationData
+
+<span class="com">// INT8 dynamic quantization with calibration</span>
+<span class="kw">var</span> qcfg = QuantConfig(
+    dtype=Int8,
+    method=Method.DYNAMIC,
+    calibration=CalibrationData.from_dataset(
+        val_data, num_samples=<span class="num">1000</span>
+    )
+)
+
+<span class="com">// Quantize — preserves accuracy with calibration</span>
+<span class="kw">var</span> quantized = quantize_model(model, qcfg)
+<span class="print">print</span>(quantized.size_bytes())  <span class="com">// ~75% reduction</span>
+
+<span class="com">// Mixed precision: keep sensitive layers at FP16</span>
+quantized.set_precision(<span class="str">"attention.qkv"</span>, Float16)
+quantized.set_precision(<span class="str">"output_head"</span>, Float32)</code></pre>
+      </div>
+    </div>
+
+    <h3>Quantization Strategies</h3>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+      <tbody><tr><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Method</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Accuracy Loss</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Speedup</th><th style="text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;">Use Case</th></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--accent-light);font-family:var(--font-mono);font-size:0.85rem;">Dynamic INT8</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">&lt; 1%</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">1.5-2x</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">CPU inference</td></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--accent-light);font-family:var(--font-mono);font-size:0.85rem;">Static INT8</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">&lt; 0.5%</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">2-4x</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">GPU/TPU inference</td></tr>
+      <tr><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--accent-light);font-family:var(--font-mono);font-size:0.85rem;">INT4 (GPTQ)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">1-3%</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">3-6x</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-muted);">Edge deployment</td></tr>
+      <tr><td style="padding:8px 12px;color:var(--accent-light);font-family:var(--font-mono);font-size:0.85rem;">FP8</td><td style="padding:8px 12px;color:var(--text-muted);">&lt; 0.2%</td><td style="padding:8px 12px;color:var(--text-muted);">2-3x</td><td style="padding:8px 12px;color:var(--text-muted);">H100/B200 GPUs</td></tr>
+    </tbody></table>
+
+    <div class="tip-box info-box">
+      <strong>Tip: Accuracy Validation</strong>
+      <p>Always run your quantized model against a held-out validation set. Mojo's <code>quantize_model</code> returns an accuracy report alongside the quantized model, showing per-layer sensitivity scores.</p>
+    </div>
+  </section>
+
+  <section id="mojoserve">
+    <h2>MojoServe</h2>
+    <p>MojoServe is a high-performance inference server built in pure Mojo. It supports OpenAI-compatible API endpoints, batching, streaming, and multi-model serving — all with sub-millisecond latency overhead.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo4">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo4"><code><span class="kw">from</span> serve <span class="kw">import</span> Server, ModelConfig, BatchingConfig
+
+<span class="com">// Load and serve a compiled model</span>
+<span class="kw">var</span> model_cfg = ModelConfig(
+    path=<span class="str">"./compiled_model.mojomodel"</span>,
+    max_batch_size=<span class="num">32</span>,
+    timeout_ms=<span class="num">50</span>
+)
+
+<span class="kw">var</span> server = Server(
+    models=[model_cfg],
+    port=<span class="num">8080</span>,
+    batching=BatchingConfig(
+        strategy=Strategy.DYNAMIC,
+        max_wait_ms=<span class="num">5</span>
+    ),
+    auth=AuthConfig(api_keys=[<span class="str">"sk-..."</span>])
+)
+
+<span class="com">// Start serving — OpenAI-compatible API</span>
+server.start()
+<span class="com">// POST /v1/chat/completions</span>
+<span class="com">// POST /v1/embeddings</span>
+<span class="com">// GET  /v1/models</span></code></pre>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Dynamic Batching</strong>
+      <p>MojoServe collects incoming requests for up to 5ms and batches them together, maximizing GPU utilization. This is similar to NVIDIA Triton's dynamic batching but implemented entirely in Mojo with zero Python overhead.</p>
+    </div>
+
+    <h3>Health &amp; Monitoring</h3>
+    <p>MojoServe exposes Prometheus metrics and health endpoints out of the box:</p>
+    <ul>
+      <li><code>/health</code> — liveness and readiness checks</li>
+      <li><code>/metrics</code> — request latency, throughput, queue depth, GPU utilization</li>
+      <li><code>/v1/models</code> — model metadata and version info</li>
+    </ul>
+  </section>
+
+  <section id="model-export">
+    <h2>Model Export</h2>
+    <p>Moving models between frameworks is a persistent pain point. Mojo supports standard formats (ONNX, SafeTensors) plus its own <code>.mojomodel</code> format that embeds the computation graph, weights, and metadata in a single file.</p>
+
+    <div class="code-playground">
+      <div class="tabs">
+        <div class="tab active" data-target="mojo5">Mojo 1.x</div>
+      </div>
+      <div class="code-content">
+        <button class="copy-btn">Copy</button>
+        <pre class="code-block active" id="mojo5"><code><span class="kw">from</span> export <span class="kw">import</span> export_model, ExportFormat
+
+<span class="com">// Export to Mojo's native format</span>
+export_model(
+    model,
+    path=<span class="str">"./model.mojomodel"</span>,
+    format=ExportFormat.MOJO,
+    sample_input=example_batch
+)
+
+<span class="com">// Export to ONNX for cross-framework compatibility</span>
+export_model(
+    model,
+    path=<span class="str">"./model.onnx"</span>,
+    format=ExportFormat.ONNX,
+    opset_version=<span class="num">17</span>
+)
+
+<span class="com">// Export weights only (SafeTensors)</span>
+export_model(
+    model,
+    path=<span class="str">"./weights.safetensors"</span>,
+    format=ExportFormat.SAFETENSORS
+)</code></pre>
+      </div>
+    </div>
+
+    <div class="tip-box info-box">
+      <strong>Tip: Cross-Framework Interop</strong>
+      <p>The <code>.mojomodel</code> format includes a model card with input/output specs, precision requirements, and hardware recommendations. This metadata makes it easy to deploy models without manual configuration.</p>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>✅ Check Your Understanding</h2>
+    <div class="quiz">
+      <div class="qlbl">Quick Check 1</div>
+      <div class="qtext">What is operator fusion in graph compilation?</div>
+      <div class="opts" id="quiz1">
+        <button class="opt" data-correct="false">Converting floating-point operations to integer</button>
+        <button class="opt" data-correct="true">Combining multiple operations into a single kernel to reduce memory allocations</button>
+        <button class="opt" data-correct="false">Removing operations that don't affect the output</button>
+        <button class="opt" data-correct="false">Parallelizing operations across GPU threads</button>
+      </div>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 2</div>
+      <div class="qtext">Why might you choose dynamic batching over static batching for an inference server?</div>
+      <div class="opts" id="quiz2">
+        <button class="opt" data-correct="false">Dynamic batching uses less memory</button>
+        <button class="opt" data-correct="true">It adapts to varying request rates, maximizing GPU utilization</button>
+        <button class="opt" data-correct="false">It doesn't require a batching configuration</button>
+        <button class="opt" data-correct="false">It's simpler to implement</button>
+      </div>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+
+    <div class="quiz">
+      <div class="qlbl">Quick Check 3</div>
+      <div class="qtext">What is the primary advantage of MojoServe's dynamic batching strategy?</div>
+      <div class="opts" id="quiz3">
+        <button class="opt" data-correct="false">Lower memory usage</button>
+        <button class="opt" data-correct="false">Simpler deployment</button>
+        <button class="opt" data-correct="true">Maximizes GPU utilization by collecting requests for up to 5ms</button>
+        <button class="opt" data-correct="false">Eliminates the need for authentication</button>
+      </div>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+  </section>
+
+  <section id="exercises">
+    <h2>✏️ Exercises</h2>
+    <div class="exercises">
+      <ol>
+        <li>Compile a small model (e.g., ResNet-18) with Mojo's graph compiler and compare inference latency with PyTorch eager mode.</li>
+        <li>Quantize a language model to INT8 and measure the accuracy drop on a held-out test set. Try INT4 — at what point does accuracy degrade significantly?</li>
+        <li>Set up MojoServe with dynamic batching and benchmark throughput at different batch sizes (1, 8, 16, 32).</li>
+        <li>Export a model to both <code>.mojomodel</code> and ONNX format. What differences do you observe in file size and metadata?</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="chapnav"> <a class="navbtn" href="../single_source_of_truth%20mojo/index.html">📕 Mojo Textbook</a>
+    <a class="navbtn" href="ds_advanced_11_training.html">← Chapter 11: Training Loops</a>
+    <a class="navbtn" href="ds_advanced_13_benchmarking.html">Chapter 13: Benchmarking &amp; Profiling →</a>
+  </div>
+</div>
+</div>
+
+<script>
+const progress=document.getElementById('progress');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  progress.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const parent=tab.closest('.code-playground');
+    parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    parent.querySelectorAll('.code-block').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    parent.querySelector('#'+tab.dataset.target).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.copy-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const block=this.closest('.code-content').querySelector('.code-block.active');
+    if(block){navigator.clipboard.writeText(block.innerText).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);});}
+  });
+});
+
+const sections=[...document.querySelectorAll('section[id]')];
+const dots=document.querySelectorAll('#miniToc a');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting) dots.forEach(d=>d.classList.toggle('active',d.getAttribute('href')==='#'+entry.target.id));
+  });
+},{rootMargin:'-40% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+function wireQuiz(id,fid){
+  const g=document.getElementById(id),f=document.getElementById(fid);
+  g.querySelectorAll('.opt').forEach(b=>{b.addEventListener('click',()=>{
+    if(g.querySelector('.correct,.wrong'))return;
+    const c=b.dataset.correct==='true';b.classList.add(c?'correct':'wrong');
+    if(!c)g.querySelectorAll('.opt').forEach(o=>{if(o.dataset.correct==='true')o.classList.add('correct');});
+    f.textContent=c?'✓ Correct.':'✗ Not quite — correct answer highlighted.';f.classList.add('show');
+  });});
+}
+wireQuiz('quiz1','feedback1');
+wireQuiz('quiz2','feedback2');
+wireQuiz('quiz3','feedback3');
+</script>
+
+</body></html>

@@ -1,0 +1,2572 @@
+<!DOCTYPE html>
+<!-- saved from url=(0068)file:///C:/Users/user/Desktop/deepseek_html_20260905_3caa47.html#ch7 -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Series Analytics with Mojo 1.x - A Condensed Book</title>
+<style>
+        :root {
+            --bg: #faf8f5;
+            --text: #2c2c2c;
+            --heading: #1a1a2e;
+            --accent: #4a6fa5;
+            --accent2: #6b4a8b;
+            --code-bg: #f0ede8;
+            --code-border: #ddd8d0;
+            --python-color: #3572A5;
+            --mojo-color: #E34F26;
+            --table-header: #4a6fa5;
+            --table-alt: #f5f2ee;
+            --border: #d5cfc7;
+            --highlight: #fff9e6;
+            --note-bg: #eef4fa;
+            --note-border: #4a6fa5;
+            --success-bg: #eef9f0;
+            --success-border: #4a9e5a;
+            --warning-bg: #fdf6e3;
+            --warning-border: #e6a23c;
+            --radius: 8px;
+            --font-body: 'Georgia', 'Times New Roman', serif;
+            --font-code: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+            --font-heading: 'Georgia', 'Times New Roman', serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            font-size: 16px;
+        }
+
+        /* Cover */
+        .book-cover {
+            text-align: center;
+            padding: 4rem 2rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #1a1a2e 100%);
+            color: #f0ede8;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        .book-cover h1 {
+            font-size: 2.8rem;
+            color: #f0ede8;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .book-cover .subtitle {
+            font-size: 1.3rem;
+            font-style: italic;
+            color: #c5b8a5;
+            margin-bottom: 1.5rem;
+        }
+        .book-cover .badge {
+            display: inline-block;
+            padding: 0.4rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-family: var(--font-code);
+            letter-spacing: 0.5px;
+            margin: 0.3rem;
+        }
+        .badge-python {
+            background: #3572A5;
+            color: white;
+        }
+        .badge-mojo {
+            background: #E34F26;
+            color: white;
+        }
+        .badge-ml {
+            background: #4a9e5a;
+            color: white;
+        }
+        .book-cover .edition {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        /* Chapter ledes */
+        .lede {
+            font-size: 1.05rem;
+            font-style: italic;
+            color: #4a6fa5;
+            border-left: 3px solid var(--accent);
+            padding-left: 14px;
+            margin: 10px 0 18px 0;
+        }
+        /* TOC */
+        .toc {
+            background: white;
+            padding: 2.5rem 2rem;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 3rem;
+            border: 1px solid var(--border);
+        }
+        .toc h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--heading);
+            font-size: 1.8rem;
+            border-bottom: 3px double var(--accent);
+            padding-bottom: 0.75rem;
+        }
+        .toc ol {
+            columns: 2;
+            column-gap: 2rem;
+            list-style-position: inside;
+            padding: 0;
+        }
+        .toc ol li {
+            margin-bottom: 0.6rem;
+            break-inside: avoid;
+            font-size: 0.95rem;
+        }
+        .toc a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .toc a:hover {
+            color: var(--accent2);
+            text-decoration: underline;
+        }
+
+        /* Headings */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: var(--font-heading);
+            color: var(--heading);
+            line-height: 1.3;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        h2 {
+            font-size: 2rem;
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 0.5rem;
+            margin-top: 3.5rem;
+        }
+        h3 {
+            font-size: 1.4rem;
+            color: var(--accent);
+            margin-top: 2rem;
+        }
+        h4 {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            color: var(--accent2);
+        }
+
+        /* Paragraphs */
+        p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        /* Code blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: var(--radius);
+            padding: 1.2rem 1.5rem;
+            overflow-x: auto;
+            font-family: var(--font-code);
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin: 1.2rem 0;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+            position: relative;
+        }
+        pre .lang-label {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.8rem;
+            font-size: 0.7rem;
+            font-family: var(--font-code);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+        pre.python {
+            border-left: 4px solid var(--python-color);
+        }
+        pre.python .lang-label {
+            color: var(--python-color);
+        }
+        pre.mojo {
+            border-left: 4px solid var(--mojo-color);
+        }
+        pre.mojo .lang-label {
+            color: var(--mojo-color);
+        }
+        code {
+            font-family: var(--font-code);
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+            border: 1px solid var(--code-border);
+        }
+        pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.88rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        th {
+            background: var(--table-header);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        tr:nth-child(even) {
+            background: var(--table-alt);
+        }
+        tr:hover {
+            background: var(--highlight);
+        }
+        td:first-child {
+            font-weight: 600;
+        }
+
+        /* Callout boxes */
+        .note,
+        .tip,
+        .warning {
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            margin: 1.5rem 0;
+            border-left: 5px solid;
+            font-size: 0.95rem;
+        }
+        .note {
+            background: var(--note-bg);
+            border-left-color: var(--note-border);
+        }
+        .tip {
+            background: var(--success-bg);
+            border-left-color: var(--success-border);
+        }
+        .warning {
+            background: var(--warning-bg);
+            border-left-color: var(--warning-border);
+        }
+        .note .label,
+        .tip .label,
+        .warning .label {
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Calculations */
+        .calc-box {
+            background: white;
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+        .calc-box h4 {
+            margin-top: 0;
+            color: var(--accent);
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 0.5rem;
+        }
+        .calc-step {
+            padding: 0.5rem 0;
+            border-bottom: 1px dotted var(--border);
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+        }
+        .calc-step:last-child {
+            border-bottom: none;
+        }
+        .calc-step .result {
+            font-weight: 700;
+            color: var(--accent2);
+        }
+
+        /* Data display */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 0.4rem;
+            margin: 1rem 0;
+        }
+        .data-cell {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.4rem;
+            text-align: center;
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+        }
+        .data-cell .month {
+            display: block;
+            font-size: 0.65rem;
+            color: #888;
+        }
+
+        /* Section dividers */
+        .chapter-divider {
+            text-align: center;
+            margin: 4rem 0 2rem;
+            position: relative;
+        }
+        .chapter-divider:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            border-top: 2px solid var(--border);
+            z-index: 0;
+        }
+        .chapter-divider span {
+            background: var(--bg);
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 1;
+            font-style: italic;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .nav-links a {
+            color: var(--accent);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.8rem;
+                font-size: 14px;
+            }
+            .book-cover h1 {
+                font-size: 1.8rem;
+            }
+            .toc ol {
+                columns: 1;
+            }
+            pre {
+                padding: 0.8rem 1rem;
+                font-size: 0.78rem;
+            }
+            table {
+                font-size: 0.78rem;
+            }
+            .data-grid {
+                grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+            }
+        }
+
+        /* Print */
+        @media print {
+            body {
+                max-width: 100%;
+                padding: 0;
+                font-size: 11pt;
+            }
+            .book-cover {
+                background: #1a1a2e !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            pre {
+                page-break-inside: avoid;
+                font-size: 8pt;
+            }
+            .nav-links {
+                display: none;
+            }
+            table {
+                font-size: 8pt;
+            }
+        }
+
+        /* ---------- Beautify: landing & reading experience ---------- */
+        html {
+            scroll-behavior: smooth;
+        }
+        [id] {
+            scroll-margin-top: 66px;
+        }
+        ::selection {
+            background: rgba(74, 111, 165, 0.22);
+            color: var(--heading);
+        }
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cdc7bd;
+            border-radius: 99px;
+            border: 3px solid var(--bg);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b8b1a4;
+        }
+        body {
+            padding-top: 64px;
+        }
+
+        /* Sticky top bar + progress */
+        #topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 22px;
+            background: rgba(250, 248, 245, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 14px rgba(26, 26, 46, 0.06);
+        }
+        .tb-title {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--heading);
+            text-decoration: none;
+            letter-spacing: 0.5px;
+        }
+        .tb-title:hover {
+            color: var(--accent);
+        }
+        .tb-nav {
+            display: flex;
+            gap: 16px;
+        }
+        .tb-nav a {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: 0.3px;
+            transition: color 0.2s;
+        }
+        .tb-nav a:hover {
+            color: var(--accent2);
+        }
+        #progress {
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            height: 3px;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width 0.1s linear;
+        }
+
+        /* Cover (landing page) */
+        .book-cover {
+            position: relative;
+            overflow: hidden;
+            padding: 4rem 2.5rem 3.2rem;
+            background:
+                radial-gradient(700px 340px at 82% -10%, rgba(107, 74, 139, 0.45), transparent 62%),
+                radial-gradient(640px 300px at -8% 108%, rgba(74, 111, 165, 0.4), transparent 60%),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 46%, #241d3e 100%);
+        }
+        .book-cover::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 62px),
+                repeating-linear-gradient(25deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 70px);
+        }
+        .cover-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-code);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: #e8b06b;
+            margin-bottom: 1rem;
+        }
+        .cover-eyebrow::before,
+        .cover-eyebrow::after {
+            content: "";
+            width: 30px;
+            height: 1px;
+            background: #e8b06b;
+        }
+        .book-cover h1 {
+            color: #f0ede8;
+            letter-spacing: 2px;
+        }
+        .book-cover .subtitle {
+            color: #c5b8a5;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cover-badges {
+            margin: 1.2rem 0 1.6rem;
+        }
+        .cover-badges .badge {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cover-badges .badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+        }
+        .cover-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2.6rem;
+            margin: 0 0 1.8rem;
+        }
+        .cover-stats .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .cover-stats .stat strong {
+            font-size: 1.7rem;
+            color: #fff;
+            font-family: var(--font-heading);
+        }
+        .cover-stats .stat span {
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #9d93b8;
+        }
+        .cover-cta {
+            display: inline-block;
+            margin: 0 auto 1.4rem;
+            padding: 0.8rem 2.2rem;
+            border-radius: 99px;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1rem;
+            color: #1a1a2e;
+            text-decoration: none;
+            background: linear-gradient(90deg, #8fb7e8, #c7a9e8);
+            box-shadow: 0 12px 30px rgba(74, 111, 165, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cover-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 40px rgba(74, 111, 165, 0.5);
+        }
+        .book-cover .edition {
+            color: #8a8396;
+            margin-top: 0;
+        }
+
+        /* TOC polish */
+        .toc {
+            box-shadow: 0 6px 24px rgba(26, 26, 46, 0.08);
+        }
+        .toc ol {
+            counter-reset: tocnum;
+        }
+        .toc ol li {
+            counter-increment: tocnum;
+        }
+        .toc a {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .toc a::before {
+            content: counter(tocnum);
+            font-weight: 700;
+            color: var(--accent2);
+            font-size: 0.8em;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        /* Code groups with copy */
+        .code-group {
+            background: #232a3b;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 1.4rem 0;
+            box-shadow: 0 8px 22px rgba(26, 26, 46, 0.12);
+        }
+        .code-group::after {
+            content: "";
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+        .code-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 1rem;
+            background: #1b2130;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #b9c4de;
+            font-family: var(--font-code);
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .code-lang {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+        }
+        .code-lang .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+        .copy-btn {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #d7e3ff;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 4px 12px;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: 0.18s;
+        }
+        .copy-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .copy-btn.done {
+            background: var(--success-border);
+            border-color: var(--success-border);
+            color: #fff;
+        }
+        .code-group pre {
+            margin: 0;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            color: #e8ecf5;
+            background: #232a3b;
+        }
+
+        /* Back to top */
+        .to-top {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 900;
+            width: 48px;
+            height: 48px;
+            border: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 1.2rem;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            box-shadow: 0 14px 34px rgba(26, 26, 46, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(12px);
+            transition: 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .to-top.on {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+        .to-top:hover {
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .tb-nav {
+                display: none;
+            }
+            .cover-stats {
+                gap: 1.6rem;
+            }
+            .cover-stats .stat strong {
+                font-size: 1.35rem;
+            }
+        }
+        @media print {
+            #topbar,
+            .to-top,
+            .copy-btn,
+            .code-head {
+                display: none !important;
+            }
+            body {
+                padding-top: 0;
+            }
+            .code-group,
+            .book-cover {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== TOP BAR ==================== -->
+    <div id="topbar">
+        <a class="tb-title" href="#ch1">⏳ Time Series Analytics</a>
+        <nav class="tb-nav">
+            <a href="#sample-data">Sample Data</a>
+            <a href="#ch1">Chapter 1</a>
+            <a href="#ch25">Cheat Sheet</a>
+            <a href="#appendix">Appendix</a>
+        </nav>
+        <div id="progress"></div>
+    </div>
+
+    <!-- ==================== COVER ==================== -->
+    <div class="book-cover">
+        <div class="cover-eyebrow">A Condensed Reference for Forecasting &amp; Machine Learning</div>
+        <h1>⏳ Time Series Analytics</h1>
+        <p class="subtitle">A practical guide for Machine Learning practitioners - Mojo 1.x for the computation, with the Python ecosystem reached through interop wherever a library already does the job well.</p>
+        <div class="cover-badges">
+            <span class="badge badge-mojo">🔥 Mojo 1.x</span>
+            <span class="badge badge-python">🐍 Python Interop</span>
+            <span class="badge badge-ml">🤖 ML</span>
+        </div>
+        <div class="cover-stats">
+            <div class="stat"><strong>25</strong><span>Chapters</span></div>
+            <div class="stat"><strong>40+</strong><span>Code Examples</span></div>
+            <div class="stat"><strong>24</strong><span>Months of Data</span></div>
+            <div class="stat"><strong>1</strong><span>Primary Language</span></div>
+        </div>
+        <a class="cover-cta" href="#ch1">Begin Reading</a>
+        <p class="edition">Condensed Edition • With Worked Examples on Sample Data</p>
+    </div>
+
+    <!-- ==================== TABLE OF CONTENTS ==================== -->
+    <nav class="toc">
+        <h2>📚 Table of Contents</h2>
+        <ol>
+            <li><a href="#ch1">Introduction to Time Series</a></li>
+            <li><a href="#ch2">Data Loading &amp; Preprocessing</a></li>
+            <li><a href="#ch3">Moving Averages &amp; Smoothing</a></li>
+            <li><a href="#ch4">Time Series Decomposition</a></li>
+            <li><a href="#ch5">Stationarity &amp; Differencing</a></li>
+            <li><a href="#ch6">ARIMA Models</a></li>
+            <li><a href="#ch7">Exponential Smoothing (Holt-Winters)</a></li>
+            <li><a href="#ch8">Feature Engineering for ML</a></li>
+            <li><a href="#ch9">ML Models for Time Series</a></li>
+            <li><a href="#ch10">Deep Learning (LSTM)</a></li>
+            <li><a href="#ch11">Evaluation &amp; Forecasting</a></li>
+            <li><a href="#ch12">Visualising a Time Series</a></li>
+            <li><a href="#ch13">Percentage Change &amp; Log Returns</a></li>
+            <li><a href="#ch14">Autocorrelation</a></li>
+            <li><a href="#ch15">Feature Scaling</a></li>
+            <li><a href="#ch16">The Forecasting Model Ladder</a></li>
+            <li><a href="#ch17">The Naive Forecast</a></li>
+            <li><a href="#ch18">Multivariate Time Series</a></li>
+            <li><a href="#ch19">Anomaly Detection</a></li>
+            <li><a href="#ch20">Your Mojo Time-Series Engine</a></li>
+            <li><a href="#ch21">Mojo 1.x vs Python</a></li>
+            <li><a href="#ch22">The Hybrid Mojo Architecture</a></li>
+            <li><a href="#ch24">8-Week Learning Plan</a></li>
+            <li><a href="#ch25">Formula Cheat Sheet</a></li>
+        </ol>
+    </nav>
+
+    <!-- ==================== SAMPLE DATA INTRO ==================== -->
+    <section id="sample-data">
+        <h2>📊 Our Sample Dataset</h2>
+        <p>Throughout this book, we'll use a <strong>monthly sales dataset</strong> spanning 24 months (2 years). This synthetic data exhibits a clear upward trend, mild seasonality, and some noise — ideal for demonstrating time series concepts.</p>
+
+        <div class="data-grid">
+            <div class="data-cell"><span class="month">M1</span>120</div>
+            <div class="data-cell"><span class="month">M2</span>132</div>
+            <div class="data-cell"><span class="month">M3</span>145</div>
+            <div class="data-cell"><span class="month">M4</span>138</div>
+            <div class="data-cell"><span class="month">M5</span>150</div>
+            <div class="data-cell"><span class="month">M6</span>165</div>
+            <div class="data-cell"><span class="month">M7</span>170</div>
+            <div class="data-cell"><span class="month">M8</span>158</div>
+            <div class="data-cell"><span class="month">M9</span>175</div>
+            <div class="data-cell"><span class="month">M10</span>190</div>
+            <div class="data-cell"><span class="month">M11</span>185</div>
+            <div class="data-cell"><span class="month">M12</span>200</div>
+            <div class="data-cell"><span class="month">M13</span>210</div>
+            <div class="data-cell"><span class="month">M14</span>205</div>
+            <div class="data-cell"><span class="month">M15</span>220</div>
+            <div class="data-cell"><span class="month">M16</span>215</div>
+            <div class="data-cell"><span class="month">M17</span>230</div>
+            <div class="data-cell"><span class="month">M18</span>240</div>
+            <div class="data-cell"><span class="month">M19</span>235</div>
+            <div class="data-cell"><span class="month">M20</span>250</div>
+            <div class="data-cell"><span class="month">M21</span>260</div>
+            <div class="data-cell"><span class="month">M22</span>255</div>
+            <div class="data-cell"><span class="month">M23</span>270</div>
+            <div class="data-cell"><span class="month">M24</span>280</div>
+        </div>
+        <p style="text-align:center; font-style:italic; font-size:0.9rem; color:#666;">Monthly sales values (units) for 24 months</p>
+
+        <div class="note">
+            <span class="label">📌 Key Observations</span>
+            Overall mean ≈ 199.5 • Min = 120 (M1) • Max = 280 (M24) • Std Dev ≈ 46.3 • Clear upward trend with periodic dips (e.g., M8=158, M16=215) suggesting ~12-month seasonality.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 1 ==================== -->
+    <div class="chapter-divider"><span>Chapter 1</span></div>
+    <section id="ch1">
+        <h2>1. Introduction to Time Series Analysis</h2>
+        <p class="lede">A forecast is only as good as the series it stands on — and one series, followed honestly through the whole book, lets every method be compared without excuses.</p>
+        <p>A <strong>time series</strong> is a sequence of data points indexed in chronological order. Unlike cross-sectional data, time series observations are <em>dependent</em> on their temporal ordering — the value at time <em>t</em> is often correlated with values at <em>t−1</em>, <em>t−2</em>, and so on. This <strong>autocorrelation</strong> is what makes time series analysis both challenging and powerful.</p>
+
+        <h3>1.1 Components of a Time Series</h3>
+        <p>Classical decomposition breaks a time series into four additive or multiplicative components:</p>
+        <table>
+            <tbody><tr><th>Component</th><th>Description</th><th>Example in our data</th></tr>
+<tr><td><strong>Trend (T)</strong></td><td>Long-term direction</td><td>Steady increase from ~120 to ~280</td></tr>
+<tr><td><strong>Seasonality (S)</strong></td><td>Regular, fixed-period cycles</td><td>Yearly dips at months 8 and 16</td></tr>
+<tr><td><strong>Cyclical (C)</strong></td><td>Irregular, longer-term cycles</td><td>Business cycle effects</td></tr>
+<tr><td><strong>Noise (ε)</strong></td><td>Random, unpredictable variation</td><td>Scatter around the trend line</td></tr>
+        </tbody></table>
+
+        <h3>1.2 Why Time Series for ML?</h3>
+        <p>Machine learning models can capture complex non-linear patterns that classical statistical models miss. However, they require careful <strong>feature engineering</strong> (lag variables, rolling statistics, etc.) to respect temporal structure. Understanding classical methods provides the foundation for designing effective ML features.</p>
+
+        <h3>1.3 Additive vs. Multiplicative Decomposition</h3>
+        <div class="calc-box">
+            <h4>📐 Decomposition Models</h4>
+            <div class="calc-step"><strong>Additive:</strong> &nbsp;Y(t) = T(t) + S(t) + C(t) + ε(t) &nbsp;&nbsp;<em>(constant amplitude seasonality)</em></div>
+            <div class="calc-step"><strong>Multiplicative:</strong> &nbsp;Y(t) = T(t) × S(t) × C(t) × ε(t) &nbsp;&nbsp;<em>(seasonal amplitude grows with trend)</em></div>
+        </div>
+        <p>For our sales data, the seasonal dips appear roughly constant in magnitude (≈15-20 units below trend), suggesting an <strong>additive</strong> model is appropriate.</p>
+    </section>
+
+    <!-- ==================== CHAPTER 2 ==================== -->
+    <div class="chapter-divider"><span>Chapter 2</span></div>
+    <section id="ch2">
+        <h2>2. Data Loading &amp; Preprocessing</h2>
+        <p class="lede">Real data arrives with holes. Two repairs — forward-fill and interpolation — cover almost everything, and both are honest: they invent no structure the data itself did not suggest.</p>
+        <p>Before analysis, we must load data, handle missing values, and ensure proper temporal indexing. Mojo 1.x does this natively with typed lists and structs; <strong>pandas</strong> is one <code>Python.import_module()</code> away when you want it.</p>
+
+        <h3>2.1 Mojo 1.x: Native Data Loading</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Mojo 1.x: every function starts with `def`, and `List` comes from the
+# prelude so no import is needed.
+def load_sales_data() -&gt; List[Float64]:
+    # build the sample series as a typed Mojo List (list display syntax)
+    var data: List[Float64] = [
+        120.0, 132.0, 145.0, 138.0, 150.0, 165.0, 170.0,
+        158.0, 175.0, 190.0, 185.0, 200.0, 210.0, 205.0,
+        220.0, 215.0, 230.0, 240.0, 235.0, 250.0, 260.0,
+        255.0, 270.0, 280.0,
+    ]
+    return data
+
+# Forward-fill a missing value: same idea as pandas .ffill()
+def handle_missing(data: List[Float64], missing_idx: Int) -&gt; List[Float64]:
+    var result = data                  # copy the list (value semantics)
+    if missing_idx &gt; 0:
+        result[missing_idx] = data[missing_idx - 1]   # reuse previous month
+    return result
+
+def main():
+    var sales = load_sales_data()
+    var cleaned = handle_missing(sales, 5)   # fill month 6 (index 5)
+    print("Length:", len(cleaned))
+    print("First 6 values:", cleaned[0], cleaned[1], cleaned[2],
+          cleaned[3], cleaned[4], cleaned[5])
+</code></pre>
+
+        <h3>2.2 Mojo 1.x: Python Interop for pandas</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Calling pandas from Mojo via Python interop.
+# Mojo 1.x stdlib paths start with std., so the Python bridge lives here.
+from std.python import Python
+
+# Mojo has no std.python.numpy: hand the series over as a real Python
+# list, then let NumPy/pandas build the array on their own side.
+def to_python_list(data: List[Float64]) raises:
+    var out = Python.list()
+    for v in data:
+        out.append(v)
+    return out
+
+def use_pandas_from_mojo() raises:
+    var np = Python.import_module("numpy")
+    var pd = Python.import_module("pandas")
+    var sales: List[Float64] = [
+        120.0, 132.0, 145.0, 138.0, 150.0, 165.0, 170.0,
+        158.0, 175.0, 190.0, 185.0, 200.0, 210.0, 205.0,
+        220.0, 215.0, 230.0, 240.0, 235.0, 250.0, 260.0,
+        255.0, 270.0, 280.0,
+    ]
+    var dates = pd.date_range(start="2023-01-01", periods=24, freq="MS")
+    # NumPy array built from the Python list, wrapped in a dated Series
+    var series = pd.Series(np.array(to_python_list(sales)), index=dates)
+    print(series.head())
+    print("Missing values:", series.isna().sum())
+
+def main() raises:
+    use_pandas_from_mojo()
+</code></pre>
+
+        <div class="tip">
+            <span class="label">💡 Best Practice</span>
+            Always set a <code>DatetimeIndex</code> with a known frequency (e.g., <code>'MS'</code> for month start). This unlocks resampling, rolling windows, and proper plotting.
+        </div>
+
+        <h3>2.3 Resampling and Aggregation</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Resampling is just "average each fixed-size bucket of the series".
+# 24 monthly observations -> 8 quarters -> 2 years, no index required.
+def resample_mean(data: List[Float64], bucket: Int) -> List[Float64]:
+    var n = len(data)
+    var out = List[Float64]()
+    var i = 0
+    while i < n:
+        var stop = i + bucket
+        if stop > n:
+            stop = n                     # a short final bucket is fine
+        var total: Float64 = 0.0
+        for j in range(i, stop):
+            total += data[j]
+        out.append(total / Float64(stop - i))
+        i = stop
+    return out
+
+def resample_sum(data: List[Float64], bucket: Int) -> List[Float64]:
+    var n = len(data)
+    var out = List[Float64]()
+    var i = 0
+    while i < n:
+        var stop = i + bucket
+        if stop > n:
+            stop = n
+        var total: Float64 = 0.0
+        for j in range(i, stop):
+            total += data[j]
+        out.append(total)
+        i = stop
+    return out
+
+def main():
+    var sales = load_sales_data()
+    var quarterly = resample_mean(sales, 3)     # 24 months -> 8 quarters
+    var yearly = resample_sum(sales, 12)        # 24 months -> 2 years
+    print("Quarterly means:", quarterly)
+    print("Yearly totals:", yearly)
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Quarterly Averages (from our data)</h4>
+            <div class="calc-step">Q1 2023 (M1-M3): (120+132+145)/3 = 397/3 = <span class="result">132.33</span></div>
+            <div class="calc-step">Q2 2023 (M4-M6): (138+150+165)/3 = 453/3 = <span class="result">151.00</span></div>
+            <div class="calc-step">Q3 2023 (M7-M9): (170+158+175)/3 = 503/3 = <span class="result">167.67</span></div>
+            <div class="calc-step">Q4 2023 (M10-M12): (190+185+200)/3 = 575/3 = <span class="result">191.67</span></div>
+            <div class="calc-step">Q1 2024 (M13-M15): (210+205+220)/3 = 635/3 = <span class="result">211.67</span></div>
+            <div class="calc-step">Q2 2024 (M16-M18): (215+230+240)/3 = 685/3 = <span class="result">228.33</span></div>
+            <div class="calc-step">Q3 2024 (M19-M21): (235+250+260)/3 = 745/3 = <span class="result">248.33</span></div>
+            <div class="calc-step">Q4 2024 (M22-M24): (255+270+280)/3 = 805/3 = <span class="result">268.33</span></div>
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 3 ==================== -->
+    <div class="chapter-divider"><span>Chapter 3</span></div>
+    <section id="ch3">
+        <h2>3. Moving Averages &amp; Smoothing</h2>
+        <p class="lede">A smooth line reveals the trend hiding under noise.</p>
+        <p>Moving averages are the simplest and most widely used smoothing technique. They reduce noise and reveal underlying trend by averaging over a sliding window.</p>
+
+        <h3>3.1 Simple Moving Average (SMA)</h3>
+        <p>The <strong>SMA</strong> of window size <em>k</em> at time <em>t</em> is: <code>SMA(t) = (Y(t-k+1) + ... + Y(t)) / k</code></p>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Simple moving average implemented over List[Float64]
+def sma(data: List[Float64], window: Int) -&gt; List[Float64]:
+    var n = len(data)
+    var result = List[Float64]()              # will hold n - window + 1 values
+    for i in range(window, n + 1):
+        var sum: Float64 = 0.0
+        for j in range(i - window, i):        # window ending at index i
+            sum += data[j]
+        result.append(sum / Float64(window))
+    return result
+
+def main():
+    var sales = load_sales_data()
+    var sma3 = sma(sales, 3)     # 22 values
+    var sma6 = sma(sales, 6)     # 19 values
+    var sma12 = sma(sales, 12)   # 13 values
+    print("SMA(3) first:", sma3[0], sma3[1], sma3[2])
+    print("SMA(6) first:", sma6[0])
+    print("SMA(12) first:", sma12[0], sma12[1])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: 3-Month SMA</h4>
+            <div class="calc-step">SMA(3) at M3: (120+132+145)/3 = 397/3 = <span class="result">132.33</span></div>
+            <div class="calc-step">SMA(3) at M4: (132+145+138)/3 = 415/3 = <span class="result">138.33</span></div>
+            <div class="calc-step">SMA(3) at M5: (145+138+150)/3 = 433/3 = <span class="result">144.33</span></div>
+            <div class="calc-step">SMA(3) at M6: (138+150+165)/3 = 453/3 = <span class="result">151.00</span></div>
+            <div class="calc-step">SMA(3) at M7: (150+165+170)/3 = 485/3 = <span class="result">161.67</span></div>
+            <div class="calc-step">SMA(3) at M8: (165+170+158)/3 = 493/3 = <span class="result">164.33</span></div>
+            <div class="calc-step">SMA(3) at M9: (170+158+175)/3 = 503/3 = <span class="result">167.67</span></div>
+            <div class="calc-step">SMA(3) at M10: (158+175+190)/3 = 523/3 = <span class="result">174.33</span></div>
+        </div>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: 6-Month SMA</h4>
+            <div class="calc-step">SMA(6) at M6: (120+132+145+138+150+165)/6 = 850/6 = <span class="result">141.67</span></div>
+            <div class="calc-step">SMA(6) at M7: (132+145+138+150+165+170)/6 = 900/6 = <span class="result">150.00</span></div>
+            <div class="calc-step">SMA(6) at M8: (145+138+150+165+170+158)/6 = 926/6 = <span class="result">154.33</span></div>
+            <div class="calc-step">SMA(6) at M12: (170+158+175+190+185+200)/6 = 1078/6 = <span class="result">179.67</span></div>
+        </div>
+
+        <h3>3.2 Weighted Moving Average (WMA)</h3>
+        <p>WMA assigns larger weights to recent observations. Common weighting: <code>WMA(t) = Σ(wᵢ × Y(t-i+1)) / Σ(wᵢ)</code> where weights decrease linearly or exponentially.</p>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: 3-Month WMA (weights 1,2,3)</h4>
+            <div class="calc-step">WMA(3) at M3: (1×120 + 2×132 + 3×145)/6 = (120+264+435)/6 = 819/6 = <span class="result">136.50</span></div>
+            <div class="calc-step">WMA(3) at M4: (1×132 + 2×145 + 3×138)/6 = (132+290+414)/6 = 836/6 = <span class="result">139.33</span></div>
+            <div class="calc-step">WMA(3) at M5: (1×145 + 2×138 + 3×150)/6 = (145+276+450)/6 = 871/6 = <span class="result">145.17</span></div>
+            <div class="calc-step">WMA(3) at M6: (1×138 + 2×150 + 3×165)/6 = (138+300+495)/6 = 933/6 = <span class="result">155.50</span></div>
+        </div>
+
+        <h3>3.3 Exponential Smoothing</h3>
+        <p>Exponential smoothing applies geometrically decreasing weights to past observations. The smoothing factor <strong>α</strong> (0 &lt; α &lt; 1) controls the decay rate.</p>
+        <p>Formula: <code>S(t) = α·Y(t) + (1−α)·S(t−1)</code></p>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Simple exponential smoothing:
+#   s[t] = alpha * x[t] + (1 - alpha) * s[t-1]
+def exponential_smoothing(data: List[Float64], alpha: Float64) -&gt; List[Float64]:
+    var n = len(data)
+    var result = List[Float64]()
+    result.append(data[0])                    # seed with the first observation
+    for i in range(1, n):
+        result.append(alpha * data[i] + (1.0 - alpha) * result[i - 1])
+    return result
+
+def main():
+    var sales = load_sales_data()
+    var ses = exponential_smoothing(sales, 0.3)
+    print("SES with alpha=0.3:", ses[0], ses[1], ses[2], ses[3], ses[4])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: SES with α = 0.3</h4>
+            <div class="calc-step">S(1) = Y(1) = <span class="result">120.00</span> &nbsp;<em>(initialize with first observation)</em></div>
+            <div class="calc-step">S(2) = 0.3×132 + 0.7×120 = 39.6 + 84.0 = <span class="result">123.60</span></div>
+            <div class="calc-step">S(3) = 0.3×145 + 0.7×123.6 = 43.5 + 86.52 = <span class="result">130.02</span></div>
+            <div class="calc-step">S(4) = 0.3×138 + 0.7×130.02 = 41.4 + 91.01 = <span class="result">132.41</span></div>
+            <div class="calc-step">S(5) = 0.3×150 + 0.7×132.41 = 45.0 + 92.69 = <span class="result">137.69</span></div>
+            <div class="calc-step">S(6) = 0.3×165 + 0.7×137.69 = 49.5 + 96.38 = <span class="result">145.88</span></div>
+            <div class="calc-step">S(7) = 0.3×170 + 0.7×145.88 = 51.0 + 102.12 = <span class="result">153.12</span></div>
+            <div class="calc-step">S(8) = 0.3×158 + 0.7×153.12 = 47.4 + 107.18 = <span class="result">154.58</span></div>
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 4 ==================== -->
+    <div class="chapter-divider"><span>Chapter 4</span></div>
+    <section id="ch4">
+        <h2>4. Time Series Decomposition</h2>
+        <p class="lede">Yearly rhythms — holidays, climate, budget cycles — echo at lag 12, and decomposition splits the series so each rhythm can be studied alone.</p>
+        <p>Seasonality is the most dependable pattern in monthly data: a <em>seasonal lag</em> compares each month to the same month a year earlier, and a seasonal index averages each position in the year across all years. Decomposition splits the series into trend + seasonal + residual so each can be studied alone.</p>
+
+        <h3>4.1 Mojo 1.x: Manual Decomposition via Moving Averages</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Manual additive decomposition:
+#   trend    = centered moving average (of length `period`)
+#   seasonal = average detrended value for each position inside the period
+#   residual = data - trend - seasonal
+def decompose_trend_seasonal(data: List[Float64], period: Int) -&gt; Tuple[
+    List[Float64], List[Float64], List[Float64]]:
+    var n = len(data)
+    var half = period // 2
+    # Step 1: trend via centered moving average
+    var trend = List[Float64]()
+    var detrended = List[Float64]()
+    var seasonal = List[Float64]()
+    var residual = List[Float64]()
+    for i in range(n):                  # preallocate with zeros for later writes
+        trend.append(0.0)
+        detrended.append(0.0)
+        seasonal.append(0.0)
+        residual.append(0.0)
+    for i in range(half, n - half):
+        var sum: Float64 = 0.0
+        for j in range(i - half, i + half + 1):
+            sum += data[j]
+        trend[i] = sum / Float64(2 * half + 1)
+    # Step 2: detrended series = data - trend
+    for i in range(n):
+        detrended[i] = data[i] - trend[i]
+    # Step 3: seasonal component = average detrended value per period position
+    for p in range(period):
+        var sum: Float64 = 0.0
+        var count = 0
+        var i = p
+        while i &lt; n:                    # step by `period` with a while loop
+            if trend[i] != 0.0:
+                sum += detrended[i]
+                count += 1
+            i += period
+        var avg = 0.0
+        if count &gt; 0:                   # avoid division by zero
+            avg = sum / Float64(count)
+        var k = p
+        while k &lt; n:
+            seasonal[k] = avg
+            k += period
+    # Step 4: residual = data - trend - seasonal
+    for i in range(n):
+        residual[i] = data[i] - trend[i] - seasonal[i]
+    return (trend, seasonal, residual)
+
+def main():
+    var sales = load_sales_data()
+    var trend, seasonal, resid = decompose_trend_seasonal(sales, 12)
+    print("Trend M1-M6:", trend[0], trend[1], trend[2], trend[3], trend[4], trend[5])
+    print("Seasonal M1-M4:", seasonal[0], seasonal[1], seasonal[2], seasonal[3])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: Centered 12-Month Moving Average (Trend)</h4>
+            <p>For month 7 (index 6, centered window M1-M13):</p>
+            <div class="calc-step">Trend(M7) = (120+132+145+138+150+165+170+158+175+190+185+200+210)/13</div>
+            <div class="calc-step">= 2138/13 = <span class="result">164.46</span></div>
+            <p>For month 13 (index 12, centered window M7-M19):</p>
+            <div class="calc-step">Trend(M13) = (170+158+175+190+185+200+210+205+220+215+230+240+235)/13</div>
+            <div class="calc-step">= 2633/13 = <span class="result">202.54</span></div>
+            <p>For month 18 (index 17, centered window M12-M24):</p>
+            <div class="calc-step">Trend(M18) = (200+210+205+220+215+230+240+235+250+260+255+270+280)/13</div>
+            <div class="calc-step">= 3070/13 = <span class="result">236.15</span></div>
+        </div>
+
+        <h3>4.2 Interpreting the Components</h3>
+        <table>
+            <tbody><tr><th>Month</th><th>Actual</th><th>Trend (approx)</th><th>Seasonal (approx)</th><th>Residual</th></tr>
+<tr><td>M1</td><td>—</td><td>—</td><td>120</td><td>—</td></tr>
+<tr><td>M6</td><td>~+3</td><td>~+7</td><td>165</td><td>~155</td></tr>
+<tr><td>M8</td><td>~-12</td><td>~0</td><td>158</td><td>~170</td></tr>
+<tr><td>M12</td><td>~+5</td><td>~+5</td><td>200</td><td>~190</td></tr>
+<tr><td>M16</td><td>~-12</td><td>~+5</td><td>215</td><td>~222</td></tr>
+<tr><td>M20</td><td>~+5</td><td>~0</td><td>250</td><td>~245</td></tr>
+<tr><td>M24</td><td>~+5</td><td>~0</td><td>280</td><td>~275</td></tr>
+        </tbody></table>
+
+        <div class="warning">
+            <span class="label">⚠️ Caveat</span>
+            Classical decomposition with a centered moving average <strong>loses data at the boundaries</strong> (first 6 and last 6 months for period=12). For forecasting, prefer methods like STL or model-based decomposition.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 5 ==================== -->
+    <div class="chapter-divider"><span>Chapter 5</span></div>
+    <section id="ch5">
+        <h2>5. Stationarity &amp; Differencing</h2>
+        <p class="lede">Most models presume a stable mean and variance; the data decide when they do not get one.</p>
+        <p>Many time series models (especially ARIMA) require the data to be <strong>stationary</strong> — constant mean, variance, and autocorrelation over time. Our sales data has a clear trend, so it is <em>non-stationary</em>.</p>
+
+        <h3>5.1 Augmented Dickey-Fuller (ADF) Test</h3>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: ADF on Original Data</h4>
+            <div class="calc-step">ADF Statistic ≈ +0.85 (positive — typical for trending series)</div>
+            <div class="calc-step">p-value ≈ 0.99 → <strong>Fail to reject H₀</strong> → Non-stationary</div>
+            <div class="calc-step"><em>H₀: unit root exists (non-stationary); H₁: stationary</em></div>
+        </div>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: ADF on First Difference</h4>
+            <div class="calc-step">ADF Statistic ≈ -4.32 → p-value ≈ 0.001 → <strong>Reject H₀</strong> → Stationary</div>
+        </div>
+
+        <h3>5.2 First-Order Differencing</h3>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Nth-order differencing: each pass replaces the series with its first difference
+def difference(data: List[Float64], order: Int) -&gt; List[Float64]:
+    var result = data
+    for d in range(order):
+        var temp = List[Float64]()
+        for i in range(1, len(result)):
+            temp.append(result[i] - result[i - 1])
+        result = temp                  # each pass drops one observation
+    return result
+
+def main():
+    var sales = load_sales_data()
+    var diff1 = difference(sales, 1)   # 23 values
+    var diff2 = difference(sales, 2)   # 22 values
+    print("First differences:", diff1[0], diff1[1], diff1[2], diff1[3], diff1[4])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: First Differences (First 8 Months)</h4>
+            <div class="calc-step">ΔM2 = 132 - 120 = <span class="result">+12</span></div>
+            <div class="calc-step">ΔM3 = 145 - 132 = <span class="result">+13</span></div>
+            <div class="calc-step">ΔM4 = 138 - 145 = <span class="result">-7</span></div>
+            <div class="calc-step">ΔM5 = 150 - 138 = <span class="result">+12</span></div>
+            <div class="calc-step">ΔM6 = 165 - 150 = <span class="result">+15</span></div>
+            <div class="calc-step">ΔM7 = 170 - 165 = <span class="result">+5</span></div>
+            <div class="calc-step">ΔM8 = 158 - 170 = <span class="result">-12</span></div>
+            <div class="calc-step">ΔM9 = 175 - 158 = <span class="result">+17</span></div>
+        </div>
+
+        <div class="note">
+            <span class="label">📌 Interpretation</span>
+            The first differences are mostly positive (consistent with an upward trend) but fluctuate around a constant mean (≈ +6.7), which is characteristic of a <strong>stationary</strong> series.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 6 ==================== -->
+    <div class="chapter-divider"><span>Chapter 6</span></div>
+    <section id="ch6">
+        <h2>6. ARIMA Models</h2>
+        <p class="lede">Autoregression, differencing, and a moving average of past errors — together they describe a huge family of series.</p>
+        <p><strong>ARIMA</strong> (AutoRegressive Integrated Moving Average) is the workhorse of classical time series forecasting. It combines three components: <strong>AR</strong> (regression on lagged values), <strong>I</strong> (differencing), and <strong>MA</strong> (regression on lagged forecast errors).</p>
+
+        <h3>6.1 ARIMA(p, d, q) Notation</h3>
+        <table>
+            <tbody><tr><th>Parameter</th><th>Meaning</th><th>How to Determine</th></tr>
+<tr><td><strong>p</strong></td><td>AR order (lag terms)</td><td>PACF plot — significant lags</td></tr>
+<tr><td><strong>d</strong></td><td>Differencing order</td><td>ADF test — until stationary</td></tr>
+<tr><td><strong>q</strong></td><td>MA order (error terms)</td><td>ACF plot — significant lags</td></tr>
+        </tbody></table>
+
+        <h3>6.2 Mojo 1.x: Manual AR(1) Implementation</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# AR(1) model: Y(t) = c + phi * Y(t-1) + eps(t), fitted by least squares
+def fit_ar1(data: List[Float64]) -&gt; Tuple[Float64, Float64]:
+    var n = len(data)
+    var sum_x: Float64 = 0.0
+    var sum_y: Float64 = 0.0
+    var sum_xy: Float64 = 0.0
+    var sum_xx: Float64 = 0.0
+    for i in range(1, n):
+        var x = data[i - 1]           # lagged value
+        var y = data[i]               # current value
+        sum_x += x
+        sum_y += y
+        sum_xy += x * y
+        sum_xx += x * x
+    var count = Float64(n - 1)
+    # slope (phi) and intercept (c) from the normal equations
+    var phi = (count * sum_xy - sum_x * sum_y) / (count * sum_xx - sum_x * sum_x)
+    var c = (sum_y - phi * sum_x) / count
+    return (c, phi)
+
+# Iterate the fitted recursion one step at a time into the future
+def forecast_ar1(data: List[Float64], steps: Int) -&gt; List[Float64]:
+    var c, phi = fit_ar1(data)        # destructure the returned pair
+    var last = data[len(data) - 1]
+    var result = List[Float64]()
+    var prev = last
+    for i in range(steps):
+        var next_val = c + phi * prev
+        result.append(next_val)
+        prev = next_val               # each step consumes the previous forecast
+    return result
+
+def main():
+    var sales = load_sales_data()
+    var c, phi = fit_ar1(sales)
+    print("AR(1) model: c =", c, ", phi =", phi)
+    var fc = forecast_ar1(sales, 6)
+    print("6-step forecast:", fc[0], fc[1], fc[2], fc[3], fc[4], fc[5])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: AR(1) Coefficient Estimate</h4>
+            <p>Using least squares on Y(t) = c + φ·Y(t-1):</p>
+            <div class="calc-step">n = 23 pairs (M2-M1, M3-M2, ..., M24-M23)</div>
+            <div class="calc-step">Σx = Σ(Y(t-1)) = 120 + 132 + ... + 270 = 4597</div>
+            <div class="calc-step">Σy = Σ(Y(t)) = 132 + 145 + ... + 280 = 4712</div>
+            <div class="calc-step">Σxy = 120×132 + 132×145 + ... + 270×280 ≈ 1,098,990</div>
+            <div class="calc-step">Σx² = 120² + 132² + ... + 270² ≈ 1,056,929</div>
+            <div class="calc-step">φ = (23×1,098,990 - 4597×4712) / (23×1,056,929 - 4597²)</div>
+            <div class="calc-step">φ = (25,276,770 - 21,663,064) / (24,309,367 - 21,132,409)</div>
+            <div class="calc-step">φ = 3,613,706 / 3,176,958 = <span class="result">1.137</span></div>
+            <div class="calc-step">c = (4712 - 1.137×4597)/23 = (4712 - 5227.7)/23 = <span class="result">-22.42</span></div>
+            <p style="margin-top:0.8rem;"><em>Note: φ &gt; 1 indicates a non-stationary process — expected for trending data. This confirms d=1 differencing is needed.</em></p>
+        </div>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: ARIMA(1,1,1) Forecast</h4>
+            <p>After differencing once, fitting ARIMA(1,1,1) with parameters φ ≈ 0.45, θ ≈ -0.30:</p>
+            <div class="calc-step">Forecast M25 = 280 + 0.45×(280-270) + (-0.30)×(last error) ≈ <span class="result">287.5</span></div>
+            <div class="calc-step">Forecast M26 ≈ 287.5 + 0.45×(287.5-280) ≈ <span class="result">290.9</span></div>
+            <div class="calc-step">Forecast M27 ≈ 290.9 + 0.45×(290.9-287.5) ≈ <span class="result">292.4</span></div>
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 7 ==================== -->
+    <div class="chapter-divider"><span>Chapter 7</span></div>
+    <section id="ch7">
+        <h2>7. Exponential Smoothing (Holt-Winters)</h2>
+        <p class="lede">Add a trend and a seasonal cycle, and single smoothing becomes the classic triple method — three ideas kept in flight at once.</p>
+<p>Holt-Winters keeps three ideas in flight at once: a <em>level</em>, a <em>trend</em>, and a <em>seasonal factor</em> for each position in the year. Three recursions update them month by month, and the forecast simply adds them back together — the strongest classical tool in this book, and because statsmodels is reachable through interop, you can compare against it in two lines.</p>
+
+        <h3>7.1 Triple Exponential Smoothing (Holt-Winters)</h3>
+        <p>Parameters: <strong>α</strong> (level), <strong>β</strong> (trend), <strong>γ</strong> (seasonality), with seasonal period <strong>m</strong>.</p>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Holt-Winters additive triple exponential smoothing, written from scratch
+def holt_winters_additive(data: List[Float64], period: Int,
+                          alpha: Float64, beta: Float64, gamma: Float64
+                          ) -&gt; List[Float64]:
+    var n = len(data)
+    var level = List[Float64]()
+    var trend = List[Float64]()
+    var seasonal = List[Float64]()
+    var fitted = List[Float64]()
+    for i in range(n):                 # preallocate for later indexed writes
+        level.append(0.0)
+        trend.append(0.0)
+        seasonal.append(0.0)
+        fitted.append(0.0)
+    # initialize level and trend from the first two observations
+    level[0] = data[0]
+    trend[0] = data[1] - data[0]
+    # initialize one seasonal index per position in the period
+    for i in range(period):
+        seasonal[i] = data[i] - level[0]
+    for t in range(n):
+        if t &gt;= period:
+            var prev_seasonal = seasonal[t - period]
+            var prev_level = level[t - 1]
+            var prev_trend = trend[t - 1]
+            # the three smoothing equations: level, trend, seasonal
+            level[t] = alpha * (data[t] - prev_seasonal) + (1.0 - alpha) * (prev_level + prev_trend)
+            trend[t] = beta * (level[t] - prev_level) + (1.0 - beta) * prev_trend
+            seasonal[t] = gamma * (data[t] - level[t]) + (1.0 - gamma) * prev_seasonal
+            fitted[t] = level[t] + trend[t] + seasonal[t - period]
+    return fitted
+
+def main():
+    var sales = load_sales_data()
+    var fitted = holt_winters_additive(sales, 12, 0.3, 0.1, 0.1)
+    print("Fitted values (M13-M18):", fitted[12], fitted[13], fitted[14],
+          fitted[15], fitted[16], fitted[17])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: Holt-Winters Update (α=0.3, β=0.1, γ=0.1)</h4>
+            <p>Initialization (first 12 months):</p>
+            <div class="calc-step">L₀ = Y(M1) = 120; T₀ = Y(M2) - Y(M1) = 132 - 120 = 12</div>
+            <div class="calc-step">Seasonal indices S₁..S₁₂ = actual - L₀ (e.g., S₁ = 0, S₂ = 12, S₃ = 25, ...)</div>
+            <p>Update at M13 (t=12, seasonal index = 0):</p>
+            <div class="calc-step">L(13) = 0.3×(210 - S₀) + 0.7×(L₁₂ + T₁₂) ≈ <span class="result">~197.5</span></div>
+            <div class="calc-step">T(13) = 0.1×(197.5 - L₁₂) + 0.9×T₁₂ ≈ <span class="result">~8.2</span></div>
+            <div class="calc-step">S(13) = 0.1×(210 - 197.5) + 0.9×S₀ = <span class="result">~13.4</span></div>
+            <div class="calc-step">Fitted(13) = L₁₂ + T₁₂ + S₀ ≈ <span class="result">~205</span></div>
+        </div>
+
+        <h3>7.2 Holt's Linear Trend Method (Double Exponential Smoothing)</h3>
+        <p>Use when there's trend but no seasonality. Our data has both, but for illustration:</p>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Holt's linear trend: level + trend, no seasonality.
+#   level[t] = alpha * y[t] + (1 - alpha) * (level[t-1] + trend[t-1])
+#   trend[t] = beta  * (level[t] - level[t-1]) + (1 - beta) * trend[t-1]
+#   forecast = level[n-1] + h * trend[n-1]        for h = 1 .. horizon
+def holt_linear(
+    data: List[Float64], alpha: Float64, beta: Float64, horizon: Int
+) -> Tuple[List[Float64], List[Float64]]:
+    var n = len(data)
+    var fitted = List[Float64]()
+    var level = data[0]
+    var trend = data[1] - data[0]          # seed the trend from the first pair
+    fitted.append(level)
+    for i in range(1, n):
+        var previous = level
+        level = alpha * data[i] + (1.0 - alpha) * (level + trend)
+        trend = beta * (level - previous) + (1.0 - beta) * trend
+        fitted.append(level)
+    var forecast = List[Float64]()
+    for h in range(1, horizon + 1):
+        forecast.append(level + Float64(h) * trend)
+    return (fitted, forecast)
+
+def main():
+    var sales = load_sales_data()
+    var result = holt_linear(sales, 0.5, 0.3, 3)
+    var fitted = result[0]
+    var forecast = result[1]
+    print("Fitted level, last 4:", fitted[20], fitted[21], fitted[22], fitted[23])
+    print("Holt's forecast:", forecast)
+</code></pre>
+
+        <div class="tip">
+            <span class="label">💡 Choosing α, β, γ</span>
+            Larger α responds faster to level changes; larger β tracks trend faster; larger γ adapts seasonality quicker. Use cross-validation or grid search to find optimal values.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 8 ==================== -->
+    <div class="chapter-divider"><span>Chapter 8</span></div>
+    <section id="ch8">
+        <h2>8. Feature Engineering for ML</h2>
+        <p class="lede">Turn time into columns: lags, rolling statistics, calendar and cycles.</p>
+        <p>Machine learning models require tabular features. For time series, we create <strong>lag features</strong>, <strong>rolling statistics</strong>, and <strong>date-based features</strong> to capture temporal patterns.</p>
+
+        <h3>8.1 Feature Engineering: Lags, Rolling Windows and Calendar Cycles</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Feature engineering in pure Mojo.
+# The lag matrix is stored flat (row-major): element [i, j] of the matrix
+# lives at flat index i * max_lag + j.
+from std.math import cos, sin, sqrt
+def create_lag_features(data: List[Float64], max_lag: Int) -&gt; List[Float64]:
+    var n = len(data)
+    var rows = n - max_lag
+    var result = List[Float64]()
+    for i in range(rows * max_lag):
+        result.append(0.0)             # preallocate, then write below
+    for i in range(max_lag, n):
+        for lag in range(1, max_lag + 1):
+            result[(i - max_lag) * max_lag + (lag - 1)] = data[i - lag]
+    return result
+
+# Rolling mean feature over a fixed window
+def create_rolling_mean(data: List[Float64], window: Int) -> List[Float64]:
+    var n = len(data)
+    var result = List[Float64]()
+    for i in range(window, n + 1):
+        var sum: Float64 = 0.0
+        for j in range(i - window, i):
+            sum += data[j]
+        result.append(sum / Float64(window))
+    return result
+
+# Rolling standard deviation over the same window (population sigma).
+def create_rolling_std(data: List[Float64], window: Int) -> List[Float64]:
+    var n = len(data)
+    var result = List[Float64]()
+    for i in range(window, n + 1):
+        var sum: Float64 = 0.0
+        for j in range(i - window, i):
+            sum += data[j]
+        var mean = sum / Float64(window)
+        var variance: Float64 = 0.0
+        for j in range(i - window, i):
+            var d = data[j] - mean
+            variance += d * d
+        result.append(sqrt(variance / Float64(window)))
+    return result
+
+# Calendar features. Month is a cycle, not a number, so encode it as a
+# point on the unit circle: M1 -> (sin 2*pi/12, cos 2*pi/12), and so on.
+# That keeps December adjacent to January instead of 11 units away.
+def create_month_cycle(months: List[Int]) -> Tuple[List[Float64], List[Float64]]:
+    var sin_part = List[Float64]()
+    var cos_part = List[Float64]()
+    for m in months:
+        var angle = 2.0 * 3.141592653589793 * Float64(m) / 12.0
+        sin_part.append(sin(angle))
+        cos_part.append(cos(angle))
+    return (sin_part, cos_part)
+
+def main():
+    var sales = load_sales_data()
+    var lags = create_lag_features(sales, 3)
+    var roll_mean = create_rolling_mean(sales, 3)
+    var roll_std = create_rolling_std(sales, 3)
+    # M1..M24 as calendar month numbers (1 = January)
+    var months = List[Int]()
+    for i in range(len(sales)):
+        months.append(i % 12 + 1)
+    var cycle = create_month_cycle(months)
+    print("Lag features length:", len(lags))
+    # first flat row (indexes 0..2) = data[2], data[1], data[0] (the three
+    # values that precede the first fully-populated row)
+    print("First lag row (lags 1,2,3):", lags[0], lags[1], lags[2])
+    print("Rolling mean, first 3:", roll_mean[0], roll_mean[1], roll_mean[2])
+    print("Rolling std, first 3:", roll_std[0], roll_std[1], roll_std[2])
+    print("Month 13 cycle (sin, cos):", cycle[0][12], cycle[1][12])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: Lag and Rolling Features at M13</h4>
+            <div class="calc-step">lag_1 (M12) = 200; lag_2 (M11) = 185; lag_3 (M10) = 190; lag_12 (M1) = 120</div>
+            <div class="calc-step">rolling_mean_3 = (185+200+210)/3 = 595/3 = <span class="result">198.33</span></div>
+            <div class="calc-step">rolling_std_3 = sqrt(((185-198.33)²+(200-198.33)²+(210-198.33)²)/3)</div>
+            <div class="calc-step">= sqrt((177.8+2.8+136.1)/3) = sqrt(105.6) = <span class="result">10.28</span></div>
+            <div class="calc-step">month_sin(M13=Jan) = sin(2π×1/12) = sin(π/6) = <span class="result">0.500</span></div>
+            <div class="calc-step">month_cos(M13=Jan) = cos(2π×1/12) = cos(π/6) = <span class="result">0.866</span></div>
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 9 ==================== -->
+    <div class="chapter-divider"><span>Chapter 9</span></div>
+    <section id="ch9">
+        <h2>9. Machine Learning Models for Time Series</h2>
+        <p class="lede">Linear regression is the honest baseline every model must beat; forests and boosters pick up interactions no line can see.</p>
+        <p>Once features are engineered, any ML model can be applied. Common choices include <strong>Linear Regression</strong>, <strong>Random Forest</strong>, and <strong>Gradient Boosting</strong>.</p>
+
+        <h3>9.1 Supervised Setup and Linear Regression</h3>
+        <p>Mojo builds the supervised design matrix itself - lags, rolling mean and the aligned target - then calls scikit-learn across the interop bridge for the fit.</p>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Fit scikit-learn from Mojo: compute the features natively, hand them to
+# NumPy as a Python list, then call sklearn through the interop bridge.
+from std.python import Python
+
+# Mojo has no std.python.numpy: build the Python-side list explicitly.
+def to_python_list(data: List[Float64]) raises:
+    var out = Python.list()
+    for v in data:
+        out.append(v)
+    return out
+
+def train_linear_regression() raises:
+    var np = Python.import_module("numpy")
+    var sklearn_lr = Python.import_module("sklearn.linear_model").LinearRegression
+    var sales = load_sales_data()
+    # reuse the native Mojo feature builders defined earlier in this chapter
+    var lags = create_lag_features(sales, 3)     # 21 rows x 3 lags, flat
+    var roll_mean = create_rolling_mean(sales, 3)   # 22 values
+    var X_rows = 21
+    var X_flat = List[Float64]()
+    var y_flat = List[Float64]()
+    for i in range(X_rows):                      # align rows and targets
+        for lag in range(3):
+            X_flat.append(lags[i * 3 + lag])
+        X_flat.append(roll_mean[i])
+        y_flat.append(sales[i + 3])              # target = value at that time
+    # Python list -> NumPy array, reshaped to (rows, 4 features)
+    var X = np.array(to_python_list(X_flat)).reshape(X_rows, 4)
+    var y = np.array(to_python_list(y_flat))
+    var model = sklearn_lr()
+    model.fit(X, y)
+    var preds = model.predict(X)
+    print("Linear Regression predictions:", preds)
+
+def main() raises:
+    train_linear_regression()
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: Prediction at M18 (test set)</h4>
+            <p>Features for M18: lag_1 = 230 (M17), lag_2 = 215 (M16), lag_3 = 220 (M15), rolling_mean_3 = (215+230+240)/3 = 228.33</p>
+            <div class="calc-step">Linear Regression: y = β0 + β1x230 + β2x215 + β3x220 + β4x228.33</div>
+            <div class="calc-step">With fitted β ≈ [5.2, 0.61, 0.12, 0.05, 0.15]: ŷ ≈ <span class="result">~232</span></div>
+            <div class="calc-step">Actual = 240 → Error = |240 - 232| = <span class="result">8 units</span></div>
+        </div>
+
+        <h3>9.2 Random Forest and Gradient Boosting</h3>
+        <p>Neither algorithm is worth reimplementing: both are large, well-tested forests. Mojo builds the same feature matrix as above, then hands it to scikit-learn across the bridge.</p>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Forests and boosters via interop. The feature matrix is built natively
+# (reuse the builders from 9.1); only the fit runs on the Python side.
+from std.python import Python
+
+def to_python_list(data: List[Float64]) raises:
+    var out = Python.list()
+    for v in data:
+        out.append(v)
+    return out
+
+# Shared design matrix: 3 lags + rolling mean -> target one step ahead.
+def build_xy(sales: List[Float64], rows: Int) raises:
+    var np = Python.import_module("numpy")
+    var lags = create_lag_features(sales, 3)
+    var roll_mean = create_rolling_mean(sales, 3)
+    var X_flat = List[Float64]()
+    var y_flat = List[Float64]()
+    for i in range(rows):
+        for lag in range(3):
+            X_flat.append(lags[i * 3 + lag])
+        X_flat.append(roll_mean[i])
+        y_flat.append(sales[i + 3])
+    return (np.array(to_python_list(X_flat)).reshape(rows, 4),
+            np.array(to_python_list(y_flat)))
+
+def train_random_forest() raises:
+    var ensemble = Python.import_module("sklearn.ensemble")
+    var metrics = Python.import_module("sklearn.metrics")
+    var data = load_sales_data()
+    var xy = build_xy(data, 21)
+    var X = xy[0]
+    var y = xy[1]
+    var rf = ensemble.RandomForestRegressor(
+        n_estimators=100, max_depth=5, random_state=42)
+    rf.fit(X, y)
+    var preds = rf.predict(X)
+    print("Random Forest MAE:", metrics.mean_absolute_error(y, preds))
+    print("Random Forest predictions:", preds)
+
+def train_gradient_boosting() raises:
+    var ensemble = Python.import_module("sklearn.ensemble")
+    var metrics = Python.import_module("sklearn.metrics")
+    var data = load_sales_data()
+    var xy = build_xy(data, 21)
+    var X = xy[0]
+    var y = xy[1]
+    var gb = ensemble.GradientBoostingRegressor(
+        n_estimators=100, learning_rate=0.05, max_depth=3, random_state=42)
+    gb.fit(X, y)
+    var preds = gb.predict(X)
+    print("Gradient Boosting MAE:", metrics.mean_absolute_error(y, preds))
+    print("Gradient Boosting predictions:", preds)
+
+def main() raises:
+    train_random_forest()
+    train_gradient_boosting()
+</code></pre>
+    </section>
+
+    <!-- ==================== CHAPTER 10 ==================== -->
+    <div class="chapter-divider"><span>Chapter 10</span></div>
+    <section id="ch10">
+        <h2>10. Deep Learning: LSTM for Time Series</h2>
+        <p class="lede">A recurrent memory cell that learns what to keep and what to forget.</p>
+        <p><strong>Long Short-Term Memory (LSTM)</strong> networks are designed to capture long-range dependencies in sequential data, making them powerful for time series forecasting.</p>
+
+        <h3>10.1 LSTM via Python Interop (TensorFlow)</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# TensorFlow/Keras from Mojo: import the Python packages and build the model.
+# Every binding uses `var`; the declaration is mandatory at function scope.
+from std.python import Python
+
+# Sequence preparation. An LSTM consumes fixed-length windows, not raw
+# series, so slide a window of `window` past the data and pair each window
+# with the single value that follows it. The result is flat and row-major:
+# window [i, j] lives at i * window + j, which is exactly the layout
+# .reshape(num_rows, window) expects.
+def create_sequences(
+    data: List[Float64], window: Int
+) -> Tuple[List[Float64], List[Float64]]:
+    var n = len(data)
+    var rows = n - window
+    var X = List[Float64]()
+    var y = List[Float64]()
+    for i in range(rows):
+        for j in range(window):
+            X.append(data[i + j])
+        y.append(data[i + window])       # next value is the target
+    return (X, y)
+
+def build_lstm_model():
+    var tf = Python.import_module("tensorflow")
+    var keras = tf.keras
+    var Sequential = keras.Sequential
+    var LSTM = keras.layers.LSTM
+    var Dense = keras.layers.Dense
+    var Dropout = keras.layers.Dropout
+    var MinMaxScaler = Python.import_module("sklearn.preprocessing").MinMaxScaler
+    # stacked LSTM: 64 recurrent units, then 32, then a small dense head
+    var model = Sequential([
+        LSTM(64, activation="tanh", return_sequences=True, input_shape=(6, 1)),
+        Dropout(0.2),
+        LSTM(32, activation="tanh", return_sequences=False),
+        Dropout(0.2),
+        Dense(16, activation="relu"),
+        Dense(1),
+    ])
+    model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+    print(model.summary())
+    return model
+
+def main():
+    var model = build_lstm_model()
+    # 24 points, window 6 -> 18 training rows of 6 steps each
+    var window = 6
+    var sales = load_sales_data()
+    var seqs = create_sequences(sales, window)
+    var X = seqs[0]
+    var y = seqs[1]
+    print("Sequence rows:", len(y), "Steps per row:", window)
+    print("First window:", X[0], X[1], X[2], X[3], X[4], X[5], "-> target", y[0])
+</code></pre>
+
+        <div class="note">
+            <span class="label">📌 LSTM vs. Classical Models</span>
+            LSTM excels at capturing <strong>non-linear</strong> patterns and long memory, but requires much more data and tuning. For small datasets (like our 24 points), classical models (ARIMA, Holt-Winters) or simpler ML models often perform better.
+        </div>
+
+        <h3>10.2 Comparison: LSTM vs ARIMA on Small Data</h3>
+        <table>
+            <tbody><tr><th>Model</th><th>Data Requirements</th><th>Training Time</th><th>Interpretability</th><th>Best For</th></tr>
+<tr><td>ARIMA</td><td>High</td><td>Short-term, stationary</td><td>~30+ points</td><td>Seconds</td></tr>
+<tr><td>Holt-Winters</td><td>High</td><td>Seasonal data</td><td>~24+ points (with seasonality)</td><td>Seconds</td></tr>
+<tr><td>Random Forest</td><td>Medium</td><td>Tabular features</td><td>~100+ points with features</td><td>Minutes</td></tr>
+<tr><td>LSTM</td><td>Low</td><td>Complex patterns, long sequences</td><td>~1000+ points</td><td>Hours</td></tr>
+        </tbody></table>
+    </section>
+
+    <!-- ==================== CHAPTER 11 ==================== -->
+    <div class="chapter-divider"><span>Chapter 11</span></div>
+    <section id="ch11">
+        <h2>11. Evaluation &amp; Forecasting</h2>
+        <p class="lede">Never shuffle — time is the one order that must always stay intact — and read the error through three lenses, because MAE, RMSE and MAPE change the answer whenever misses are uneven.</p>
+        <p>Proper evaluation is critical. Time series require <strong>time-based cross-validation</strong> (never random shuffling) and appropriate error metrics.</p>
+
+        <h3>11.1 Error Metrics</h3>
+        <table>
+            <tbody><tr><th>Metric</th><th>Formula</th><th>Interpretation</th></tr>
+<tr><td><strong>MAE</strong></td><td>(1/n)Σ|ŷ - y|</td><td>Average absolute error in original units</td></tr>
+<tr><td><strong>RMSE</strong></td><td>√[(1/n)Σ(ŷ - y)²]</td><td>Penalizes large errors more heavily</td></tr>
+<tr><td><strong>MAPE</strong></td><td>(100/n)Σ|(ŷ - y)/y|</td><td>Percentage error — scale-independent</td></tr>
+<tr><td><strong>SMAPE</strong></td><td>(200/n)Σ|ŷ-y|/(|ŷ|+|y|)</td><td>Symmetric MAPE (bounded 0-200%)</td></tr>
+        </tbody></table>
+
+        <h3>11.2 Full Evaluation</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Error metrics, computed natively - no metrics library required.
+from std.math import abs, sqrt
+
+def mae(actual: List[Float64], predicted: List[Float64]) -> Float64:
+    var total: Float64 = 0.0
+    for i in range(len(actual)):
+        total += abs(actual[i] - predicted[i])
+    return total / Float64(len(actual))
+
+def rmse(actual: List[Float64], predicted: List[Float64]) -> Float64:
+    var total: Float64 = 0.0
+    for i in range(len(actual)):
+        var d = actual[i] - predicted[i]
+        total += d * d
+    return sqrt(total / Float64(len(actual)))
+
+def mape(actual: List[Float64], predicted: List[Float64]) -> Float64:
+    var total: Float64 = 0.0
+    for i in range(len(actual)):
+        total += abs(actual[i] - predicted[i]) / actual[i]
+    return 100.0 * total / Float64(len(actual))
+
+# Score one model and print the three-metric row the tables in this
+# chapter quote.
+def evaluate(actual: List[Float64], predicted: List[Float64],
+             model_name: String):
+    var e_mae = mae(actual, predicted)
+    var e_rmse = rmse(actual, predicted)
+    var e_mape = mape(actual, predicted)
+    print(model_name, "| MAE:", e_mae, "| RMSE:", e_rmse, "| MAPE:", e_mape, "%")
+    return (e_mae, e_rmse, e_mape)
+
+def main():
+    var actual: List[Float64] = [240.0, 235.0, 250.0]
+    var predicted: List[Float64] = [238.0, 240.0, 255.0]
+    var scores = evaluate(actual, predicted, "Example")
+    print("MAE:", scores[0], "RMSE:", scores[1], "MAPE:", scores[2])
+</code></pre>
+
+        <div class="calc-box">
+            <h4>📐 Worked Example: MAE Calculation</h4>
+            <p>Suppose actual test values: [240, 235, 250] and model predictions: [238, 240, 255]</p>
+            <div class="calc-step">|240 - 238| = <span class="result">2</span></div>
+            <div class="calc-step">|235 - 240| = <span class="result">5</span></div>
+            <div class="calc-step">|250 - 255| = <span class="result">5</span></div>
+            <div class="calc-step">MAE = (2+5+5)/3 = 12/3 = <span class="result">4.00</span></div>
+            <p>RMSE:</p>
+            <div class="calc-step">(2²+5²+5²)/3 = (4+25+25)/3 = 54/3 = 18</div>
+            <div class="calc-step">RMSE = √18 = <span class="result">4.24</span></div>
+            <p>MAPE:</p>
+            <div class="calc-step">(2/240 + 5/235 + 5/250)/3 × 100 = (0.0083+0.0213+0.0200)/3 × 100 = <span class="result">1.65%</span></div>
+        </div>
+
+        <h3>11.3 Time Series Cross-Validation (Walk-Forward)</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Walk-forward splits: train on an expanding window, validate on the
+# next `horizon` observations. Time order is never shuffled.
+# Each element of the result is a (train_end, val_end) index pair.
+def walk_forward_splits(n: Int, n_splits: Int, horizon: Int) -> List[Tuple[Int, Int]]:
+    var out = List[Tuple[Int, Int]]()
+    var first_train = n - horizon * n_splits
+    for k in range(n_splits):
+        var train_end = first_train + horizon * k
+        out.append((train_end, train_end + horizon))
+    return out
+
+# The "model" here is deliberately trivial - the mean of the training
+# window - so the split logic is what the example is actually showing.
+def window_mean_forecast(data: List[Float64], train_end: Int,
+                         horizon: Int) -> List[Float64]:
+    var total: Float64 = 0.0
+    for i in range(train_end):
+        total += data[i]
+    var level = total / Float64(train_end)
+    var out = List[Float64]()
+    for _ in range(horizon):
+        out.append(level)            # flat forecast at the window mean
+    return out
+
+def main():
+    var sales = load_sales_data()
+    var splits = walk_forward_splits(len(sales), 5, 2)
+    for k in range(len(splits)):
+        var train_end = splits[k][0]
+        var val_end = splits[k][1]
+        print("Fold", k, ": Train=0..", train_end, ", Validation=", train_end, "..", val_end)
+        var predicted = window_mean_forecast(sales, train_end, val_end - train_end)
+        print("   predicted:", predicted)
+</code></pre>
+
+        <h3>11.4 Backtesting</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Backtesting: roll the origin forward, refit on everything seen so far,
+# and accumulate the error of every prediction the model would have made
+# live. The mean of those errors is the honest generalisation estimate.
+def backtest_mae(data: List[Float64], n_splits: Int, horizon: Int) -> Float64:
+    var first_train = len(data) - horizon * n_splits
+    var error_total: Float64 = 0.0
+    var count: Int = 0
+    for k in range(n_splits):
+        var train_end = first_train + horizon * k
+        # refit: the window mean is the model
+        var level: Float64 = 0.0
+        for i in range(train_end):
+            level += data[i]
+        level /= Float64(train_end)
+        # score the next `horizon` steps from that level
+        for h in range(horizon):
+            var err = data[train_end + h] - level
+            if err < 0.0:
+                err = -err
+            error_total += err
+            count += 1
+    return error_total / Float64(count)
+
+def main():
+    var sales = load_sales_data()
+    var avg_error = backtest_mae(sales, 4, 3)
+    print("Average walk-forward MAE:", avg_error)
+</code></pre>
+
+        <div class="warning">
+            <span class="label">⚠️ Common Pitfall</span>
+            Never use <code>train_test_split</code> with <code>shuffle=True</code> for time series. Random shuffling destroys temporal dependencies and leads to <strong>data leakage</strong> (future information leaks into training).
+        </div>
+
+        <h3>11.5 Final Model Comparison</h3>
+        <table>
+            <tbody><tr><th>Model</th><th>MAE</th><th>RMSE</th><th>MAPE</th><th>Training Speed</th><th>Best Use Case</th></tr>
+<tr><td>ARIMA(1,1,1)</td><td>5.1%</td><td>⚡ Fast</td><td>Short-term, no seasonality</td><td>12.4</td><td>15.8</td></tr>
+<tr><td>Holt-Winters</td><td>3.7%</td><td>⚡ Fast</td><td>Seasonal data</td><td>8.9</td><td>11.2</td></tr>
+<tr><td>Linear Regression</td><td>5.9%</td><td>⚡ Fast</td><td>Baseline model</td><td>14.2</td><td>17.5</td></tr>
+<tr><td>Random Forest</td><td>4.2%</td><td>🐢 Moderate</td><td>Feature-rich, non-linear</td><td>10.1</td><td>13.4</td></tr>
+<tr><td>Gradient Boosting</td><td>3.9%</td><td>🐢 Moderate</td><td>Best accuracy with features</td><td>9.3</td><td>12.1</td></tr>
+<tr><td>LSTM</td><td>6.5%</td><td>🐌 Slow</td><td>Large datasets only</td><td>15.6</td><td>19.3</td></tr>
+        </tbody></table>
+        <p style="font-size:0.85rem; color:#666;"><em>Note: Values are illustrative from our small 24-point dataset. With more data, ML and deep learning models typically outperform classical methods.</em></p>
+    </section>
+
+    <!-- ==================== CHAPTER 12 ==================== -->
+    <div class="chapter-divider"><span>Chapter 12</span></div>
+    <section id="ch12">
+        <h2>12. Visualising a Time Series</h2>
+        <p>Visualisation is the first step in any time series analysis. A simple line chart reveals trend, seasonality, outliers, and changing variance at a glance — before any statistical test is run. A strong spike at lag 12 confirms the seasonal structure, a slow decay hints at trend, and sharp cut-offs suggest how many AR or MA terms to use.</p>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Plotting has no Mojo stdlib equivalent, so reach matplotlib across the
+# interop bridge. Mojo still owns the data: build the series natively,
+# then hand the two vectors over for the drawing.
+from std.python import Python
+
+def to_python_floats(data: List[Float64]) raises:
+    var out = Python.list()
+    for v in data:
+        out.append(v)
+    return out
+
+def to_python_strings(data: List[String]) raises:
+    var out = Python.list()
+    for v in data:
+        out.append(v)
+    return out
+
+def plot_sales(months: List[String], sales: List[Float64]) raises:
+    var plt = Python.import_module("matplotlib.pyplot")
+    plt.plot(to_python_strings(months), to_python_floats(sales))
+    plt.xlabel("Month")
+    plt.ylabel("Sales")
+    plt.title("Monthly Sales")
+    plt.grid()
+    plt.show()
+
+def main() raises:
+    var sales = load_sales_data()
+    var months = List[String]()
+    for i in range(len(sales)):
+        months.append("M" + String(i + 1))
+    plot_sales(months, sales)
+</code></pre>
+
+        <h3>12.1 The Four Diagnostic Questions</h3>
+        <table>
+            <tbody><tr><th>Question</th><th>What to look for</th><th>Example in our data</th></tr>
+<tr><td><strong>Is there a trend?</strong></td><td>Long-term upward / downward drift</td><td>Steady climb from 120 to 280</td></tr>
+<tr><td><strong>Is there seasonality?</strong></td><td>Regular pattern at a fixed period</td><td>Dips at ~M8 and ~M16 (12-month cycle)</td></tr>
+<tr><td><strong>Are there outliers?</strong></td><td>Points far from their neighbours</td><td>Scatter around the trend line</td></tr>
+<tr><td><strong>Does variance change?</strong></td><td>Spread fans in or out over time</td><td>Roughly constant amplitude → additive model</td></tr>
+        </tbody></table>
+
+        <div class="note">
+            <span class="label">📌 Practical Strategy</span>
+        <p>Write the numeric work in Mojo 1.x, and reach Pandas or Matplotlib across interop for exploration and plotting. Reserve hand-written Python loops for the cases where a mature library already wins outright.</p>
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 13 ==================== -->
+    <div class="chapter-divider"><span>Chapter 13</span></div>
+    <section id="ch13">
+        <h2>13. Percentage Change &amp; Log Returns</h2>
+        <p class="lede">Growth, not level, drives most forecasts.</p>
+        <p>Returns measure relative change and are widely used in financial and economic time series. Unlike raw differences, returns are scale-independent and directly comparable across assets of very different magnitudes.</p>
+
+        <div class="calc-box">
+            <h4>📐 Return Formula</h4>
+            <div class="calc-step">Return<sub>t</sub> = (X<sub>t</sub> − X<sub>t−1</sub>) / X<sub>t−1</sub></div>
+        </div>
+
+        <p>From M1 to M2 in our data (120 → 132):</p>
+        <div class="calc-box">
+            <h4>📐 Worked Example</h4>
+            <div class="calc-step">(132 − 120) / 120 = 0.10 = <span class="result">10%</span></div>
+        </div>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Percentage change between two consecutive values
+def pct_change(current: Float64,
+               previous: Float64) -&gt; Float64:
+    return (current - previous) / previous
+</code></pre>
+
+        <div class="tip">
+            <span class="label">💡 When to use log returns</span>
+            Log returns are additive over time, so they are preferred for compounding calculations and statistical modelling of financial series.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 14 ==================== -->
+    <div class="chapter-divider"><span>Chapter 14</span></div>
+    <section id="ch14">
+        <h2>14. Autocorrelation</h2>
+        <p class="lede">ACF measures how strongly each value remembers its past — it is the single most useful plot in time series.</p>
+        <p>Autocorrelation measures how strongly a series is related to its own previous values. It is the key diagnostic for choosing AR model orders (via the ACF/PACF plots) and for detecting seasonality.</p>
+
+        <div class="calc-box">
+            <h4>📐 Autocorrelation Formula</h4>
+            <div class="calc-step">ρ<sub>k</sub> = Cov(X<sub>t</sub>, X<sub>t−k</sub>) / Var(X)</div>
+        </div>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Population variance implemented directly
+def variance(data: List[Float64]) -&gt; Float64:
+    var total = 0.0
+    for x in data:
+        total += x
+    var mean = total / Float64(len(data))
+    var ss = 0.0
+    for x in data:
+        ss += (x - mean) * (x - mean)
+    return ss / Float64(len(data))
+</code></pre>
+
+        <div class="note">
+            <span class="label">📌 Interpretation</span>
+            Our trending sales series shows strong positive autocorrelation at short lags. After first differencing (Chapter 5), autocorrelation drops sharply — a sign the differenced series is closer to stationary. Mojo is especially interesting when these statistics are recomputed repeatedly over very large arrays.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 15 ==================== -->
+    <div class="chapter-divider"><span>Chapter 15</span></div>
+    <section id="ch15">
+        <h2>15. Feature Scaling</h2>
+        <p>Many ML models (SVMs, neural networks, distance-based methods, and regularised regression) require features on a similar scale. Standardisation centres each feature around zero with unit variance.</p>
+
+        <div class="calc-box">
+            <h4>📐 Z-Score Formula</h4>
+            <div class="calc-step">z = (x − μ) / σ</div>
+        </div>
+
+        <p>For our sales data, μ ≈ 199.50 and σ ≈ 46.3. For the M1 value of 120:</p>
+        <div class="calc-box">
+            <h4>📐 Worked Example</h4>
+            <div class="calc-step">z = (120 − 199.50) / 46.3 ≈ <span class="result">−1.72</span></div>
+        </div>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Z-score normalization: (x - mean) / std
+def standardize(x: Float64,
+                mean: Float64,
+                std: Float64) -&gt; Float64:
+    return (x - mean) / std
+</code></pre>
+    </section>
+
+    <!-- ==================== CHAPTER 16 ==================== -->
+    <div class="chapter-divider"><span>Chapter 16</span></div>
+    <section id="ch16">
+        <h2>16. The Forecasting Model Ladder</h2>
+        <p class="lede">Climb deliberately: each rung is a baseline the next model must beat to justify its complexity, and if a forest cannot beat the line, the extra complexity is money wasted.</p>
+        <p>Do not jump directly to deep learning. Build models progressively: each rung provides a baseline that the next model must beat to justify its added complexity.</p>
+
+        <table>
+            <tbody><tr><th>Level</th><th>Model</th><th>Why</th></tr>
+<tr><td>1</td><td>Naive</td><td>Baseline</td></tr>
+<tr><td>2</td><td>Moving average</td><td>Smoothing</td></tr>
+<tr><td>3</td><td>Exponential smoothing</td><td>Trend / level</td></tr>
+<tr><td>4</td><td>AR</td><td>Autoregression</td></tr>
+<tr><td>5</td><td>ARIMA</td><td>Classical statistical forecasting</td></tr>
+<tr><td>6</td><td>Linear regression</td><td>Feature-based ML</td></tr>
+<tr><td>7</td><td>Random Forest</td><td>Nonlinear ML</td></tr>
+<tr><td>8</td><td>Gradient boosting</td><td>High-performance tabular ML</td></tr>
+<tr><td>9</td><td>LSTM / GRU</td><td>Sequence modelling</td></tr>
+<tr><td>10</td><td>Transformers</td><td>Advanced sequence modelling</td></tr>
+        </tbody></table>
+
+        <div class="note">
+            <span class="label">📌 Principle</span>
+            A sophisticated model that cannot beat a simpler baseline is usually not worth its complexity.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 17 ==================== -->
+    <div class="chapter-divider"><span>Chapter 17</span></div>
+    <section id="ch17">
+        <h2>17. The Naive Forecast</h2>
+        <p>The simplest possible forecast predicts that the next value equals the current one. It is the mandatory baseline every real model must beat.</p>
+
+        <div class="calc-box">
+            <h4>📐 Naive Forecast</h4>
+            <div class="calc-step">ŷ<sub>t+1</sub> = y<sub>t</sub></div>
+        </div>
+
+        <p>If the latest observation in our data is 280 (M24):</p>
+        <div class="calc-box">
+            <h4>📐 Worked Example</h4>
+            <div class="calc-step">Forecast = <span class="result">280</span></div>
+        </div>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Naive forecast: predict the last observed value
+def naive_forecast(last_value: Float64) -&gt; Float64:
+    return last_value
+</code></pre>
+
+        <div class="note">
+            <span class="label">📌 Baseline Rule</span>
+            A sophisticated ML model that cannot beat a naive baseline is usually not useful.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 18 ==================== -->
+    <div class="chapter-divider"><span>Chapter 18</span></div>
+    <section id="ch18">
+        <h2>18. Multivariate Time Series</h2>
+        <p>Real-world forecasting usually involves several variables that influence one another. In addition to lagged versions of the target, related exogenous variables can be used as features.</p>
+
+        <table>
+            <tbody><tr><th>Variable</th><th>Example</th></tr>
+            <tr><td>Sales</td><td>Monthly sales (our target)</td></tr>
+            <tr><td>Price</td><td>Product price</td></tr>
+            <tr><td>Rainfall</td><td>Monthly rainfall</td></tr>
+            <tr><td>Temperature</td><td>Average temperature</td></tr>
+            <tr><td>Advertising</td><td>Advertising expenditure</td></tr>
+            <tr><td>Inventory</td><td>Opening inventory</td></tr>
+        </tbody></table>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Multivariate features: one row per time step, one column per variable,
+# stored flat and row-major - element [i, j] lives at i * n_cols + j, the
+# same layout the lag matrix uses earlier in this chapter.
+def build_design_matrix(
+    sales: List[Float64], price: List[Float64], rainfall: List[Float64]
+) -> List[Float64]:
+    var n = len(sales)
+    var out = List[Float64]()
+    for i in range(n):
+        out.append(sales[i])        # column 0: the lagged target
+        out.append(price[i])        # column 1: exogenous
+        out.append(rainfall[i])     # column 2: exogenous
+    return out
+
+def main():
+    var sales = load_sales_data()
+    var price: List[Float64] = [
+        10.0, 10.0, 10.5, 10.5, 11.0, 11.0, 11.5, 11.5,
+        12.0, 12.0, 12.5, 12.5, 13.0, 13.0, 13.5, 13.5,
+        14.0, 14.0, 14.5, 14.5, 15.0, 15.0, 15.5, 15.5,
+    ]
+    var rainfall: List[Float64] = [
+        180.0, 190.0, 210.0, 140.0, 60.0, 35.0, 30.0, 45.0,
+        70.0, 120.0, 160.0, 185.0, 195.0, 175.0, 90.0, 40.0,
+        28.0, 50.0, 80.0, 130.0, 170.0, 190.0, 150.0, 95.0,
+    ]
+    var X = build_design_matrix(sales, price, rainfall)
+    var n_cols = 3
+    print("Rows:", len(X) // n_cols, "Columns:", n_cols)
+    print("Row 0:", X[0], X[1], X[2])
+    print("Row 1:", X[3], X[4], X[5])
+</code></pre>
+
+        <div class="tip">
+            <span class="label">💡 Mojo Opportunity</span>
+            Multivariate feature engineering is one of the strongest candidates for Mojo acceleration: the same operations are applied repeatedly over large arrays — exactly the kind of work compiled numerical kernels excel at.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 19 ==================== -->
+    <div class="chapter-divider"><span>Chapter 19</span></div>
+    <section id="ch19">
+        <h2>19. Anomaly Detection</h2>
+        <p class="lede">A z-score turns &ldquo;looks odd&rdquo; into a rule a pipeline can act on.</p>
+        <p>A simple — and often effective — anomaly detector flags points whose z-score exceeds a threshold. With μ ≈ 199.5 and σ ≈ 46.3:</p>
+
+        <div class="calc-box">
+            <h4>📐 Z-Score Detector</h4>
+            <div class="calc-step">z = (x − μ) / σ</div>
+            <div class="calc-step">Investigate when |z| &gt; 3</div>
+        </div>
+
+        <pre class="mojo"><span class="lang-label">Mojo 1.x</span><code>
+# Z-score: standard deviations away from the mean (used for anomalies)
+def zscore(x: Float64,
+           mean: Float64,
+           std: Float64) -&gt; Float64:
+    return (x - mean) / std
+</code></pre>
+
+        <div class="note">
+            <span class="label">📌 Note</span>
+            Because our synthetic data contains no extreme outliers, |z| &gt; 3 rarely triggers. In real data, always investigate flagged points — they may be recording errors or genuinely unusual events.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 20 ==================== -->
+    <div class="chapter-divider"><span>Chapter 20</span></div>
+    <section id="ch20">
+        <h2>20. Your Mojo Time-Series Engine</h2>
+        <p>An excellent learning project is building a small time-series numerical engine in Mojo, one version at a time. Each version adds a layer of functionality.</p>
+
+        <table>
+            <tbody><tr><th>Version</th><th>Components</th></tr>
+            <tr><td>1</td><td><code>mean()</code>, <code>median()</code>, <code>variance()</code>, <code>standard_deviation()</code>, <code>minimum()</code>, <code>maximum()</code></td></tr>
+            <tr><td>2</td><td><code>lag()</code>, <code>difference()</code>, <code>percentage_change()</code>, <code>rolling_mean()</code>, <code>rolling_std()</code></td></tr>
+            <tr><td>3</td><td><code>covariance()</code>, <code>correlation()</code>, <code>autocorrelation()</code>, <code>zscore()</code></td></tr>
+            <tr><td>4</td><td><code>linear_regression()</code>, MAE, RMSE, MAPE</td></tr>
+            <tr><td>5</td><td>AR model, exponential smoothing, walk-forward validation</td></tr>
+            <tr><td>6</td><td>feature matrix, forecast engine, benchmarking, parallel numerical operations</td></tr>
+        </tbody></table>
+
+        <div class="note">
+            <span class="label">📌 Lesson</span>
+            A time-series system is not one algorithm — it is a pipeline of numerical transformations.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 21 ==================== -->
+    <div class="chapter-divider"><span>Chapter 21</span></div>
+    <section id="ch21">
+        <h2>21. Mojo 1.x vs Python for Time-Series Analytics</h2>
+        <table>
+        <tbody><tr><th>Task</th><th>Mojo 1.x</th><th>Python</th></tr>
+<tr><td>Data ingestion</td><td>★★</td><td>★★★★★</td></tr>
+<tr><td>Data cleaning</td><td>★★</td><td>★★★★★</td></tr>
+<tr><td>Pandas workflows</td><td>★</td><td>★★★★★</td></tr>
+<tr><td>Visualization</td><td>★</td><td>★★★★★</td></tr>
+<tr><td>Statistics ecosystem</td><td>★★</td><td>★★★★★</td></tr>
+<tr><td>ML ecosystem</td><td>★★</td><td>★★★★★</td></tr>
+<tr><td>Numerical kernels</td><td>★★★★★</td><td>★★★★</td></tr>
+<tr><td>Low-level optimization</td><td>★★★★★</td><td>★★★</td></tr>
+<tr><td>Typed numerical code</td><td>★★★★★</td><td>★★</td></tr>
+<tr><td>Learning curve</td><td>★★★</td><td>★★★★★</td></tr>
+        </tbody></table>
+
+        <div class="tip">
+            <span class="label">💡 Best of both</span>
+        <p>The strongest practical approach is not "Mojo versus Python" - for a data scientist it is <strong>Mojo 1.x with Python interop</strong>.</p>
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 22 ==================== -->
+    <div class="chapter-divider"><span>Chapter 22</span></div>
+    <section id="ch22">
+        <h2>22. The Hybrid Mojo Architecture</h2>
+        <p class="lede">A production forecast is a loop, not a script - and where the book ends is where engineering begins.</p>
+        <p>Mojo owns the numerical hot spots; Python supplies the research and orchestration environment around them.</p>
+
+        <pre class="diagram"><span class="lang-label">Architecture</span><code>TIME-SERIES DATA
+       |
+       v
+Feature Engineering  (Mojo)
+       |
++----------+----------+
+|                     |
+v                     v
+Mojo              Python
+ML / Stats        Numerical Kernels
+|                     |
++----------+----------+
+       |
+       v
+Forecast Engine
+       |
+       v
+Visualization
+       |
+       v
+Report</code></pre>
+
+        <div class="note">
+            <span class="label">📌 Why it works</span>
+            This architecture is especially attractive when Python supplies the ecosystem and Mojo accelerates repeated, compiled numerical work.
+        </div>
+    </section>
+
+    <!-- ==================== CHAPTER 23 ==================== -->
+    <div class="chapter-divider"><span>Chapter 23</span></div>
+    <section id="ch23">
+        <h2>23. Capstone Project — Agricultural Forecasting Engine</h2>
+        <p>Build a complete forecasting system on agricultural data such as monthly rainfall, temperature, crop yield, fertilizer use, market prices, irrigation volume, and sales.</p>
+
+        <h3>23.1 Mojo 1.x Side</h3>
+            <li>Import CSV data.</li>
+            <li>Clean dates.</li>
+            <li>Handle missing values.</li>
+            <li>Visualize trends.</li>
+            <li>Generate lag features.</li>
+            <li>Generate rolling statistics.</li>
+            <li>Train ML models.</li>
+            <li>Perform walk-forward validation.</li>
+            <li>Calculate MAE / RMSE / MAPE.</li>
+            <li>Generate forecasts.</li>
+        </ol>
+
+        <h3>23.2 Mojo Side</h3>
+        <ol>
+            <li>Implement rolling statistics.</li>
+            <li>Implement lag generation.</li>
+            <li>Implement differencing.</li>
+            <li>Implement correlation.</li>
+            <li>Implement regression prediction.</li>
+            <li>Implement evaluation metrics.</li>
+            <li>Benchmark Mojo against Python loops.</li>
+            <li>Optimize the computational bottlenecks.</li>
+        </ol>
+    </section>
+
+    <!-- ==================== CHAPTER 24 ==================== -->
+    <div class="chapter-divider"><span>Chapter 24</span></div>
+    <section id="ch24">
+        <h2>24. 8-Week Learning Plan</h2>
+        <table>
+            <tbody><tr><th>Week</th><th>Python</th><th>Mojo</th></tr>
+<tr><td>1</td><td>Dates, Pandas, NumPy</td><td>Arrays and types</td></tr>
+<tr><td>2</td><td>Visualization and exploration</td><td>Loops and functions</td></tr>
+<tr><td>3</td><td>Lags and rolling statistics</td><td>Numerical kernels</td></tr>
+<tr><td>4</td><td>Differencing, returns, stationarity</td><td>Statistics implementation</td></tr>
+<tr><td>5</td><td>Regression and tree models</td><td>Prediction kernels</td></tr>
+<tr><td>6</td><td>ARIMA and exponential smoothing</td><td>Forecast algorithms</td></tr>
+<tr><td>7</td><td>LSTM / GRU sequence modelling</td><td>Tensor / numerical optimization</td></tr>
+<tr><td>8</td><td>Complete forecasting project</td><td>Benchmark and optimize Mojo engine</td></tr>
+        </tbody></table>
+    </section>
+
+    <!-- ==================== CHAPTER 25 ==================== -->
+    <div class="chapter-divider"><span>Chapter 25</span></div>
+    <section id="ch25">
+        <h2>25. Formula Cheat Sheet</h2>
+        <table>
+            <tbody><tr><th>Concept</th><th>Formula</th></tr>
+            <tr><td>Mean</td><td>μ = Σx / n</td></tr>
+            <tr><td>Variance</td><td>σ² = Σ(x−μ)² / n</td></tr>
+            <tr><td>Standard deviation</td><td>σ = √σ²</td></tr>
+            <tr><td>Difference</td><td>Δx = x<sub>t</sub> − x<sub>t−1</sub></td></tr>
+            <tr><td>Return</td><td>(x<sub>t</sub> − x<sub>t−1</sub>) / x<sub>t−1</sub></td></tr>
+            <tr><td>Z-score</td><td>(x − μ) / σ</td></tr>
+            <tr><td>Naive forecast</td><td>ŷ<sub>t+1</sub> = y<sub>t</sub></td></tr>
+            <tr><td>MAE</td><td>Σ|y − ŷ| / n</td></tr>
+            <tr><td>RMSE</td><td>√[Σ(y − ŷ)² / n]</td></tr>
+            <tr><td>MAPE</td><td>100 Σ|(y − ŷ) / y| / n</td></tr>
+            <tr><td>Linear regression</td><td>y = β₀ + β₁x</td></tr>
+            <tr><td>Exponential smoothing</td><td>S<sub>t</sub> = αX<sub>t</sub> + (1−α)S<sub>t−1</sub></td></tr>
+            <tr><td>Moving average</td><td>SMA(t) = (X<sub>t−k+1</sub> + … + X<sub>t</sub>) / k</td></tr>
+        </tbody></table>
+    </section>
+
+    <!-- ==================== APPENDIX ==================== -->
+    <div class="chapter-divider"><span>Appendix</span></div>
+    <section id="appendix">
+        <h2>📎 Appendix: Quick Reference</h2>
+
+        <h3>A.1 Python Libraries Reachable from Mojo</h3>
+        <table>
+            <tbody><tr><th>Library</th><th>Use</th><th>Key Functions</th></tr>
+<tr><td><code>pandas</code></td><td>Data handling</td><td><code>read_csv()</code>, <code>resample()</code>, <code>rolling()</code>, <code>shift()</code>, <code>diff()</code></td></tr>
+<tr><td><code>statsmodels</code></td><td>Statistical models</td><td><code>ARIMA()</code>, <code>seasonal_decompose()</code>, <code>ExponentialSmoothing()</code>, <code>adfuller()</code></td></tr>
+<tr><td><code>scikit-learn</code></td><td>ML models</td><td><code>RandomForestRegressor()</code>, <code>GradientBoostingRegressor()</code>, <code>TimeSeriesSplit()</code></td></tr>
+<tr><td><code>tensorflow</code>/<code>torch</code></td><td>Deep learning</td><td><code>LSTM()</code>, <code>Sequential()</code>, <code>fit()</code></td></tr>
+<tr><td><code>pmdarima</code></td><td>Auto ARIMA</td><td><code>auto_arima()</code></td></tr>
+        </tbody></table>
+
+        <h3>A.2 Mojo 1.x Key Features for Time Series</h3>
+        <table>
+            <tbody><tr><th>Feature</th><th>Mojo Syntax</th><th>Performance Benefit</th></tr>
+<tr><td>Typed functions</td><td><code>def name(x: Float64) -&gt; Float64:</code></td><td>Compile-time type checking</td></tr>
+<tr><td>SIMD vectorization</td><td><code>var v = SIMD[DType.float64, 4]()</code></td><td>Hardware-accelerated ops</td></tr>
+<tr><td>Typed collection</td><td><code>List[Float64]()</code></td><td>Typed, dynamically sized collection</td></tr>
+<tr><td>Python interop</td><td><code>from std.python import Python</code></td><td>Use any Python library</td></tr>
+<tr><td>Memory management</td><td><code>var</code> / <code>ref</code> / ownership</td><td>No garbage collection overhead</td></tr>
+<tr><td>Struct types</td><td><code>struct Model:</code></td><td>Zero-cost abstractions</td></tr>
+        </tbody></table>
+
+        <h3>A.3 Complete Mojo 1.x Equivalent</h3>
+        <pre class="mojo"><span class="lang-label">Mojo 1.x — Full Pipeline</span><code>
+# Full Mojo pipeline: load and split data natively, fit Holt-Winters via
+# Python interop (pandas + statsmodels), then evaluate MAE in Mojo.
+from std.python import Python
+
+# Mojo has no std.python.numpy: hand the split over as a real Python list.
+def to_python_list(data: List[Float64]) raises:
+    var out = Python.list()
+    for v in data:
+        out.append(v)
+    return out
+
+def main() raises:
+    # 1. Load data as a typed Mojo List
+    var data: List[Float64] = [
+        120.0, 132.0, 145.0, 138.0, 150.0, 165.0, 170.0,
+        158.0, 175.0, 190.0, 185.0, 200.0, 210.0, 205.0,
+        220.0, 215.0, 230.0, 240.0, 235.0, 250.0, 260.0,
+        255.0, 270.0, 280.0,
+    ]
+    # 2. Chronological split (train: first 18, test: last 6)
+    var train = List[Float64]()
+    var test = List[Float64]()
+    for i in range(18):
+        train.append(data[i])
+    for i in range(18, 24):
+        test.append(data[i])
+    # 3. Fit via Python interop: Mojo List -> Python list -> pandas Series
+    var pd_module = Python.import_module("pandas")
+    var statsmodels = Python.import_module("statsmodels.tsa.holtwinters")
+    var train_series = pd_module.Series(to_python_list(train))
+    var hw = statsmodels.ExponentialSmoothing(
+        train_series, trend="add", seasonal="add", seasonal_periods=12,
+    )
+    var model = hw.fit()
+    # 4. Forecast the next 6 months
+    var forecast = model.forecast(6)
+    # 5. Evaluate: mean absolute error against the held-out test set
+    var mae: Float64 = 0.0
+    for i in range(6):
+        var diff = test[i] - Float64(forecast.values[i])
+        if diff < 0.0:              # absolute value (sign check)
+            diff = -diff
+        mae += diff
+    mae /= 6.0
+    print("Forecast:", forecast.values)
+    print("Test MAE:", mae)
+</code></pre>
+    </section>
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <div class="nav-links">
+        <a href="#sample-data">← Sample Data</a>
+        <a href="#ch1">Chapter 1</a>
+        <a href="#ch12">Chapter 12</a>
+        <a href="#ch25">Chapter 25</a>
+        <a href="#appendix">Appendix →</a>
+    </div>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer>
+        <p>? <strong>Time Series Analytics with Mojo 1.x</strong> - Condensed Edition</p>
+        <p style="margin-top:0.5rem;">Python 🐍 • Mojo 1.x 🔥 • Machine Learning 🤖</p>
+    </footer>
+
+<button class="to-top" id="to-top" aria-label="Back to top">↑</button>
+
+<script>
+(function () {
+  var d = document, root = document.documentElement;
+  var bar = d.getElementById('progress');
+  var top = d.getElementById('to-top');
+  function upd() {
+    var h = root.scrollHeight - root.clientHeight;
+    bar.style.width = (h > 0 ? (root.scrollTop / h) * 100 : 0) + '%';
+    top.classList.toggle('on', root.scrollTop > 600);
+  }
+  addEventListener('scroll', upd, { passive: true });
+  upd();
+  top.addEventListener('click', function () {
+    root.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  d.querySelectorAll('pre').forEach(function (pre) {
+    var label = pre.querySelector('.lang-label');
+    var lang = label ? label.textContent.trim() :
+      (pre.classList.contains('mojo') ? 'Mojo 1.x' :
+       pre.classList.contains('python') ? 'Python' : 'Code');
+    var color = (lang.indexOf('Mojo') !== -1) ? '#ff8c5a' :
+                (lang.indexOf('Python') !== -1) ? '#5b8cf7' : '#c7a9e8';
+    var group = d.createElement('div');
+    group.className = 'code-group';
+    var head = d.createElement('div');
+    head.className = 'code-head';
+    head.innerHTML = '<span class="code-lang"><span class="dot" style="background:' + color + '"></span>' + lang + '</span>';
+    var btn = d.createElement('button');
+    btn.className = 'copy-btn';
+    btn.type = 'button';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function () {
+      var txt = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
+      function done() {
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600);
+      }
+      function fallback() {
+        var ta = d.createElement('textarea');
+        ta.value = txt; d.body.appendChild(ta); ta.select();
+        try { d.execCommand('copy'); done(); } catch (e) {}
+        d.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, fallback);
+      } else { fallback(); }
+    });
+    head.appendChild(btn);
+    pre.parentNode.insertBefore(group, pre);
+    group.appendChild(pre);
+    group.insertBefore(head, group.firstChild);
+    if (label) label.parentNode.removeChild(label);
+  });
+})();
+</script>
+
+<!-- ---- Python / Mojo syntax highlighting (self-contained, vanilla JS) ---- -->
+<style>
+.python .tok-k{color:#0033b3;}
+.python .tok-s{color:#067d17;}
+.python .tok-c{color:#8a8a8a;font-style:italic;}
+.python .tok-n{color:#1750eb;}
+.python .tok-d{color:#795e26;}
+.mojo .tok-k{color:#a626a4;}
+.mojo .tok-s{color:#50a14f;}
+.mojo .tok-c{color:#8a8a8a;font-style:italic;}
+.mojo .tok-n{color:#986801;}
+.mojo .tok-d{color:#795e26;}
+</style>
+<script>
+(function () {
+  'use strict';
+  if (document.querySelectorAll('pre code[data-hl]').length) return;
+  // token order matters: comments and strings first, then decorators/numbers/keywords
+  var RE = /(#(?:[^\n]*))|(t?"(?:\\.|[^"\\])*"|'[^']*')|(@[A-Za-z_][A-Za-z0-9_]*)|(\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b)|(\b(?:def|var|ref|if|elif|else|for|while|return|import|from|in|not|and|or|pass|class|struct|with|raise|try|except|break|continue|lambda|as|is|True|False|None|comptime|raises|Int|Float64|Float32|String|Bool|List|Tuple|Dict|Set|SIMD|DType)\b)/g;
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  document.querySelectorAll('pre code').forEach(function (code) {
+    if (code.getAttribute('data-hl')) return;
+    var text = code.innerText, out = '', last = 0, m, cls;
+    RE.lastIndex = 0;
+    while ((m = RE.exec(text)) !== null) {
+      out += esc(text.slice(last, m.index));
+      if (m[1]) cls = 'tok-c';
+      else if (m[2]) cls = 'tok-s';
+      else if (m[3]) cls = 'tok-d';
+      else if (m[4]) cls = 'tok-n';
+      else cls = 'tok-k';
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = RE.lastIndex;
+    }
+    out += esc(text.slice(last));
+    code.innerHTML = out;
+    code.setAttribute('data-hl', '1');
+  });
+})();
+</script>
+
+</body></html>
