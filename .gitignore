@@ -1,0 +1,6 @@
+# Windows NTFS alternate data streams (Zone.Identifier)
+*Zone.Identifier
+
+# Python bytecode caches
+__pycache__/
+*.py[cod]
